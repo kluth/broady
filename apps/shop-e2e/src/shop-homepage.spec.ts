@@ -8,7 +8,7 @@ test.describe('Shop Homepage', () => {
   test('should display the main header and navigation', async ({ page }) => {
     // Check header title
     const header = page.locator('h1').first();
-    await expect(header).toContainText('Nx Shop Demo');
+    await expect(header).toContainText('Official Shop Demo');
 
     // Check navigation link exists
     const productsLink = page.locator('nav a:has-text("Products")');
@@ -19,7 +19,7 @@ test.describe('Shop Homepage', () => {
   test('should display footer with copyright information', async ({ page }) => {
     // Check footer content
     const footer = page.locator('footer');
-    await expect(footer).toContainText('© 2025 Nx Shop Demo');
+    await expect(footer).toContainText('© 2025 Official Shop Demo');
     await expect(footer).toContainText(
       'Frontend (Angular) + Backend (Express) + Shared Libraries'
     );
