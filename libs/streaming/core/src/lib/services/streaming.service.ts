@@ -1,5 +1,4 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, interval } from 'rxjs';
+import { Injectable, signal, computed, effect } from '@angular/core';
 import {
   StreamingDestination,
   StreamingState,
@@ -13,8 +12,9 @@ import {
   providedIn: 'root'
 })
 export class StreamingService {
-  private destinationsSubject = new BehaviorSubject<StreamingDestination[]>([]);
-  private streamingStateSubject = new BehaviorSubject<StreamingState>({
+  // Signals for reactive state
+  private destinationsSignal = signal<StreamingDestination[]>([]);
+  private streamingStateSignal = signal<StreamingState>({
     isStreaming: false,
     isRecording: false,
     droppedFrames: 0,
@@ -25,15 +25,29 @@ export class StreamingService {
     memoryUsage: 0
   });
 
-  public readonly destinations$ = this.destinationsSubject.asObservable();
-  public readonly streamingState$ = this.streamingStateSubject.asObservable();
-  public readonly isStreaming$ = this.streamingState$.pipe(
-    map((state) => state.isStreaming)
+  // Public readonly signals
+  public readonly destinations = this.destinationsSignal.asReadonly();
+  public readonly streamingState = this.streamingStateSignal.asReadonly();
+  public readonly isStreaming = computed(() => this.streamingStateSignal().isStreaming);
+  public readonly enabledDestinations = computed(() =>
+    this.destinationsSignal().filter(d => d.enabled)
   );
 
-  private statsInterval: any;
+  private statsIntervalId: number | null = null;
+  private mediaRecorder: MediaRecorder | null = null;
+  private streamStartTime: number | null = null;
 
-  constructor() {}
+  constructor() {
+    // Auto-cleanup on service destroy
+    effect((onCleanup) => {
+      onCleanup(() => {
+        this.stopStatsCollection();
+        if (this.mediaRecorder) {
+          this.mediaRecorder.stop();
+        }
+      });
+    });
+  }
 
   /**
    * Add streaming destination
@@ -44,9 +58,7 @@ export class StreamingService {
       id: this.generateId()
     };
 
-    const destinations = [...this.destinationsSubject.value, newDestination];
-    this.destinationsSubject.next(destinations);
-
+    this.destinationsSignal.update(destinations => [...destinations, newDestination]);
     return newDestination;
   }
 
@@ -54,10 +66,9 @@ export class StreamingService {
    * Remove streaming destination
    */
   removeDestination(destinationId: string): void {
-    const destinations = this.destinationsSubject.value.filter(
-      (d) => d.id !== destinationId
+    this.destinationsSignal.update(destinations =>
+      destinations.filter(d => d.id !== destinationId)
     );
-    this.destinationsSubject.next(destinations);
   }
 
   /**
@@ -67,14 +78,11 @@ export class StreamingService {
     destinationId: string,
     updates: Partial<StreamingDestination>
   ): void {
-    const destinations = this.destinationsSubject.value.map((dest) => {
-      if (dest.id === destinationId) {
-        return { ...dest, ...updates };
-      }
-      return dest;
-    });
-
-    this.destinationsSubject.next(destinations);
+    this.destinationsSignal.update(destinations =>
+      destinations.map(dest =>
+        dest.id === destinationId ? { ...dest, ...updates } : dest
+      )
+    );
   }
 
   /**
@@ -88,45 +96,52 @@ export class StreamingService {
    * Start streaming to all enabled destinations
    */
   async startStreaming(): Promise<void> {
-    const enabledDestinations = this.destinationsSubject.value.filter(
-      (d) => d.enabled
-    );
+    const enabled = this.enabledDestinations();
 
-    if (enabledDestinations.length === 0) {
+    if (enabled.length === 0) {
       throw new Error('No streaming destinations enabled');
     }
 
     // Initialize streaming state
-    const state = this.streamingStateSubject.value;
-    this.streamingStateSubject.next({
+    this.streamingStateSignal.update(state => ({
       ...state,
       isStreaming: true,
       streamStartTime: new Date(),
       totalFrames: 0,
       droppedFrames: 0
-    });
+    }));
 
-    // Start stats collection
+    this.streamStartTime = Date.now();
     this.startStatsCollection();
 
-    // Simulate streaming to each destination
-    for (const destination of enabledDestinations) {
+    // In a real implementation, this would set up WebRTC/RTMP connections
+    // For now, we simulate streaming to each destination
+    for (const destination of enabled) {
       await this.connectToDestination(destination);
     }
+
+    console.log(`Started streaming to ${enabled.length} destination(s)`);
   }
 
   /**
    * Stop streaming
    */
   async stopStreaming(): Promise<void> {
-    const state = this.streamingStateSubject.value;
-    this.streamingStateSubject.next({
+    this.streamingStateSignal.update(state => ({
       ...state,
       isStreaming: false,
       streamStartTime: undefined
-    });
+    }));
 
     this.stopStatsCollection();
+    this.streamStartTime = null;
+
+    if (this.mediaRecorder) {
+      this.mediaRecorder.stop();
+      this.mediaRecorder = null;
+    }
+
+    console.log('Stopped streaming');
   }
 
   /**
@@ -138,8 +153,12 @@ export class StreamingService {
     console.log(`Connecting to ${destination.name} via ${destination.protocol}`);
     console.log(`Stream URL: ${destination.url}`);
 
-    // In a real implementation, this would use WebRTC, RTMP, or other protocols
-    // For now, we'll simulate the connection
+    // In production, implement actual streaming:
+    // - RTMP: Use WebRTC to RTMP bridge or server-side FFmpeg
+    // - WebRTC: Use RTCPeerConnection
+    // - HLS: Use MediaRecorder + chunked upload
+    // - SRT: Use WebTransport or WebSocket proxy
+
     return new Promise((resolve) => {
       setTimeout(() => {
         console.log(`Connected to ${destination.name}`);
@@ -152,37 +171,55 @@ export class StreamingService {
    * Start collecting streaming statistics
    */
   private startStatsCollection(): void {
-    this.statsInterval = interval(1000).subscribe(() => {
-      const state = this.streamingStateSubject.value;
+    this.statsIntervalId = window.setInterval(() => {
+      const now = Date.now();
+      const elapsed = this.streamStartTime ? (now - this.streamStartTime) / 1000 : 0;
 
-      // Simulate streaming statistics
-      this.streamingStateSubject.next({
-        ...state,
-        totalFrames: state.totalFrames + 60,
-        droppedFrames: state.droppedFrames + Math.random() > 0.95 ? 1 : 0,
-        fps: 60,
-        bitrate: 2500 + Math.random() * 500,
-        cpuUsage: 30 + Math.random() * 20,
-        memoryUsage: 500 + Math.random() * 100
+      this.streamingStateSignal.update(state => {
+        // Simulate realistic streaming stats
+        const targetFps = 60;
+        const expectedFrames = Math.floor(elapsed * targetFps);
+        const actualFrames = state.totalFrames + targetFps;
+        const dropped = Math.random() > 0.95 ? Math.floor(Math.random() * 3) : 0;
+
+        return {
+          ...state,
+          totalFrames: actualFrames,
+          droppedFrames: state.droppedFrames + dropped,
+          fps: targetFps - (dropped > 0 ? Math.random() * 2 : 0),
+          bitrate: 2500 + Math.random() * 500 - 250, // 2250-2750 kbps
+          cpuUsage: 30 + Math.random() * 20, // 30-50%
+          memoryUsage: 500 + Math.random() * 100 // 500-600 MB
+        };
       });
-    });
+    }, 1000);
   }
 
   /**
    * Stop collecting statistics
    */
   private stopStatsCollection(): void {
-    if (this.statsInterval) {
-      this.statsInterval.unsubscribe();
-      this.statsInterval = null;
+    if (this.statsIntervalId !== null) {
+      clearInterval(this.statsIntervalId);
+      this.statsIntervalId = null;
     }
   }
 
   /**
-   * Get streaming statistics
+   * Get streaming uptime in seconds
    */
-  getStreamingStats(): Observable<StreamingState> {
-    return this.streamingState$;
+  getUptime(): number {
+    if (!this.streamStartTime) return 0;
+    return Math.floor((Date.now() - this.streamStartTime) / 1000);
+  }
+
+  /**
+   * Get drop percentage
+   */
+  getDropPercentage(): number {
+    const state = this.streamingStateSignal();
+    if (state.totalFrames === 0) return 0;
+    return (state.droppedFrames / state.totalFrames) * 100;
   }
 
   /**
@@ -321,6 +358,3 @@ export class StreamingService {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
-
-// Add missing import
-import { map } from 'rxjs/operators';
