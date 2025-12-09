@@ -23,3 +23,8 @@ export * from './lib/services/virtual-camera.service';
 // Components
 export * from './lib/components/scene-list/scene-list.component';
 export * from './lib/components/streaming-controls/streaming-controls.component';
+export * from './lib/components/audio-mixer/audio-mixer.component';
+export * from './lib/components/video-preview/video-preview.component';
+export * from './lib/components/source-properties/source-properties.component';
+export * from './lib/components/scene-transitions/scene-transitions.component';
+export * from './lib/components/hotkey-config/hotkey-config.component';

@@ -1,0 +1,309 @@
+<div class="source-properties">
+  @if (source(); as src) {
+    <div class="properties-header">
+      <h3>{{ src.name }}</h3>
+      <div class="header-controls">
+        <button
+          class="btn-icon"
+          [class.active]="!src.visible"
+          (click)="toggleVisibility()"
+          title="Toggle Visibility"
+        >
+          {{ src.visible ? '👁️' : '👁️‍🗨️' }}
+        </button>
+        <button
+          class="btn-icon"
+          [class.active]="src.locked"
+          (click)="toggleLock()"
+          title="Lock/Unlock"
+        >
+          {{ src.locked ? '🔒' : '🔓' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button
+        class="tab"
+        [class.active]="selectedTab() === 'transform'"
+        (click)="selectTab('transform')"
+      >
+        Transform
+      </button>
+      <button
+        class="tab"
+        [class.active]="selectedTab() === 'filters'"
+        (click)="selectTab('filters')"
+      >
+        Filters
+        @if (hasFilters()) {
+          <span class="badge">{{ filters().length }}</span>
+        }
+      </button>
+      <button
+        class="tab"
+        [class.active]="selectedTab() === 'audio'"
+        (click)="selectTab('audio')"
+      >
+        Audio
+      </button>
+      <button
+        class="tab"
+        [class.active]="selectedTab() === 'advanced'"
+        (click)="selectTab('advanced')"
+      >
+        Advanced
+      </button>
+    </div>
+
+    <div class="tab-content">
+      @if (selectedTab() === 'transform' && transform(); as t) {
+        <div class="transform-controls">
+          <div class="control-section">
+            <h4>Position</h4>
+            <div class="control-row">
+              <label>X:</label>
+              <input
+                type="number"
+                [value]="t.position.x"
+                (input)="updatePosition('x', +$any($event.target).value)"
+              />
+            </div>
+            <div class="control-row">
+              <label>Y:</label>
+              <input
+                type="number"
+                [value]="t.position.y"
+                (input)="updatePosition('y', +$any($event.target).value)"
+              />
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h4>Scale</h4>
+            <div class="control-row">
+              <label>X:</label>
+              <input
+                type="number"
+                step="0.1"
+                [value]="t.scale.x"
+                (input)="updateScale('x', +$any($event.target).value)"
+              />
+            </div>
+            <div class="control-row">
+              <label>Y:</label>
+              <input
+                type="number"
+                step="0.1"
+                [value]="t.scale.y"
+                (input)="updateScale('y', +$any($event.target).value)"
+              />
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h4>Rotation</h4>
+            <div class="control-row">
+              <label>Degrees:</label>
+              <input
+                type="number"
+                [value]="t.rotation"
+                (input)="updateRotation(+$any($event.target).value)"
+              />
+              <input
+                type="range"
+                min="0"
+                max="360"
+                [value]="t.rotation"
+                (input)="updateRotation(+$any($event.target).value)"
+              />
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h4>Crop</h4>
+            <div class="control-row">
+              <label>Top:</label>
+              <input
+                type="number"
+                [value]="t.crop.top"
+                (input)="updateCrop('top', +$any($event.target).value)"
+              />
+            </div>
+            <div class="control-row">
+              <label>Bottom:</label>
+              <input
+                type="number"
+                [value]="t.crop.bottom"
+                (input)="updateCrop('bottom', +$any($event.target).value)"
+              />
+            </div>
+            <div class="control-row">
+              <label>Left:</label>
+              <input
+                type="number"
+                [value]="t.crop.left"
+                (input)="updateCrop('left', +$any($event.target).value)"
+              />
+            </div>
+            <div class="control-row">
+              <label>Right:</label>
+              <input
+                type="number"
+                [value]="t.crop.right"
+                (input)="updateCrop('right', +$any($event.target).value)"
+              />
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h4>Bounding Box</h4>
+            <div class="control-row">
+              <label>Type:</label>
+              <select
+                [value]="t.boundsType"
+                (change)="updateBoundsType($any($event.target).value)"
+              >
+                <option value="none">No Bounds</option>
+                <option value="stretch">Stretch to Bounds</option>
+                <option value="scale">Scale to Inner Bounds</option>
+                <option value="crop">Crop to Bounds</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn-reset" (click)="resetTransform()">
+            Reset Transform
+          </button>
+        </div>
+      }
+
+      @if (selectedTab() === 'filters') {
+        <div class="filters-panel">
+          <div class="filters-list">
+            @for (filter of filters(); track filter.id) {
+              <div class="filter-item" [class.disabled]="!filter.enabled">
+                <div class="filter-header">
+                  <input
+                    type="checkbox"
+                    [checked]="filter.enabled"
+                    (change)="toggleFilter(filter.id)"
+                  />
+                  <span class="filter-name">{{ filter.name }}</span>
+                  <div class="filter-controls">
+                    <button
+                      class="btn-icon-small"
+                      (click)="moveFilterUp(filter.id)"
+                      title="Move Up"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      class="btn-icon-small"
+                      (click)="moveFilterDown(filter.id)"
+                      title="Move Down"
+                    >
+                      ▼
+                    </button>
+                    <button
+                      class="btn-icon-small"
+                      (click)="removeFilter(filter.id)"
+                      title="Remove"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              </div>
+            } @empty {
+              <p class="empty-text">No filters applied</p>
+            }
+          </div>
+
+          <div class="add-filter">
+            <select #filterSelect class="filter-select">
+              <option value="">Add Filter...</option>
+              @for (type of filterTypes; track type) {
+                <option [value]="type">{{ getFilterName(type) }}</option>
+              }
+            </select>
+            <button
+              class="btn-add"
+              (click)="addFilter(filterSelect.value); filterSelect.value = ''"
+              [disabled]="!filterSelect.value"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (selectedTab() === 'audio') {
+        <div class="audio-controls">
+          <div class="control-section">
+            <h4>Volume</h4>
+            <div class="volume-slider">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                [value]="src.volume"
+                (input)="updateVolume(+$any($event.target).value)"
+              />
+              <span class="volume-value">{{ (src.volume * 100).toFixed(0) }}%</span>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h4>Mute</h4>
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [checked]="src.muted"
+                (change)="toggleMute()"
+              />
+              Mute this source
+            </label>
+          </div>
+        </div>
+      }
+
+      @if (selectedTab() === 'advanced') {
+        <div class="advanced-controls">
+          <div class="control-section">
+            <h4>Source Info</h4>
+            <div class="info-row">
+              <span class="label">Type:</span>
+              <span class="value">{{ src.type }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">ID:</span>
+              <span class="value code">{{ src.id }}</span>
+            </div>
+          </div>
+
+          <div class="control-section">
+            <h4>Transform Summary</h4>
+            <div class="info-row">
+              <span class="label">Position:</span>
+              <span class="value">{{ t.position.x }}, {{ t.position.y }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Scale:</span>
+              <span class="value">{{ t.scale.x }}x, {{ t.scale.y }}y</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Rotation:</span>
+              <span class="value">{{ t.rotation }}°</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="no-source">
+      <p>No source selected</p>
+    </div>
+  }
+</div>

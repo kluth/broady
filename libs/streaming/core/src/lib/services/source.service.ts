@@ -1,14 +1,15 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, signal, computed } from '@angular/core';
 import { Source, SourceType, Filter, Transform } from '../models/source.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SourceService {
-  private sourcesSubject = new BehaviorSubject<Source[]>([]);
+  // Signals - much cleaner than BehaviorSubject!
+  private sourcesSignal = signal<Source[]>([]);
 
-  public readonly sources$ = this.sourcesSubject.asObservable();
+  // Public readonly signals
+  public readonly sources = this.sourcesSignal.asReadonly();
 
   constructor() {}
 
@@ -34,8 +35,7 @@ export class SourceService {
       visible: true
     };
 
-    const sources = [...this.sourcesSubject.value, source];
-    this.sourcesSubject.next(sources);
+    this.sourcesSignal.update(sources => [...sources, source]);
 
     return source;
   }
@@ -44,22 +44,14 @@ export class SourceService {
    * Delete a source
    */
   deleteSource(sourceId: string): void {
-    const sources = this.sourcesSubject.value.filter((s) => s.id !== sourceId);
-    this.sourcesSubject.next(sources);
+    this.sourcesSignal.update(sources => sources.filter((s) => s.id !== sourceId));
   }
 
   /**
    * Get a source by ID
    */
-  getSource(sourceId: string): Observable<Source | null> {
-    return new Observable((observer) => {
-      const subscription = this.sources$.subscribe((sources) => {
-        const source = sources.find((s) => s.id === sourceId);
-        observer.next(source || null);
-      });
-
-      return () => subscription.unsubscribe();
-    });
+  getSource(sourceId: string): Source | null {
+    return this.sourcesSignal().find((s) => s.id === sourceId) || null;
   }
 
   /**
@@ -73,21 +65,19 @@ export class SourceService {
    * Update source transform
    */
   updateSourceTransform(sourceId: string, transform: Partial<Transform>): void {
-    const sources = this.sourcesSubject.value;
-    const source = sources.find((s) => s.id === sourceId);
-
-    if (!source) return;
-
-    const updatedSource = {
-      ...source,
-      transform: {
-        ...source.transform,
-        ...transform
-      }
-    };
-
-    this.sourcesSubject.next(
-      sources.map((s) => (s.id === sourceId ? updatedSource : s))
+    this.sourcesSignal.update(sources =>
+      sources.map(source => {
+        if (source.id === sourceId) {
+          return {
+            ...source,
+            transform: {
+              ...source.transform,
+              ...transform
+            }
+          };
+        }
+        return source;
+      })
     );
   }
 
@@ -95,18 +85,16 @@ export class SourceService {
    * Add filter to source
    */
   addFilter(sourceId: string, filter: Filter): void {
-    const sources = this.sourcesSubject.value;
-    const source = sources.find((s) => s.id === sourceId);
-
-    if (!source) return;
-
-    const updatedSource = {
-      ...source,
-      filters: [...source.filters, filter]
-    };
-
-    this.sourcesSubject.next(
-      sources.map((s) => (s.id === sourceId ? updatedSource : s))
+    this.sourcesSignal.update(sources =>
+      sources.map(source => {
+        if (source.id === sourceId) {
+          return {
+            ...source,
+            filters: [...source.filters, filter]
+          };
+        }
+        return source;
+      })
     );
   }
 
@@ -114,18 +102,35 @@ export class SourceService {
    * Remove filter from source
    */
   removeFilter(sourceId: string, filterId: string): void {
-    const sources = this.sourcesSubject.value;
-    const source = sources.find((s) => s.id === sourceId);
+    this.sourcesSignal.update(sources =>
+      sources.map(source => {
+        if (source.id === sourceId) {
+          return {
+            ...source,
+            filters: source.filters.filter((f) => f.id !== filterId)
+          };
+        }
+        return source;
+      })
+    );
+  }
 
-    if (!source) return;
-
-    const updatedSource = {
-      ...source,
-      filters: source.filters.filter((f) => f.id !== filterId)
-    };
-
-    this.sourcesSubject.next(
-      sources.map((s) => (s.id === sourceId ? updatedSource : s))
+  /**
+   * Update filter settings
+   */
+  updateFilter(sourceId: string, filterId: string, updates: Partial<Filter>): void {
+    this.sourcesSignal.update(sources =>
+      sources.map(source => {
+        if (source.id === sourceId) {
+          return {
+            ...source,
+            filters: source.filters.map(filter =>
+              filter.id === filterId ? { ...filter, ...updates } : filter
+            )
+          };
+        }
+        return source;
+      })
     );
   }
 
@@ -180,7 +185,7 @@ export class SourceService {
    * Duplicate source
    */
   duplicateSource(sourceId: string): Source | null {
-    const source = this.sourcesSubject.value.find((s) => s.id === sourceId);
+    const source = this.sourcesSignal().find((s) => s.id === sourceId);
 
     if (!source) return null;
 
@@ -197,8 +202,7 @@ export class SourceService {
       }
     };
 
-    const sources = [...this.sourcesSubject.value, duplicatedSource];
-    this.sourcesSubject.next(sources);
+    this.sourcesSignal.update(sources => [...sources, duplicatedSource]);
 
     return duplicatedSource;
   }
@@ -206,15 +210,15 @@ export class SourceService {
   /**
    * Update source
    */
-  private updateSource(sourceId: string, updates: Partial<Source>): void {
-    const sources = this.sourcesSubject.value.map((source) => {
-      if (source.id === sourceId) {
-        return { ...source, ...updates };
-      }
-      return source;
-    });
-
-    this.sourcesSubject.next(sources);
+  updateSource(sourceId: string, updates: Partial<Source>): void {
+    this.sourcesSignal.update(sources =>
+      sources.map((source) => {
+        if (source.id === sourceId) {
+          return { ...source, ...updates };
+        }
+        return source;
+      })
+    );
   }
 
   /**

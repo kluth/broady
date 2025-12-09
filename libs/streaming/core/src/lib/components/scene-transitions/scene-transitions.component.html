@@ -1,0 +1,144 @@
+<div class="scene-transitions">
+  <div class="transitions-header">
+    <h3>Scene Transitions</h3>
+  </div>
+
+  <div class="transitions-content">
+    <!-- Current Transition -->
+    <div class="current-transition">
+      <div class="transition-preview">
+        <span class="transition-icon">{{ transitionInfo().icon }}</span>
+        <div class="transition-details">
+          <h4>{{ getTransitionName(currentTransition().type) }}</h4>
+          <p>{{ transitionInfo().description }}</p>
+          <div class="duration-display">
+            <span class="duration-label">Duration:</span>
+            <span class="duration-value">{{ currentTransition().duration }}ms</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-preview" (click)="previewTransition()">
+        Preview Transition
+      </button>
+    </div>
+
+    <!-- Transition Type Selector -->
+    <div class="control-section">
+      <h4>Transition Type</h4>
+      <div class="transition-grid">
+        @for (type of transitionTypes; track type) {
+          <button
+            class="transition-btn"
+            [class.active]="currentTransition().type === type"
+            (click)="updateTransitionType(type)"
+            [title]="getTransitionInfo(type).description"
+          >
+            <span class="transition-icon-small">{{ getTransitionInfo(type).icon }}</span>
+            <span class="transition-name">{{ getTransitionName(type) }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Duration Control -->
+    <div class="control-section">
+      <h4>Duration</h4>
+      <div class="duration-control">
+        <input
+          type="range"
+          min="0"
+          max="2000"
+          step="50"
+          [value]="currentTransition().duration"
+          (input)="updateDuration(+$any($event.target).value)"
+          class="duration-slider"
+        />
+        <input
+          type="number"
+          min="0"
+          max="5000"
+          step="50"
+          [value]="currentTransition().duration"
+          (input)="updateDuration(+$any($event.target).value)"
+          class="duration-input"
+        />
+        <span class="duration-unit">ms</span>
+      </div>
+    </div>
+
+    <!-- Transition Settings -->
+    @if (transitionInfo().settings.length > 0) {
+      <div class="control-section">
+        <h4>Settings</h4>
+        <div class="settings-list">
+          @for (setting of transitionInfo().settings; track setting.key) {
+            <div class="setting-row">
+              <label>{{ setting.label }}</label>
+
+              @if (setting.type === 'select') {
+                <select
+                  [value]="currentTransition().settings[setting.key]"
+                  (change)="updateSetting(setting.key, $any($event.target).value)"
+                >
+                  @for (option of setting.options; track option) {
+                    <option [value]="option">{{ option }}</option>
+                  }
+                </select>
+              }
+
+              @if (setting.type === 'number') {
+                <input
+                  type="number"
+                  [value]="currentTransition().settings[setting.key]"
+                  (input)="updateSetting(setting.key, +$any($event.target).value)"
+                />
+              }
+
+              @if (setting.type === 'color') {
+                <input
+                  type="color"
+                  [value]="currentTransition().settings[setting.key]"
+                  (input)="updateSetting(setting.key, $any($event.target).value)"
+                />
+              }
+
+              @if (setting.type === 'checkbox') {
+                <input
+                  type="checkbox"
+                  [checked]="currentTransition().settings[setting.key]"
+                  (change)="updateSetting(setting.key, $any($event.target).checked)"
+                />
+              }
+
+              @if (setting.type === 'file') {
+                <input
+                  type="text"
+                  [value]="currentTransition().settings[setting.key]"
+                  (input)="updateSetting(setting.key, $any($event.target).value)"
+                  placeholder="Select file..."
+                />
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Presets -->
+    <div class="control-section">
+      <h4>Presets</h4>
+      <div class="presets-grid">
+        @for (preset of presets; track preset.name) {
+          <button
+            class="preset-btn"
+            (click)="applyPreset(preset)"
+            [title]="preset.name"
+          >
+            {{ preset.name }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</div>

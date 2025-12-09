@@ -11,19 +11,7 @@
   <div class="studio-content">
     <!-- Preview Area -->
     <div class="preview-area">
-      <div class="preview-container">
-        <div class="preview-screen">
-          <div class="preview-placeholder">
-            <h2>Stream Preview</h2>
-            <p>Your stream preview will appear here</p>
-          </div>
-        </div>
-        <div class="preview-controls">
-          <button class="btn-preview">Fullscreen</button>
-          <button class="btn-preview">Screenshot</button>
-          <span class="preview-resolution">1920x1080 @ 60 FPS</span>
-        </div>
-      </div>
+      <streaming-video-preview></streaming-video-preview>
     </div>
 
     <!-- Side Panel -->
@@ -40,6 +28,11 @@
           <p class="empty-text">Add sources to the selected scene</p>
           <button class="btn-add-source">+ Add Source</button>
         </div>
+      </section>
+
+      <!-- Audio Mixer -->
+      <section class="panel-section">
+        <streaming-audio-mixer></streaming-audio-mixer>
       </section>
     </aside>
   </div>
