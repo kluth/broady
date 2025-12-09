@@ -1,2 +1,53 @@
-<app-nx-welcome></app-nx-welcome>
+<div class="studio-container">
+  <header class="studio-header">
+    <h1>{{ title }}</h1>
+    <div class="header-actions">
+      <button class="btn-header">File</button>
+      <button class="btn-header">View</button>
+      <button class="btn-header">Help</button>
+    </div>
+  </header>
+
+  <div class="studio-content">
+    <!-- Preview Area -->
+    <div class="preview-area">
+      <div class="preview-container">
+        <div class="preview-screen">
+          <div class="preview-placeholder">
+            <h2>Stream Preview</h2>
+            <p>Your stream preview will appear here</p>
+          </div>
+        </div>
+        <div class="preview-controls">
+          <button class="btn-preview">Fullscreen</button>
+          <button class="btn-preview">Screenshot</button>
+          <span class="preview-resolution">1920x1080 @ 60 FPS</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side Panel -->
+    <aside class="side-panel">
+      <!-- Scenes -->
+      <section class="panel-section">
+        <streaming-scene-list></streaming-scene-list>
+      </section>
+
+      <!-- Sources (placeholder for now) -->
+      <section class="panel-section">
+        <h3>Sources</h3>
+        <div class="sources-list">
+          <p class="empty-text">Add sources to the selected scene</p>
+          <button class="btn-add-source">+ Add Source</button>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- Bottom Control Bar -->
+  <footer class="studio-footer">
+    <streaming-controls></streaming-controls>
+  </footer>
+</div>
+
 <router-outlet></router-outlet>

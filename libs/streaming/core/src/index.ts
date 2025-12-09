@@ -8,7 +8,7 @@ export * from './lib/models/plugin.model';
 export * from './lib/models/studio-mode.model';
 export * from './lib/models/virtual-camera.model';
 
-// Services (will be implemented)
+// Services
 export * from './lib/services/scene.service';
 export * from './lib/services/source.service';
 export * from './lib/services/streaming.service';
@@ -19,3 +19,7 @@ export * from './lib/services/hotkey.service';
 export * from './lib/services/plugin.service';
 export * from './lib/services/studio-mode.service';
 export * from './lib/services/virtual-camera.service';
+
+// Components
+export * from './lib/components/scene-list/scene-list.component';
+export * from './lib/components/streaming-controls/streaming-controls.component';

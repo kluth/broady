@@ -1,13 +1,15 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { NxWelcome } from './nx-welcome';
+import { SceneListComponent } from '@org/source/streaming-core';
+import { StreamingControlsComponent } from '@org/source/streaming-core';
 
 @Component({
-  imports: [NxWelcome, RouterModule],
+  standalone: true,
+  imports: [RouterModule, SceneListComponent, StreamingControlsComponent],
   selector: 'app-root',
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
-  protected title = 'studio';
+  protected title = 'OBS Studio - Built with Angular 20';
 }
