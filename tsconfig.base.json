@@ -22,7 +22,15 @@
         "libs/shop/feature-product-detail/src/index.ts"
       ],
       "@org/shop/feature-products": ["libs/shop/feature-products/src/index.ts"],
-      "@org/shop/shared-ui": ["libs/shop/shared-ui/src/index.ts"]
+      "@org/shop/shared-ui": ["libs/shop/shared-ui/src/index.ts"],
+      "@org/streaming-core": ["libs/streaming/core/src/index.ts"],
+      "@org/video-sources": ["libs/streaming/video-sources/src/index.ts"],
+      "@org/audio-engine": ["libs/streaming/audio-engine/src/index.ts"],
+      "@org/scene-manager": ["libs/streaming/scene-manager/src/index.ts"],
+      "@org/streaming-protocols": ["libs/streaming/protocols/src/index.ts"],
+      "@org/recording-engine": ["libs/streaming/recording/src/index.ts"],
+      "@org/filters": ["libs/streaming/filters/src/index.ts"],
+      "@org/studio-mode": ["libs/streaming/studio-mode/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

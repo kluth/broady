@@ -1,0 +1,13 @@
+{
+  "name": "recording-engine",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/recording/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["streaming", "recording"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

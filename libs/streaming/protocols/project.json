@@ -1,0 +1,13 @@
+{
+  "name": "streaming-protocols",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/protocols/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["streaming", "protocols"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

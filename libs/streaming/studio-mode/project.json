@@ -1,0 +1,13 @@
+{
+  "name": "studio-mode",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/studio-mode/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["streaming", "studio"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

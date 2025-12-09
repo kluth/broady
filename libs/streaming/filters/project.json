@@ -1,0 +1,13 @@
+{
+  "name": "filters",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/filters/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["streaming", "filters"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "audio-engine",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/audio-engine/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["streaming", "audio"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
