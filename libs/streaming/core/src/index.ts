@@ -19,6 +19,8 @@ export * from './lib/services/hotkey.service';
 export * from './lib/services/plugin.service';
 export * from './lib/services/studio-mode.service';
 export * from './lib/services/virtual-camera.service';
+export * from './lib/services/ai.service';
+export * from './lib/services/firebase.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';
@@ -28,3 +30,4 @@ export * from './lib/components/video-preview/video-preview.component';
 export * from './lib/components/source-properties/source-properties.component';
 export * from './lib/components/scene-transitions/scene-transitions.component';
 export * from './lib/components/hotkey-config/hotkey-config.component';
+export * from './lib/components/ai-dashboard/ai-dashboard.component';
