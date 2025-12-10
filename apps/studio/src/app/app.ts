@@ -40,7 +40,7 @@ import {
   styleUrl: './app.css',
 })
 export class App {
-  protected title = 'OBS Studio Pro - Built with Angular 20 + AI + Firebase';
+  protected title = 'Broady - Built with Angular 20 + AI + Firebase';
   protected activeTab = signal<'sources' | 'overlays' | 'multistream' | 'alerts' | 'chat' | 'stats' | 'cloud' | 'ai' | 'music'>('sources');
 
   // Inject services

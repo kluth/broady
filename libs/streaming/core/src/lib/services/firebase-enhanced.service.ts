@@ -216,7 +216,7 @@ export class FirebaseEnhancedService {
       ['feature_ai_enabled', { key: 'feature_ai_enabled', value: true, source: 'default' }],
       ['max_stream_quality', { key: 'max_stream_quality', value: '1080p', source: 'default' }],
       ['chat_rate_limit', { key: 'chat_rate_limit', value: 100, source: 'default' }],
-      ['banner_message', { key: 'banner_message', value: 'Welcome to OBS Studio Pro!', source: 'default' }],
+      ['banner_message', { key: 'banner_message', value: 'Welcome to Broady!', source: 'default' }],
     ]);
 
     this.remoteConfig.set(defaults);

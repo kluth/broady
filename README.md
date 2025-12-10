@@ -1,8 +1,8 @@
-# 🎥 OBS Studio Pro - Professional Streaming Platform
+# 🎥 Broady - Professional Streaming Platform
 
 <div align="center">
 
-![OBS Studio Pro](https://img.shields.io/badge/OBS-Studio%20Pro-blueviolet?style=for-the-badge&logo=obs-studio)
+![Broady](https://img.shields.io/badge/Broady-Streaming-blueviolet?style=for-the-badge&logo=video)
 ![Angular](https://img.shields.io/badge/Angular-20-red?style=for-the-badge&logo=angular)
 ![Firebase](https://img.shields.io/badge/Firebase-Integrated-orange?style=for-the-badge&logo=firebase)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
@@ -102,8 +102,8 @@ Firebase CLI >= 13.0.0
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/obs-studio-pro.git
-cd obs-studio-pro
+git clone https://github.com/your-username/broady.git
+cd broady
 
 # Install dependencies
 npm install
@@ -159,7 +159,7 @@ npm run deploy
 ## 🏗️ Architecture
 
 ```
-obs-studio-pro/
+broady/
 ├── apps/
 │   ├── studio/              # Main streaming application
 │   ├── shop/                # E-commerce (optional)
@@ -531,10 +531,10 @@ firebase deploy -m "Release v1.0.0"
 ### Docker
 ```bash
 # Build Docker image
-docker build -t obs-studio-pro .
+docker build -t broady .
 
 # Run container
-docker run -p 4200:80 obs-studio-pro
+docker run -p 4200:80 broady
 ```
 
 ### Kubernetes
@@ -577,18 +577,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Documentation**: [docs.obs-studio-pro.com](https://docs.obs-studio-pro.com)
-- **Discord**: [Join our community](https://discord.gg/obs-studio-pro)
-- **Email**: support@obs-studio-pro.com
-- **Issues**: [GitHub Issues](https://github.com/your-username/obs-studio-pro/issues)
+- **Documentation**: [docs.broady.dev](https://docs.broady.dev)
+- **Discord**: [Join our community](https://discord.gg/broady)
+- **Email**: support@broady.dev
+- **Issues**: [GitHub Issues](https://github.com/your-username/broady/issues)
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by the OBS Studio Pro Team**
+**Made with ❤️ by the Broady Team**
 
-[⭐ Star us on GitHub](https://github.com/your-username/obs-studio-pro) • [🐦 Follow on Twitter](https://twitter.com/obsstudiopro)
+[⭐ Star us on GitHub](https://github.com/your-username/broady) • [🐦 Follow on Twitter](https://twitter.com/broady)
 
 </div>
 

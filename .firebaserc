@@ -1,9 +1,9 @@
 {
   "projects": {
-    "default": "obs-studio-pro",
-    "development": "obs-studio-pro-dev",
-    "staging": "obs-studio-pro-staging",
-    "production": "obs-studio-pro-prod"
+    "default": "broady",
+    "development": "broady-dev",
+    "staging": "broady-staging",
+    "production": "broady-prod"
   },
   "targets": {},
   "etags": {}
