@@ -25,6 +25,14 @@ import {
   StreamSchedulerService,
   AutoSceneSwitcherService,
   ViewerEngagementService,
+  AnalyticsDashboardService,
+  ClipCreatorService,
+  TTSService,
+  SoundAlertsService,
+  StreamTemplatesService,
+  ChromaKeyService,
+  LowerThirdsService,
+  NDIService,
 } from '@org/streaming-core';
 
 @Component({
@@ -50,14 +58,19 @@ import {
 })
 export class App {
   protected title = 'Broady - Professional Streaming Platform';
-  protected activeTab = signal<'sources' | 'overlays' | 'multistream' | 'alerts' | 'chat' | 'stats' | 'cloud' | 'ai' | 'music' | 'health' | 'engagement' | 'moderation'>('sources');
+  protected activeTab = signal<
+    'sources' | 'overlays' | 'multistream' | 'alerts' | 'chat' | 'stats' |
+    'cloud' | 'ai' | 'music' | 'health' | 'engagement' | 'moderation' |
+    'analytics' | 'clips' | 'tts' | 'sounds' | 'templates' | 'chroma' |
+    'lowerthirds' | 'ndi'
+  >('sources');
 
   // Inject core services
   protected firebase = inject(FirebaseService);
   protected ai = inject(AIService);
   protected music = inject(MusicLibraryService);
 
-  // Inject new feature services
+  // Inject Wave 1 feature services
   protected healthMonitor = inject(StreamHealthMonitorService);
   protected voiceCommands = inject(VoiceCommandsService);
   protected chatModeration = inject(ChatModerationService);
@@ -68,6 +81,16 @@ export class App {
   protected autoSwitcher = inject(AutoSceneSwitcherService);
   protected engagement = inject(ViewerEngagementService);
 
+  // Inject Wave 2 feature services
+  protected analytics = inject(AnalyticsDashboardService);
+  protected clipCreator = inject(ClipCreatorService);
+  protected tts = inject(TTSService);
+  protected soundAlerts = inject(SoundAlertsService);
+  protected templates = inject(StreamTemplatesService);
+  protected chromaKey = inject(ChromaKeyService);
+  protected lowerThirds = inject(LowerThirdsService);
+  protected ndi = inject(NDIService);
+
   // Core service state
   readonly isCloudConnected = this.firebase.isAuthenticated;
   readonly currentUser = this.firebase.currentUser;
@@ -75,7 +98,7 @@ export class App {
   readonly currentTrack = this.music.currentTrack;
   readonly isPlaying = this.music.isPlaying;
 
-  // New feature state
+  // Wave 1 feature state
   readonly streamHealth = this.healthMonitor.currentHealth;
   readonly healthScore = this.healthMonitor.healthScore;
   readonly isVoiceListening = this.voiceCommands.isListening;
@@ -84,4 +107,16 @@ export class App {
   readonly activePrediction = this.engagement.activePrediction;
   readonly currentTheme = this.theme.currentTheme;
   readonly upcomingStream = this.scheduler.upcomingStream;
+
+  // Wave 2 feature state
+  readonly currentSession = this.analytics.currentSession;
+  readonly analyticsMetrics = this.analytics.metrics;
+  readonly clips = this.clipCreator.clips;
+  readonly isTTSSpeaking = this.tts.isSpeaking;
+  readonly ttsQueue = this.tts.queue;
+  readonly pendingAlerts = this.soundAlerts.alerts;
+  readonly availableTemplates = this.templates.templates;
+  readonly chromaKeyEnabled = this.chromaKey.settings;
+  readonly activeLowerThird = this.lowerThirds.activeLowerThird;
+  readonly ndiSources = this.ndi.sources;
 }
