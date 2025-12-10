@@ -28,6 +28,7 @@ export class StreamingService {
   // Public readonly signals
   public readonly destinations = this.destinationsSignal.asReadonly();
   public readonly streamingState = this.streamingStateSignal.asReadonly();
+  public readonly streamingState$ = this.streamingStateSignal.asReadonly(); // Alias for backwards compatibility
   public readonly isStreaming = computed(() => this.streamingStateSignal().isStreaming);
   public readonly enabledDestinations = computed(() =>
     this.destinationsSignal().filter(d => d.enabled)
@@ -178,7 +179,6 @@ export class StreamingService {
       this.streamingStateSignal.update(state => {
         // Simulate realistic streaming stats
         const targetFps = 60;
-        const expectedFrames = Math.floor(elapsed * targetFps);
         const actualFrames = state.totalFrames + targetFps;
         const dropped = Math.random() > 0.95 ? Math.floor(Math.random() * 3) : 0;
 

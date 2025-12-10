@@ -343,24 +343,15 @@ export class StreamingControlsComponent {
   private recordingStartTime = signal<Date | null>(null);
 
   // Computed signals - so clean!
-  readonly isStreaming = computed(() =>
-    this.streamingService.streamingState$() instanceof Promise
-      ? false
-      : false // Will be updated with actual streaming state
-  );
+  readonly isStreaming = computed(() => this.streamingService.isStreaming());
 
-  readonly isRecording = signal(false);
+  readonly isRecording = computed(() => this.recordingService.isRecording());
   readonly replayBufferEnabled = signal(false);
   readonly virtualCameraActive = signal(false);
   readonly studioModeEnabled = signal(false);
   readonly inTransition = signal(false);
   readonly connectedApps = signal<string[]>([]);
-  readonly streamStats = signal({
-    fps: 0,
-    bitrate: 0,
-    droppedFrames: 0,
-    totalFrames: 0
-  });
+  readonly streamStats = computed(() => this.streamingService.streamingState());
 
   readonly dropPercentage = computed(() => {
     const stats = this.streamStats();
@@ -368,18 +359,7 @@ export class StreamingControlsComponent {
     return (stats.droppedFrames / stats.totalFrames) * 100;
   });
 
-  readonly recordingDuration = computed(() => {
-    const startTime = this.recordingStartTime();
-    if (!startTime) return '00:00:00';
-
-    // In a real app, this would update every second
-    const duration = Math.floor((Date.now() - startTime.getTime()) / 1000);
-    const hours = Math.floor(duration / 3600);
-    const minutes = Math.floor((duration % 3600) / 60);
-    const seconds = duration % 60;
-
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  });
+  readonly recordingDuration = computed(() => this.recordingService.formattedDuration());
 
   constructor(
     private streamingService: StreamingService,
@@ -387,27 +367,14 @@ export class StreamingControlsComponent {
     private virtualCameraService: VirtualCameraService,
     private studioModeService: StudioModeService
   ) {
-    // Using effect to sync with services
+    // Using effect to monitor recording state changes
     effect(() => {
-      this.recordingService.isRecording$.subscribe(recording => {
-        this.isRecording.set(recording);
-        if (recording) {
-          this.recordingStartTime.set(new Date());
-        } else {
-          this.recordingStartTime.set(null);
-        }
-      });
-    });
-
-    effect(() => {
-      this.streamingService.streamingState$.subscribe(state => {
-        this.streamStats.set({
-          fps: state.fps,
-          bitrate: state.bitrate,
-          droppedFrames: state.droppedFrames,
-          totalFrames: state.totalFrames
-        });
-      });
+      const recording = this.recordingService.isRecording();
+      if (recording) {
+        this.recordingStartTime.set(new Date());
+      } else {
+        this.recordingStartTime.set(null);
+      }
     });
   }
 

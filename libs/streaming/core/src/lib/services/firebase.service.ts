@@ -195,7 +195,7 @@ export class FirebaseService {
   /**
    * Save scene to cloud
    */
-  async saveSceneToCloud(scene: Scene, shared: boolean = false): Promise<CloudScene> {
+  async saveSceneToCloud(scene: Scene, shared?: boolean): Promise<CloudScene> {
     const user = this.currentUser();
     if (!user) throw new Error('User not authenticated');
 
@@ -209,7 +209,7 @@ export class FirebaseService {
         userId: user.uid,
         name: scene.name,
         scene: scene,
-        shared: shared,
+        shared: shared || false,
         sharedWith: [],
         createdAt: new Date(),
         updatedAt: new Date(),

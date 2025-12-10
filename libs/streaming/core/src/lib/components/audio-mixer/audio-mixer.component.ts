@@ -533,7 +533,7 @@ export class AudioMixerComponent {
   }
 
   toggleMute(trackId: string): void {
-    const track = this.audioTracks().find(t => t.id === trackId);
+    const track = this.audioTracks().find((t) => t.id === trackId);
     if (!track) return;
 
     if (track.muted) {
@@ -548,7 +548,7 @@ export class AudioMixerComponent {
   }
 
   cycleMonitoring(trackId: string): void {
-    const track = this.audioTracks().find(t => t.id === trackId);
+    const track = this.audioTracks().find((t) => t.id === trackId);
     if (!track) return;
 
     const next: Record<MonitoringType, MonitoringType> = {
@@ -624,7 +624,7 @@ export class AudioMixerComponent {
       ]);
 
       // Track metering
-      this.audioTracks().forEach(track => {
+      this.audioTracks().forEach((track) => {
         if (!track.muted) {
           newMetering.set(track.id, [
             Math.random() * track.volume,

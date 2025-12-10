@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { Source, SourceType, Filter, Transform } from '../models/source.model';
 
 @Injectable({
@@ -11,7 +11,7 @@ export class SourceService {
   // Public readonly signals
   public readonly sources = this.sourcesSignal.asReadonly();
 
-  constructor() {}
+  // No initialization needed
 
   /**
    * Create a new source
@@ -138,7 +138,7 @@ export class SourceService {
    * Toggle source visibility
    */
   toggleVisibility(sourceId: string): void {
-    const sources = this.sourcesSubject.value;
+    const sources = this.sourcesSignal();
     const source = sources.find((s) => s.id === sourceId);
 
     if (!source) return;

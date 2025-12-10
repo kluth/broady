@@ -202,10 +202,10 @@ describe('SceneService', () => {
       service.addSourceToScene(testScene.id, source3);
 
       service.getScene(testScene.id).subscribe((scene) => {
-        if (scene && scene.sources.length === 3) {
+        if (scene && scene.sources.length === 3 && scene.sources[0].sourceId !== 'source-3') {
           const items = scene.sources;
           service.reorderSceneItem(testScene.id, items[2].id, 0);
-        } else if (scene && scene.sources.length === 3 && scene.sources[0].sourceId === 'source-3') {
+        } else if (scene && scene.sources.length === 3) {
           expect(scene.sources[0].sourceId).toBe('source-3');
           expect(scene.sources[1].sourceId).toBe('source-1');
           expect(scene.sources[2].sourceId).toBe('source-2');

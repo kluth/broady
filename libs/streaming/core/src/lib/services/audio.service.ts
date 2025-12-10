@@ -1,6 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Observable, interval } from 'rxjs';
-import { map } from 'rxjs/operators';
 import {
   AudioDevice,
   AudioDeviceType,
@@ -8,25 +7,34 @@ import {
   AudioTrackMixer,
   AudioFilter,
   MonitoringType,
-  AudioMetering
+  AudioMetering,
 } from '../models/audio.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AudioService {
   private inputDevicesSubject = new BehaviorSubject<AudioDevice[]>([]);
   private outputDevicesSubject = new BehaviorSubject<AudioDevice[]>([]);
-  private activeInputDeviceSubject = new BehaviorSubject<AudioDevice | null>(null);
-  private activeOutputDeviceSubject = new BehaviorSubject<AudioDevice | null>(null);
+  private activeInputDeviceSubject = new BehaviorSubject<AudioDevice | null>(
+    null
+  );
+  private activeOutputDeviceSubject = new BehaviorSubject<AudioDevice | null>(
+    null
+  );
   private mixerSubject = new BehaviorSubject<AudioMixer | null>(null);
   private meteringData = new Map<string, BehaviorSubject<AudioMetering>>();
 
   public readonly inputDevices$ = this.inputDevicesSubject.asObservable();
   public readonly outputDevices$ = this.outputDevicesSubject.asObservable();
-  public readonly activeInputDevice$ = this.activeInputDeviceSubject.asObservable();
-  public readonly activeOutputDevice$ = this.activeOutputDeviceSubject.asObservable();
+  public readonly activeInputDevice$ =
+    this.activeInputDeviceSubject.asObservable();
+  public readonly activeOutputDevice$ =
+    this.activeOutputDeviceSubject.asObservable();
   public readonly mixer$ = this.mixerSubject.asObservable();
+
+  // Signal-based API for reactive components
+  public readonly mixer = signal<AudioMixer | null>(null);
 
   constructor() {
     this.discoverDevices();
@@ -51,7 +59,7 @@ export class AudioService {
             name: device.label || `Microphone ${inputDevices.length + 1}`,
             type: AudioDeviceType.INPUT,
             channels: 2,
-            sampleRate: 48000
+            sampleRate: 48000,
           });
         } else if (device.kind === 'audiooutput') {
           outputDevices.push({
@@ -59,7 +67,7 @@ export class AudioService {
             name: device.label || `Speaker ${outputDevices.length + 1}`,
             type: AudioDeviceType.OUTPUT,
             channels: 2,
-            sampleRate: 48000
+            sampleRate: 48000,
           });
         }
       });
@@ -91,15 +99,15 @@ export class AudioService {
         name: 'Default Microphone',
         type: AudioDeviceType.INPUT,
         channels: 2,
-        sampleRate: 48000
+        sampleRate: 48000,
       },
       {
         id: 'input-2',
         name: 'USB Microphone',
         type: AudioDeviceType.INPUT,
         channels: 2,
-        sampleRate: 48000
-      }
+        sampleRate: 48000,
+      },
     ];
 
     const mockOutputDevices: AudioDevice[] = [
@@ -108,15 +116,15 @@ export class AudioService {
         name: 'Default Speakers',
         type: AudioDeviceType.OUTPUT,
         channels: 2,
-        sampleRate: 48000
+        sampleRate: 48000,
       },
       {
         id: 'output-2',
         name: 'Headphones',
         type: AudioDeviceType.OUTPUT,
         channels: 2,
-        sampleRate: 48000
-      }
+        sampleRate: 48000,
+      },
     ];
 
     this.inputDevicesSubject.next(mockInputDevices);
@@ -148,7 +156,9 @@ export class AudioService {
    * Select an input device
    */
   selectInputDevice(deviceId: string): void {
-    const device = this.inputDevicesSubject.value.find((d) => d.id === deviceId);
+    const device = this.inputDevicesSubject.value.find(
+      (d) => d.id === deviceId
+    );
     if (device) {
       this.activeInputDeviceSubject.next(device);
     }
@@ -158,7 +168,9 @@ export class AudioService {
    * Select an output device
    */
   selectOutputDevice(deviceId: string): void {
-    const device = this.outputDevicesSubject.value.find((d) => d.id === deviceId);
+    const device = this.outputDevicesSubject.value.find(
+      (d) => d.id === deviceId
+    );
     if (device) {
       this.activeOutputDeviceSubject.next(device);
     }
@@ -173,10 +185,10 @@ export class AudioService {
       name: 'Main Mixer',
       tracks: [],
       masterVolume: 1.0,
-      masterMuted: false
+      masterMuted: false,
     };
 
-    this.mixerSubject.next(mixer);
+    this.updateMixer(mixer);
   }
 
   /**
@@ -202,16 +214,16 @@ export class AudioService {
         peak: [0, 0],
         magnitude: [0, 0],
         inputPeak: [0, 0],
-        inputMagnitude: [0, 0]
-      }
+        inputMagnitude: [0, 0],
+      },
     };
 
     const updatedMixer = {
       ...mixer,
-      tracks: [...mixer.tracks, track]
+      tracks: [...mixer.tracks, track],
     };
 
-    this.mixerSubject.next(updatedMixer);
+    this.updateMixer(updatedMixer);
     this.startMetering(track.id);
 
     return track;
@@ -226,10 +238,10 @@ export class AudioService {
 
     const updatedMixer = {
       ...mixer,
-      tracks: mixer.tracks.filter((t) => t.id !== trackId)
+      tracks: mixer.tracks.filter((t) => t.id !== trackId),
     };
 
-    this.mixerSubject.next(updatedMixer);
+    this.updateMixer(updatedMixer);
     this.stopMetering(trackId);
   }
 
@@ -263,12 +275,12 @@ export class AudioService {
 
     const updatedTracks = mixer.tracks.map((track) => ({
       ...track,
-      solo: track.id === trackId
+      solo: track.id === trackId,
     }));
 
-    this.mixerSubject.next({
+    this.updateMixer({
       ...mixer,
-      tracks: updatedTracks
+      tracks: updatedTracks,
     });
   }
 
@@ -293,9 +305,9 @@ export class AudioService {
     const mixer = this.mixerSubject.value;
     if (!mixer) return;
 
-    this.mixerSubject.next({
+    this.updateMixer({
       ...mixer,
-      masterVolume: Math.max(0, Math.min(1, volume))
+      masterVolume: Math.max(0, Math.min(1, volume)),
     });
   }
 
@@ -306,9 +318,9 @@ export class AudioService {
     const mixer = this.mixerSubject.value;
     if (!mixer) return;
 
-    this.mixerSubject.next({
+    this.updateMixer({
       ...mixer,
-      masterMuted: true
+      masterMuted: true,
     });
   }
 
@@ -319,9 +331,9 @@ export class AudioService {
     const mixer = this.mixerSubject.value;
     if (!mixer) return;
 
-    this.mixerSubject.next({
+    this.updateMixer({
       ...mixer,
-      masterMuted: false
+      masterMuted: false,
     });
   }
 
@@ -336,15 +348,15 @@ export class AudioService {
       if (track.id === trackId) {
         return {
           ...track,
-          filters: [...track.filters, filter]
+          filters: [...track.filters, filter],
         };
       }
       return track;
     });
 
-    this.mixerSubject.next({
+    this.updateMixer({
       ...mixer,
-      tracks: updatedTracks
+      tracks: updatedTracks,
     });
   }
 
@@ -359,15 +371,15 @@ export class AudioService {
       if (track.id === trackId) {
         return {
           ...track,
-          filters: track.filters.filter((f) => f.id !== filterId)
+          filters: track.filters.filter((f) => f.id !== filterId),
         };
       }
       return track;
     });
 
-    this.mixerSubject.next({
+    this.updateMixer({
       ...mixer,
-      tracks: updatedTracks
+      tracks: updatedTracks,
     });
   }
 
@@ -386,19 +398,19 @@ export class AudioService {
             if (filter.id === filterId) {
               return {
                 ...filter,
-                settings: { ...filter.settings, ...settings }
+                settings: { ...filter.settings, ...settings },
               };
             }
             return filter;
-          })
+          }),
         };
       }
       return track;
     });
 
-    this.mixerSubject.next({
+    this.updateMixer({
       ...mixer,
-      tracks: updatedTracks
+      tracks: updatedTracks,
     });
   }
 
@@ -421,7 +433,7 @@ export class AudioService {
       peak: [0, 0],
       magnitude: [0, 0],
       inputPeak: [0, 0],
-      inputMagnitude: [0, 0]
+      inputMagnitude: [0, 0],
     });
 
     this.meteringData.set(trackId, meteringSubject);
@@ -440,9 +452,12 @@ export class AudioService {
       // Generate simulated metering data
       const metering: AudioMetering = {
         peak: [Math.random() * track.volume, Math.random() * track.volume],
-        magnitude: [Math.random() * track.volume * 0.8, Math.random() * track.volume * 0.8],
+        magnitude: [
+          Math.random() * track.volume * 0.8,
+          Math.random() * track.volume * 0.8,
+        ],
         inputPeak: [Math.random(), Math.random()],
-        inputMagnitude: [Math.random() * 0.8, Math.random() * 0.8]
+        inputMagnitude: [Math.random() * 0.8, Math.random() * 0.8],
       };
 
       meteringSubject.next(metering);
@@ -463,7 +478,10 @@ export class AudioService {
   /**
    * Update a track
    */
-  private updateTrack(trackId: string, updates: Partial<AudioTrackMixer>): void {
+  private updateTrack(
+    trackId: string,
+    updates: Partial<AudioTrackMixer>
+  ): void {
     const mixer = this.mixerSubject.value;
     if (!mixer) return;
 
@@ -474,10 +492,18 @@ export class AudioService {
       return track;
     });
 
-    this.mixerSubject.next({
+    this.updateMixer({
       ...mixer,
-      tracks: updatedTracks
+      tracks: updatedTracks,
     });
+  }
+
+  /**
+   * Update mixer and sync signal
+   */
+  private updateMixer(mixer: AudioMixer | null): void {
+    this.mixerSubject.next(mixer);
+    this.mixer.set(mixer);
   }
 
   /**

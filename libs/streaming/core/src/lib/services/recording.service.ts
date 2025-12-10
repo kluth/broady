@@ -37,6 +37,7 @@ export class RecordingService {
 
   // Public readonly signals
   public readonly isRecording = this.isRecordingSignal.asReadonly();
+  public readonly isRecording$ = this.isRecordingSignal.asReadonly(); // Alias for backwards compatibility
   public readonly isPaused = this.isPausedSignal.asReadonly();
   public readonly recordingSettings = this.recordingSettingsSignal.asReadonly();
   public readonly replayBuffer = this.replayBufferSignal.asReadonly();

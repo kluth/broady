@@ -4,8 +4,8 @@ import {
   SceneListComponent,
   StreamingControlsComponent,
   VideoPreviewComponent,
-  AudioMixerComponent
-} from '@org/source/streaming-core';
+  AudioMixerComponent,
+} from '@org/streaming-core';
 
 @Component({
   standalone: true,
@@ -14,7 +14,7 @@ import {
     SceneListComponent,
     StreamingControlsComponent,
     VideoPreviewComponent,
-    AudioMixerComponent
+    AudioMixerComponent,
   ],
   selector: 'app-root',
   templateUrl: './app.html',
