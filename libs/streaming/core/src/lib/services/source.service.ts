@@ -11,8 +11,6 @@ export class SourceService {
   // Public readonly signals
   public readonly sources = this.sourcesSignal.asReadonly();
 
-  // No initialization needed
-
   /**
    * Create a new source
    */

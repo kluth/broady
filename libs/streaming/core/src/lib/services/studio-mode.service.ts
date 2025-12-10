@@ -30,8 +30,6 @@ export class StudioModeService {
   public readonly studioMode$ = this.studioModeSubject.asObservable();
   public readonly studioModeState$ = this.studioModeStateSubject.asObservable();
 
-  // No initialization needed
-
   /**
    * Enable studio mode
    */

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import {
-  SceneListComponent,
+import { SceneListComponent } from '@org/streaming-core';
+import { StreamingControlsComponent } from '@org/streaming-core';
   StreamingControlsComponent,
   VideoPreviewComponent,
   AudioMixerComponent,

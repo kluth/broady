@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Plugin, PluginType, PluginManifest } from '../models/plugin.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PluginService {
   private pluginsSubject = new BehaviorSubject<Plugin[]>([]);
@@ -34,7 +34,7 @@ export class PluginService {
       enabled: true,
       type: manifest.type,
       hooks: {},
-      settings: {}
+      settings: {},
     };
 
     const plugins = [...this.pluginsSubject.value, plugin];
@@ -101,7 +101,7 @@ export class PluginService {
       if (plugin.id === pluginId) {
         return {
           ...plugin,
-          settings: { ...plugin.settings, ...settings }
+          settings: { ...plugin.settings, ...settings },
         };
       }
       return plugin;
@@ -126,16 +126,19 @@ export class PluginService {
   /**
    * Trigger plugin hook
    */
-  triggerHook(hookName: keyof Plugin['hooks'], ...args: any[]): void {
+  triggerHook(hookName: keyof Plugin['hooks'], ...args: unknown[]): void {
     const plugins = this.pluginsSubject.value.filter((p) => p.enabled);
 
     for (const plugin of plugins) {
       const hook = plugin.hooks[hookName];
       if (hook && typeof hook === 'function') {
         try {
-          (hook as (...hookArgs: any[]) => void)(...args);
+          (hook as (...args: unknown[]) => void)(...args);
         } catch (error) {
-          console.error(`Error in plugin ${plugin.name} hook ${hookName}:`, error);
+          console.error(
+            `Error in plugin ${plugin.name} hook ${hookName}:`,
+            error
+          );
         }
       }
     }

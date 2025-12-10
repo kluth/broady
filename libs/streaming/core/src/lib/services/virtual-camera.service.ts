@@ -26,8 +26,6 @@ export class VirtualCameraService {
 
   private frameInterval: any;
 
-  // No initialization needed
-
   /**
    * Start virtual camera
    */

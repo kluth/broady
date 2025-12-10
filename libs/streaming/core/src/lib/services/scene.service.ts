@@ -39,8 +39,6 @@ export class SceneService {
     return this.scenesSignal().find((s) => s.id === id) || null;
   });
 
-  // No initialization needed
-
   /**
    * Create a new scene
    */

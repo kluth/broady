@@ -1,9 +1,9 @@
-import { Component, input, output, effect } from '@angular/core';
+import { Component, output, effect, inject } from '@angular/core';
 import { Scene } from '../../models/scene.model';
 import { SceneService } from '../../services/scene.service';
 
 @Component({
-  selector: 'streaming-scene-list',
+  selector: 'lib-scene-list',
   standalone: true,
   imports: [],
   template: `
@@ -19,6 +19,10 @@ import { SceneService } from '../../services/scene.service';
             class="scene-item"
             [class.active]="scene.id === sceneService.activeSceneId()"
             (click)="onSceneClick(scene)"
+            (keyup.enter)="onSceneClick(scene)"
+            (keyup.space)="onSceneClick(scene)"
+            tabindex="0"
+            role="button"
           >
             <div class="scene-name">{{ scene.name }}</div>
             <div class="scene-actions">
@@ -157,7 +161,9 @@ export class SceneListComponent {
   readonly sceneSelected = output<Scene>();
   readonly sceneDeleted = output<Scene>();
 
-  constructor(public sceneService: SceneService) {
+  readonly sceneService = inject(SceneService);
+
+  constructor() {
     // Using effect for side effects
     effect(() => {
       console.log('Current scenes:', this.sceneService.scenes().length);
