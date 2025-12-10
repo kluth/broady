@@ -38,6 +38,10 @@ import {
   ScriptingService,
   WorkflowBuilderComponent,
   ScriptEditorComponent,
+  GameDetectionService,
+  GameAPIService,
+  GameOverlayService,
+  GameIntegrationComponent,
 } from '@org/streaming-core';
 
 @Component({
@@ -58,6 +62,7 @@ import {
     CloudSync,
     WorkflowBuilderComponent,
     ScriptEditorComponent,
+    GameIntegrationComponent,
   ],
   selector: 'app-root',
   templateUrl: './app.html',
@@ -69,7 +74,7 @@ export class App {
     'sources' | 'overlays' | 'multistream' | 'alerts' | 'chat' | 'stats' |
     'cloud' | 'ai' | 'music' | 'health' | 'engagement' | 'moderation' |
     'analytics' | 'clips' | 'tts' | 'sounds' | 'templates' | 'chroma' |
-    'lowerthirds' | 'ndi' | 'aibackground' | 'automation' | 'scripting'
+    'lowerthirds' | 'ndi' | 'aibackground' | 'automation' | 'scripting' | 'games'
   >('sources');
 
   // Inject core services
@@ -102,6 +107,11 @@ export class App {
   // Wave 3 feature services (Automation)
   protected automation = inject(AutomationService);
   protected scripting = inject(ScriptingService);
+
+  // Wave 4 feature services (Game Integration)
+  protected gameDetection = inject(GameDetectionService);
+  protected gameAPI = inject(GameAPIService);
+  protected gameOverlay = inject(GameOverlayService);
 
   // Core service state
   readonly isCloudConnected = this.firebase.isAuthenticated;
@@ -140,4 +150,12 @@ export class App {
   readonly automationStats = this.automation.statistics;
   readonly scripts = this.scripting.scripts;
   readonly activeScripts = this.scripting.activeScripts;
+
+  // Wave 4 feature state (Game Integration)
+  readonly currentGame = this.gameDetection.currentGame;
+  readonly gameHistory = this.gameDetection.gameHistory;
+  readonly gameSessionStats = this.gameDetection.sessionStats;
+  readonly steamConnected = this.gameAPI.steamConnected;
+  readonly riotConnected = this.gameAPI.riotConnected;
+  readonly gameOverlays = this.gameOverlay.overlays;
 }

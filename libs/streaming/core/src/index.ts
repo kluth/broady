@@ -43,6 +43,9 @@ export * from './lib/services/ndi.service';
 export * from './lib/services/background-removal.service';
 export * from './lib/services/automation.service';
 export * from './lib/services/scripting.service';
+export * from './lib/services/game-detection.service';
+export * from './lib/services/game-api.service';
+export * from './lib/services/game-overlay.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';
@@ -63,3 +66,4 @@ export * from './lib/components/multistream';
 export * from './lib/components/cloud-sync/cloud-sync';
 export * from './lib/components/workflow-builder/workflow-builder.component';
 export * from './lib/components/script-editor/script-editor.component';
+export * from './lib/components/game-integration/game-integration.component';
