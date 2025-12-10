@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import {
   SceneListComponent,
@@ -12,6 +12,10 @@ import {
   Multistream,
   StatsDashboardComponent,
   SettingsDialogComponent,
+  CloudSync,
+  FirebaseService,
+  AIService,
+  MusicLibraryService,
 } from '@org/streaming-core';
 
 @Component({
@@ -29,12 +33,25 @@ import {
     Multistream,
     StatsDashboardComponent,
     SettingsDialogComponent,
+    CloudSync,
   ],
   selector: 'app-root',
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
-  protected title = 'OBS Studio - Built with Angular 20';
-  protected activeTab = signal<'sources' | 'overlays' | 'multistream' | 'alerts' | 'chat' | 'stats'>('sources');
+  protected title = 'OBS Studio Pro - Built with Angular 20 + AI + Firebase';
+  protected activeTab = signal<'sources' | 'overlays' | 'multistream' | 'alerts' | 'chat' | 'stats' | 'cloud' | 'ai' | 'music'>('sources');
+
+  // Inject services
+  protected firebase = inject(FirebaseService);
+  protected ai = inject(AIService);
+  protected music = inject(MusicLibraryService);
+
+  // Service state
+  readonly isCloudConnected = this.firebase.isAuthenticated;
+  readonly currentUser = this.firebase.currentUser;
+  readonly isAIConfigured = this.ai.config;
+  readonly currentTrack = this.music.currentTrack;
+  readonly isPlaying = this.music.isPlaying;
 }

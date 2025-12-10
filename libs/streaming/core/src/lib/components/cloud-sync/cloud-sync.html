@@ -1,0 +1,26 @@
+<div class="cloud-sync">
+  <h3> Cloud Sync</h3>
+
+  @if (!isAuthenticated()) {
+    <div class="cloud-login">
+      <p>Sign in to sync your scenes and configs to the cloud</p>
+      <button class="btn-cloud" (click)="openLoginDialog()">Sign In</button>
+    </div>
+  } @else {
+    <div class="cloud-connected">
+      <p>Connected as {{ currentUser()?.email }}</p>
+      <button class="btn-cloud" (click)="signOut()">Sign Out</button>
+      <button class="btn-cloud" (click)="openSyncDialog()">View Cloud Scenes</button>
+      <button class="btn-cloud" (click)="loadAnalytics()">Load Analytics</button>
+    </div>
+
+    @if (statsLoaded()) {
+      <div class="cloud-stats">
+        <h4>Stream Analytics</h4>
+        <p>Total Streams: {{ analytics()!.totalStreams }}</p>
+        <p>Total Hours: {{ analytics()!.totalHours.toFixed(1) }}</p>
+        <p>Peak Viewers: {{ analytics()!.peakViewers }}</p>
+      </div>
+    }
+  }
+</div>

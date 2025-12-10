@@ -59,6 +59,24 @@
           (click)="activeTab.set('stats')">
           📊 Stats
         </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'cloud'"
+          (click)="activeTab.set('cloud')">
+          ☁️ Cloud
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'ai'"
+          (click)="activeTab.set('ai')">
+          🤖 AI
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'music'"
+          (click)="activeTab.set('music')">
+          🎵 Music
+        </button>
       </nav>
 
       <!-- Tab Content -->
@@ -102,6 +120,79 @@
         @if (activeTab() === 'stats') {
           <section class="panel-section full-height">
             <streaming-stats-dashboard></streaming-stats-dashboard>
+          </section>
+        }
+
+        @if (activeTab() === 'cloud') {
+          <section class="panel-section full-height">
+            <streaming-cloud-sync></streaming-cloud-sync>
+            @if (isCloudConnected()) {
+              <div class="cloud-status">
+                <p>☁️ Connected as {{ currentUser()?.displayName }}</p>
+                <p class="cloud-info">Your scenes and configs are automatically synced</p>
+              </div>
+            }
+          </section>
+        }
+
+        @if (activeTab() === 'ai') {
+          <section class="panel-section full-height">
+            <div class="ai-panel">
+              <h3>🤖 AI Assistant</h3>
+              @if (isAIConfigured()) {
+                <div class="ai-feature">
+                  <h4>Auto Captions</h4>
+                  <p>Real-time speech-to-text for your stream</p>
+                  <button class="btn-ai">Enable Captions</button>
+                </div>
+                <div class="ai-feature">
+                  <h4>Scene Suggestions</h4>
+                  <p>Get AI-powered scene recommendations</p>
+                  <button class="btn-ai">Get Suggestions</button>
+                </div>
+                <div class="ai-feature">
+                  <h4>Chat Moderation</h4>
+                  <p>AI-powered content filtering</p>
+                  <button class="btn-ai">Configure Moderation</button>
+                </div>
+              } @else {
+                <div class="ai-setup">
+                  <p>Configure AI provider to unlock features</p>
+                  <button class="btn-setup">Setup AI</button>
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        @if (activeTab() === 'music') {
+          <section class="panel-section full-height">
+            <div class="music-panel">
+              <h3>🎵 Royalty-Free Music</h3>
+              @if (currentTrack()) {
+                <div class="now-playing">
+                  <p class="track-title">{{ currentTrack()!.title }}</p>
+                  <p class="track-artist">{{ currentTrack()!.artist }}</p>
+                  <div class="playback-controls">
+                    @if (isPlaying()) {
+                      <button class="btn-play" (click)="music.pause()">⏸️ Pause</button>
+                    } @else {
+                      <button class="btn-play" (click)="music.play(currentTrack()!)">▶️ Play</button>
+                    }
+                  </div>
+                </div>
+              }
+              <div class="music-library">
+                <h4>Music Library</h4>
+                <p>Browse {{ music.allTracks().length }} royalty-free tracks</p>
+                <div class="music-stats">
+                  <p>Genres: {{ music.genres().length }}</p>
+                  <p>Moods: {{ music.moods().length }}</p>
+                </div>
+                <button class="btn-browse">Browse Music</button>
+                <button class="btn-browse">Create Playlist</button>
+              </div>
+            </div>
           </section>
         }
       </div>

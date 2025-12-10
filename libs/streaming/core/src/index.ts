@@ -21,6 +21,7 @@ export * from './lib/services/studio-mode.service';
 export * from './lib/services/virtual-camera.service';
 export * from './lib/services/ai.service';
 export * from './lib/services/firebase.service';
+export * from './lib/services/music-library.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';
@@ -38,3 +39,4 @@ export * from './lib/components/chat-integration';
 export * from './lib/components/alerts-system';
 export * from './lib/components/overlays-manager';
 export * from './lib/components/multistream';
+export * from './lib/components/cloud-sync/cloud-sync';
