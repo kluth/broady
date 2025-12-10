@@ -1,0 +1,297 @@
+<div class="alerts-system">
+  <!-- Header -->
+  <div class="alerts-header">
+    <h3>🔔 Alerts & Notifications</h3>
+    <div class="alerts-stats">
+      <span class="stat">📋 Queue: {{ queueSize() }}</span>
+      <span class="stat">✅ Enabled: {{ enabledAlertsCount() }}</span>
+      <span class="stat">📊 Total: {{ totalAlerts() }}</span>
+    </div>
+    <div class="alerts-actions">
+      <button class="btn-icon" (click)="toggleConfig()" title="Configuration">
+        ⚙️
+      </button>
+      <button class="btn-icon" (click)="toggleHistory()" title="History">
+        📋
+      </button>
+      <button class="btn-icon" (click)="exportConfig()" title="Export Config">
+        💾
+      </button>
+    </div>
+  </div>
+
+  <!-- Alert Queue -->
+  <div class="alert-queue">
+    <div class="queue-header">
+      <h4>Alert Queue</h4>
+      @if (queueSize() > 0) {
+        <button class="btn-clear" (click)="clearQueue()">Clear Queue</button>
+      }
+    </div>
+    @if (queueSize() === 0) {
+      <div class="empty-state">
+        <p>No alerts in queue</p>
+      </div>
+    } @else {
+      <div class="queue-items">
+        @for (alert of alertQueue(); track alert.id) {
+          <div class="queue-item">
+            <span class="queue-icon">{{ getAlertIcon(alert.type) }}</span>
+            <div class="queue-info">
+              <span class="queue-type">{{ getAlertTypeName(alert.type) }}</span>
+              <span class="queue-user">{{ alert.username }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Quick Test -->
+  <div class="quick-test">
+    <h4>Test Alerts</h4>
+    <div class="test-buttons">
+      <button class="btn-test" (click)="testAlert('follower')" title="Test Follower Alert">
+        👤 Follower
+      </button>
+      <button class="btn-test" (click)="testAlert('subscriber')" title="Test Subscriber Alert">
+        ⭐ Sub
+      </button>
+      <button class="btn-test" (click)="testAlert('donation')" title="Test Donation Alert">
+        💰 Donation
+      </button>
+      <button class="btn-test" (click)="testAlert('raid')" title="Test Raid Alert">
+        ⚔️ Raid
+      </button>
+      <button class="btn-test" (click)="testAlert('host')" title="Test Host Alert">
+        🏠 Host
+      </button>
+      <button class="btn-test" (click)="testAlert('cheer')" title="Test Cheer Alert">
+        💎 Cheer
+      </button>
+    </div>
+  </div>
+
+  <!-- Configuration Panel -->
+  @if (showConfig()) {
+    <div class="config-overlay" (click)="showConfig.set(false)">
+      <div class="config-panel" (click)="$event.stopPropagation()">
+        <div class="config-header">
+          <h4>Alert Configuration</h4>
+          <button class="btn-close" (click)="showConfig.set(false)">✕</button>
+        </div>
+
+        <!-- Alert Type Selector -->
+        <div class="config-tabs">
+          @for (type of ['follower', 'subscriber', 'donation', 'raid', 'host', 'cheer']; track type) {
+            <button
+              class="config-tab"
+              [class.active]="selectedConfigType() === type"
+              (click)="selectedConfigType.set(type as any)">
+              {{ getAlertIcon(type as any) }} {{ getAlertTypeName(type as any) }}
+            </button>
+          }
+        </div>
+
+        @if (selectedConfig(); as config) {
+          <div class="config-content">
+            <!-- Enable/Disable -->
+            <div class="config-group">
+              <label class="config-label">
+                <input
+                  type="checkbox"
+                  [checked]="config.enabled"
+                  (change)="updateConfig(config.type, { enabled: $any($event.target).checked })">
+                <span>Enable {{ getAlertTypeName(config.type) }} Alerts</span>
+              </label>
+            </div>
+
+            <!-- Duration -->
+            <div class="config-group">
+              <label class="config-label-inline">
+                <span>Display Duration (ms)</span>
+                <input
+                  type="number"
+                  class="config-input"
+                  [value]="config.duration"
+                  (input)="updateConfig(config.type, { duration: +$any($event.target).value })"
+                  min="1000"
+                  max="30000"
+                  step="1000">
+              </label>
+            </div>
+
+            <!-- Sound Volume -->
+            <div class="config-group">
+              <label class="config-label-inline">
+                <span>Sound Volume</span>
+                <input
+                  type="range"
+                  class="config-range"
+                  [value]="config.soundVolume"
+                  (input)="updateConfig(config.type, { soundVolume: +$any($event.target).value })"
+                  min="0"
+                  max="1"
+                  step="0.1">
+                <span class="range-value">{{ (config.soundVolume * 100).toFixed(0) }}%</span>
+              </label>
+            </div>
+
+            <!-- Font Size -->
+            <div class="config-group">
+              <label class="config-label-inline">
+                <span>Font Size (px)</span>
+                <input
+                  type="number"
+                  class="config-input"
+                  [value]="config.fontSize"
+                  (input)="updateConfig(config.type, { fontSize: +$any($event.target).value })"
+                  min="12"
+                  max="72"
+                  step="2">
+              </label>
+            </div>
+
+            <!-- Background Color -->
+            <div class="config-group">
+              <label class="config-label-inline">
+                <span>Background Color</span>
+                <input
+                  type="color"
+                  class="config-color"
+                  [value]="config.backgroundColor"
+                  (input)="updateConfig(config.type, { backgroundColor: $any($event.target).value })">
+              </label>
+            </div>
+
+            <!-- Text Color -->
+            <div class="config-group">
+              <label class="config-label-inline">
+                <span>Text Color</span>
+                <input
+                  type="color"
+                  class="config-color"
+                  [value]="config.textColor"
+                  (input)="updateConfig(config.type, { textColor: $any($event.target).value })">
+              </label>
+            </div>
+
+            <!-- Animation -->
+            <div class="config-group">
+              <label class="config-label-inline">
+                <span>Animation</span>
+                <select
+                  class="config-select"
+                  [value]="config.animation"
+                  (change)="updateConfig(config.type, { animation: $any($event.target).value as any })">
+                  <option value="slide">Slide</option>
+                  <option value="fade">Fade</option>
+                  <option value="bounce">Bounce</option>
+                  <option value="zoom">Zoom</option>
+                </select>
+              </label>
+            </div>
+
+            <!-- Text Template -->
+            <div class="config-group">
+              <label class="config-label-block">
+                <span>Text Template</span>
+                <textarea
+                  class="config-textarea"
+                  [value]="config.textTemplate"
+                  (input)="updateConfig(config.type, { textTemplate: $any($event.target).value })"
+                  rows="3"></textarea>
+                <small>Use {username}, {amount}, {message}, {months}, {tier}, {viewerCount}</small>
+              </label>
+            </div>
+
+            @if (config.type === 'donation' || config.type === 'cheer') {
+              <div class="config-group">
+                <label class="config-label-inline">
+                  <span>Minimum Amount</span>
+                  <input
+                    type="number"
+                    class="config-input"
+                    [value]="config.minAmount || 0"
+                    (input)="updateConfig(config.type, { minAmount: +$any($event.target).value })"
+                    min="0">
+                </label>
+              </div>
+            }
+
+            <!-- Templates -->
+            <div class="config-group">
+              <label class="config-label-block">
+                <span>Quick Templates</span>
+                <div class="template-buttons">
+                  @for (template of templates; track template.name) {
+                    <button
+                      class="btn-template"
+                      [style.background]="template.backgroundColor"
+                      [style.color]="template.textColor"
+                      (click)="applyTemplate(template)">
+                      {{ template.name }}
+                    </button>
+                  }
+                </div>
+              </label>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- History Panel -->
+  @if (showHistory()) {
+    <div class="history-overlay" (click)="showHistory.set(false)">
+      <div class="history-panel" (click)="$event.stopPropagation()">
+        <div class="history-header">
+          <h4>Alert History</h4>
+          <div class="history-actions">
+            @if (totalAlerts() > 0) {
+              <button class="btn-clear" (click)="clearHistory()">Clear</button>
+            }
+            <button class="btn-close" (click)="showHistory.set(false)">✕</button>
+          </div>
+        </div>
+
+        <div class="history-content">
+          @if (totalAlerts() === 0) {
+            <div class="empty-state">
+              <p>No alerts in history</p>
+            </div>
+          } @else {
+            @for (alert of alertHistory(); track alert.id) {
+              <div class="history-item">
+                <span class="history-icon">{{ getAlertIcon(alert.type) }}</span>
+                <div class="history-info">
+                  <div class="history-type">{{ getAlertTypeName(alert.type) }}</div>
+                  <div class="history-text">{{ formatAlertText(alert) }}</div>
+                  <div class="history-time">{{ alert.timestamp.toLocaleString() }}</div>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Current Alert Display (AlertBox) -->
+  @if (currentAlert(); as alert) {
+    <div
+      class="alert-box"
+      [class.slide]="alertConfigs().get(alert.type)?.animation === 'slide'"
+      [class.fade]="alertConfigs().get(alert.type)?.animation === 'fade'"
+      [class.bounce]="alertConfigs().get(alert.type)?.animation === 'bounce'"
+      [class.zoom]="alertConfigs().get(alert.type)?.animation === 'zoom'"
+      [style.background]="alertConfigs().get(alert.type)?.backgroundColor"
+      [style.color]="alertConfigs().get(alert.type)?.textColor"
+      [style.font-size.px]="alertConfigs().get(alert.type)?.fontSize">
+      <div class="alert-box-icon">{{ getAlertIcon(alert.type) }}</div>
+      <div class="alert-box-text">{{ formatAlertText(alert) }}</div>
+      <button class="alert-box-close" (click)="skipCurrentAlert()">✕</button>
+    </div>
+  }
+</div>
