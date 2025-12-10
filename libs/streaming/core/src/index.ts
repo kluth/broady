@@ -32,6 +32,14 @@ export * from './lib/services/theme.service';
 export * from './lib/services/stream-scheduler.service';
 export * from './lib/services/auto-scene-switcher.service';
 export * from './lib/services/viewer-engagement.service';
+export * from './lib/services/analytics-dashboard.service';
+export * from './lib/services/clip-creator.service';
+export * from './lib/services/tts.service';
+export * from './lib/services/sound-alerts.service';
+export * from './lib/services/stream-templates.service';
+export * from './lib/services/chroma-key.service';
+export * from './lib/services/lower-thirds.service';
+export * from './lib/services/ndi.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';
