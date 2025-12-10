@@ -21,6 +21,7 @@ export * from './lib/services/studio-mode.service';
 export * from './lib/services/virtual-camera.service';
 export * from './lib/services/ai.service';
 export * from './lib/services/firebase.service';
+export * from './lib/services/firebase-enhanced.service';
 export * from './lib/services/music-library.service';
 
 // Components
