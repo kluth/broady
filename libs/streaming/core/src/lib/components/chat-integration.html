@@ -1,0 +1,216 @@
+<div class="chat-integration">
+  <div class="chat-header">
+    <h3>💬 Stream Chat</h3>
+    <div class="chat-stats">
+      <span class="stat">📊 {{ totalMessages() }}</span>
+      <span class="stat">⚡ {{ messagesPerMinute() }}/min</span>
+    </div>
+    <div class="chat-actions">
+      <button class="btn-icon" (click)="togglePause()" [title]="isPaused() ? 'Resume' : 'Pause'">
+        {{ isPaused() ? '▶️' : '⏸️' }}
+      </button>
+      <button class="btn-icon" (click)="clearChat()" title="Clear chat">
+        🗑️
+      </button>
+      <button class="btn-icon" (click)="exportChat()" title="Export chat">
+        💾
+      </button>
+      <button class="btn-icon" (click)="toggleSettings()" title="Settings">
+        ⚙️
+      </button>
+    </div>
+  </div>
+
+  <!-- Platform Connections -->
+  <div class="platforms-bar">
+    @for (platform of platforms(); track platform.id) {
+      <button
+        class="platform-btn"
+        [class.connected]="platform.connected"
+        [style.border-color]="platform.color"
+        (click)="togglePlatform(platform.id)"
+        [title]="platform.name">
+        <span class="platform-icon">{{ platform.icon }}</span>
+        <span class="platform-name">{{ platform.name }}</span>
+        @if (platform.connected) {
+          <span class="connected-indicator" [style.background]="platform.color"></span>
+        }
+      </button>
+    }
+  </div>
+
+  <!-- Filters -->
+  <div class="chat-filters">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search messages..."
+      [value]="searchQuery()"
+      (input)="searchQuery.set($any($event.target).value)">
+
+    <select
+      class="platform-filter"
+      [value]="selectedPlatformFilter()"
+      (change)="selectedPlatformFilter.set($any($event.target).value)">
+      <option value="all">All Platforms</option>
+      @for (platform of platforms(); track platform.id) {
+        @if (platform.connected) {
+          <option [value]="platform.id">{{ platform.name }}</option>
+        }
+      }
+    </select>
+  </div>
+
+  <!-- Messages Container -->
+  <div class="chat-messages" [class.paused]="isPaused()">
+    @if (filteredMessages().length === 0) {
+      <div class="empty-state">
+        @if (connectedPlatforms().length === 0) {
+          <p>Connect to platforms above to see chat messages</p>
+        } @else {
+          <p>No messages yet...</p>
+        }
+      </div>
+    } @else {
+      @for (msg of filteredMessages(); track msg.id) {
+        <div class="chat-message" [class.moderator]="msg.isModerator" [class.subscriber]="msg.isSubscriber">
+          <div class="message-header">
+            @if (settings().showTimestamps) {
+              <span class="timestamp">{{ msg.timestamp.toLocaleTimeString() }}</span>
+            }
+            @if (settings().showPlatformIcons) {
+              <span class="platform-badge" [style.color]="platforms().find(p => p.id === msg.platform)?.color">
+                {{ platforms().find(p => p.id === msg.platform)?.icon }}
+              </span>
+            }
+            @if (settings().showBadges) {
+              @for (badge of msg.badges; track badge) {
+                <span class="user-badge">{{ badge }}</span>
+              }
+            }
+            <span class="username" [style.color]="msg.color">{{ msg.username }}</span>
+          </div>
+          <div class="message-content" [class.command]="msg.isCommand" [class.font-small]="settings().fontSize === 'small'" [class.font-large]="settings().fontSize === 'large'">
+            {{ msg.message }}
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Message Input -->
+  <div class="chat-input-container">
+    <input
+      type="text"
+      class="chat-input"
+      placeholder="Send a message..."
+      [value]="messageInput()"
+      (input)="messageInput.set($any($event.target).value)"
+      (keydown.enter)="sendMessage()"
+      [disabled]="connectedPlatforms().length === 0">
+    <button
+      class="btn-send"
+      (click)="sendMessage()"
+      [disabled]="!messageInput() || connectedPlatforms().length === 0">
+      Send
+    </button>
+  </div>
+
+  <!-- Settings Panel -->
+  @if (showSettings()) {
+    <div class="settings-overlay" (click)="showSettings.set(false)">
+      <div class="settings-panel" (click)="$event.stopPropagation()">
+        <div class="settings-header">
+          <h4>Chat Settings</h4>
+          <button class="btn-close" (click)="showSettings.set(false)">✕</button>
+        </div>
+
+        <div class="settings-content">
+          <div class="setting-group">
+            <label class="setting-label">
+              <input
+                type="checkbox"
+                [checked]="settings().showTimestamps"
+                (change)="updateSetting('showTimestamps', $any($event.target).checked)">
+              <span>Show Timestamps</span>
+            </label>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label">
+              <input
+                type="checkbox"
+                [checked]="settings().showBadges"
+                (change)="updateSetting('showBadges', $any($event.target).checked)">
+              <span>Show User Badges</span>
+            </label>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label">
+              <input
+                type="checkbox"
+                [checked]="settings().showPlatformIcons"
+                (change)="updateSetting('showPlatformIcons', $any($event.target).checked)">
+              <span>Show Platform Icons</span>
+            </label>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label">
+              <input
+                type="checkbox"
+                [checked]="settings().filterProfanity"
+                (change)="updateSetting('filterProfanity', $any($event.target).checked)">
+              <span>Filter Profanity</span>
+            </label>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label">
+              <input
+                type="checkbox"
+                [checked]="settings().highlightMentions"
+                (change)="updateSetting('highlightMentions', $any($event.target).checked)">
+              <span>Highlight Mentions</span>
+            </label>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label">
+              <input
+                type="checkbox"
+                [checked]="settings().enableSoundAlerts"
+                (change)="updateSetting('enableSoundAlerts', $any($event.target).checked)">
+              <span>Sound Alerts</span>
+            </label>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label">
+              <span>Font Size</span>
+              <select
+                class="setting-select"
+                [value]="settings().fontSize"
+                (change)="updateSetting('fontSize', $any($event.target).value as 'small' | 'medium' | 'large')">
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-footer">
+          <button class="btn-primary" (click)="saveSettings()">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (isPaused()) {
+    <div class="pause-indicator">
+      ⏸️ Chat Paused
+    </div>
+  }
+</div>
