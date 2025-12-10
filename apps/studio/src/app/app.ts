@@ -5,6 +5,7 @@ import {
   StreamingControlsComponent,
   VideoPreviewComponent,
   AudioMixerComponent,
+  SourcesManagerComponent,
 } from '@org/streaming-core';
 
 @Component({
@@ -15,6 +16,7 @@ import {
     StreamingControlsComponent,
     VideoPreviewComponent,
     AudioMixerComponent,
+    SourcesManagerComponent,
   ],
   selector: 'app-root',
   templateUrl: './app.html',

@@ -1,0 +1,170 @@
+<div class="sources-manager">
+  <div class="manager-header">
+    <h3>Sources</h3>
+    <button class="btn-add" (click)="openAddDialog()" title="Add Source">
+      + Add
+    </button>
+  </div>
+
+  @if (activeScene()) {
+    <div class="sources-list">
+      @for (source of sceneSources(); track source.id) {
+        <div
+          class="source-item"
+          [class.selected]="selectedSourceId() === source.id"
+          [class.dragging]="draggedSourceId() === source.id"
+          [class.invisible]="!source.visible"
+          (click)="selectSource(source.id)"
+          draggable="true"
+          (dragstart)="onDragStart(source.id, $event)"
+          (dragover)="onDragOver($event)"
+          (drop)="onDrop(source.id, $event)"
+          (dragend)="onDragEnd()"
+        >
+          <div class="source-icon">{{ getSourceIcon(source.type) }}</div>
+          <div class="source-info">
+            <div class="source-name">{{ source.name }}</div>
+            <div class="source-type">{{ source.type }}</div>
+          </div>
+          <div class="source-controls">
+            <button
+              class="btn-icon-small"
+              [class.active]="source.visible"
+              (click)="toggleSourceVisibility(source.id); $event.stopPropagation()"
+              title="Toggle Visibility"
+            >
+              {{ source.visible ? '👁️' : '👁️‍🗨️' }}
+            </button>
+            <button
+              class="btn-icon-small"
+              [class.active]="source.locked"
+              (click)="toggleSourceLock(source.id); $event.stopPropagation()"
+              title="Lock/Unlock"
+            >
+              {{ source.locked ? '🔒' : '🔓' }}
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <p>No sources in this scene</p>
+          <button class="btn-add-large" (click)="openAddDialog()">
+            + Add Your First Source
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (hasSelectedSource()) {
+      <div class="source-actions">
+        <button
+          class="btn-action"
+          (click)="moveSourceUp(selectedSourceId()!)"
+          title="Move Up"
+        >
+          ▲
+        </button>
+        <button
+          class="btn-action"
+          (click)="moveSourceDown(selectedSourceId()!)"
+          title="Move Down"
+        >
+          ▼
+        </button>
+        <button
+          class="btn-action"
+          (click)="duplicateSource(selectedSourceId()!)"
+          title="Duplicate"
+        >
+          📋
+        </button>
+        <button
+          class="btn-action"
+          (click)="renameSource(selectedSourceId()!)"
+          title="Rename"
+        >
+          ✏️
+        </button>
+        <button
+          class="btn-action btn-danger"
+          (click)="removeSource(selectedSourceId()!)"
+          title="Remove"
+        >
+          🗑️
+        </button>
+      </div>
+    }
+  } @else {
+    <div class="no-scene">
+      <p>No active scene selected</p>
+    </div>
+  }
+
+  <!-- Add Source Dialog -->
+  @if (showAddDialog()) {
+    <div class="dialog-overlay" (click)="closeAddDialog()">
+      <div class="dialog" (click)="$event.stopPropagation()">
+        <div class="dialog-header">
+          <h3>Add Source</h3>
+          <button class="btn-close" (click)="closeAddDialog()">✕</button>
+        </div>
+
+        <div class="dialog-content">
+          <div class="form-group">
+            <label>Source Name</label>
+            <input
+              type="text"
+              [value]="newSourceName()"
+              (input)="updateSourceName($any($event.target).value)"
+              placeholder="Enter source name..."
+              class="source-name-input"
+              autofocus
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Source Type</label>
+
+            <div class="source-type-categories">
+              @for (category of ['video', 'audio', 'media', 'other']; track category) {
+                <div class="type-category">
+                  <h4 class="category-name">
+                    {{ category === 'video' ? '📹 Video' :
+                       category === 'audio' ? '🎵 Audio' :
+                       category === 'media' ? '📺 Media' : '🔧 Other' }}
+                  </h4>
+                  <div class="type-grid">
+                    @for (type of categorizedSourceTypes()[category]; track type.type) {
+                      <button
+                        class="type-btn"
+                        [class.active]="selectedSourceType() === type.type"
+                        (click)="selectSourceType(type.type)"
+                      >
+                        <span class="type-icon">{{ type.icon }}</span>
+                        <span class="type-name">{{ type.name }}</span>
+                        <span class="type-desc">{{ type.description }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog-footer">
+          <button class="btn-secondary" (click)="closeAddDialog()">
+            Cancel
+          </button>
+          <button
+            class="btn-primary"
+            (click)="addSource()"
+            [disabled]="!newSourceName().trim()"
+          >
+            Add Source
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

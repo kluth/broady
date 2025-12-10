@@ -31,3 +31,4 @@ export * from './lib/components/source-properties/source-properties.component';
 export * from './lib/components/scene-transitions/scene-transitions.component';
 export * from './lib/components/hotkey-config/hotkey-config.component';
 export * from './lib/components/ai-dashboard/ai-dashboard.component';
+export * from './lib/components/sources-manager/sources-manager.component';
