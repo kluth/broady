@@ -33,6 +33,7 @@ import {
   ChromaKeyService,
   LowerThirdsService,
   NDIService,
+  BackgroundRemovalService,
 } from '@org/streaming-core';
 
 @Component({
@@ -62,7 +63,7 @@ export class App {
     'sources' | 'overlays' | 'multistream' | 'alerts' | 'chat' | 'stats' |
     'cloud' | 'ai' | 'music' | 'health' | 'engagement' | 'moderation' |
     'analytics' | 'clips' | 'tts' | 'sounds' | 'templates' | 'chroma' |
-    'lowerthirds' | 'ndi'
+    'lowerthirds' | 'ndi' | 'aibackground'
   >('sources');
 
   // Inject core services
@@ -90,6 +91,7 @@ export class App {
   protected chromaKey = inject(ChromaKeyService);
   protected lowerThirds = inject(LowerThirdsService);
   protected ndi = inject(NDIService);
+  protected backgroundRemoval = inject(BackgroundRemovalService);
 
   // Core service state
   readonly isCloudConnected = this.firebase.isAuthenticated;
@@ -119,4 +121,7 @@ export class App {
   readonly chromaKeyEnabled = this.chromaKey.settings;
   readonly activeLowerThird = this.lowerThirds.activeLowerThird;
   readonly ndiSources = this.ndi.sources;
+  readonly bgRemovalEnabled = this.backgroundRemoval.isEnabled;
+  readonly personDetected = this.backgroundRemoval.personDetection;
+  readonly bgRemovalFps = this.backgroundRemoval.performanceMetrics;
 }

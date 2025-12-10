@@ -369,11 +369,50 @@ Broady is a comprehensive professional streaming platform with **17 major featur
 
 ---
 
+### 18. AI Background Removal
+**Intelligent person segmentation without green screen**
+
+**Methods:**
+- `enable()` - Enable AI background removal
+- `disable()` - Disable background removal
+- `switchModel(modelId)` - Change ML model
+- `setBackgroundType(type, value)` - Set background type
+- `applyEffect(effectId)` - Apply background effect
+- `updateSettings(settings)` - Update all settings
+- `setSegmentationThreshold(threshold)` - Adjust threshold
+- `setEdgeBlur(blur)` - Set edge blur amount
+- `setBlurAmount(amount)` - Set background blur
+- `addCustomBackground(name, type, value)` - Add custom background
+- `removeCustomBackground(effectId)` - Remove background
+- `optimizePerformance()` - Auto-optimize for performance
+- `getOutputStream()` - Get processed video stream
+- `exportSettings()` - Export config as JSON
+- `importSettings(settingsJson)` - Import config
+
+**Features:**
+- 4 ML models (BodyPix, MediaPipe, DeepLabV3+, U2-Net)
+- Intelligent person detection (no green screen!)
+- Real-time segmentation
+- 5 background types (transparent, blur, image, video, color)
+- 6 built-in background effects
+- Custom background upload
+- Edge refinement (4 levels)
+- Performance metrics (FPS, processing time)
+- Auto-optimization for low-end hardware
+- Segmentation threshold control
+- Edge blur & feathering
+- Person detection with confidence score
+- Bounding box & keypoint detection
+- Model quality presets (fast, balanced, quality)
+- Import/export settings
+
+---
+
 ## 📈 Statistics
 
-**Total Services:** 17 major feature systems
-**Total Code:** 3,376+ lines of TypeScript
-**Total Methods:** 150+ public methods
+**Total Services:** 18 major feature systems
+**Total Code:** 3,850+ lines of TypeScript
+**Total Methods:** 165+ public methods
 **Angular Version:** 20
 **Architecture:** Nx Monorepo with signals
 **All Services:** Fully injectable, type-safe, production-ready

@@ -40,6 +40,7 @@ export * from './lib/services/stream-templates.service';
 export * from './lib/services/chroma-key.service';
 export * from './lib/services/lower-thirds.service';
 export * from './lib/services/ndi.service';
+export * from './lib/services/background-removal.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';
