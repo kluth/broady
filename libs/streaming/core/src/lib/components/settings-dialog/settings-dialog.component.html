@@ -1,0 +1,341 @@
+@if (isOpen()) {
+  <div class="settings-overlay" (click)="close()">
+    <div class="settings-dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>⚙️ Settings</h2>
+        <button class="btn-close" (click)="close()">✕</button>
+      </div>
+
+      <div class="dialog-body">
+        <div class="settings-sidebar">
+          @for (tab of tabs; track tab.id) {
+            <button
+              class="tab-btn"
+              [class.active]="selectedTab() === tab.id"
+              (click)="selectTab(tab.id)"
+            >
+              <span class="tab-icon">{{ tab.icon }}</span>
+              <span class="tab-name">{{ tab.name }}</span>
+            </button>
+          }
+        </div>
+
+        <div class="settings-content">
+          @if (selectedTab() === 'general') {
+            <div class="settings-section">
+              <h3>General Settings</h3>
+
+              <div class="setting-group">
+                <label>Language</label>
+                <select [value]="language()" (change)="updateLanguage($any($event.target).value)">
+                  @for (lang of languages; track lang) {
+                    <option [value]="lang">{{ lang.toUpperCase() }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Theme</label>
+                <select [value]="theme()" (change)="updateTheme($any($event.target).value)">
+                  @for (t of themes; track t) {
+                    <option [value]="t">{{ t | titlecase }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    [checked]="autoStart()"
+                    (change)="updateAutoStart($any($event.target).checked)"
+                  />
+                  <span>Launch on system startup</span>
+                </label>
+              </div>
+
+              <div class="setting-group">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    [checked]="minimizeToTray()"
+                    (change)="updateMinimizeToTray($any($event.target).checked)"
+                  />
+                  <span>Minimize to system tray</span>
+                </label>
+              </div>
+            </div>
+          }
+
+          @if (selectedTab() === 'stream') {
+            <div class="settings-section">
+              <h3>Streaming Settings</h3>
+
+              <div class="setting-group">
+                <label>Service</label>
+                <select [value]="service()" (change)="updateService($any($event.target).value)">
+                  @for (s of services; track s) {
+                    <option [value]="s">{{ s | titlecase }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Server</label>
+                <input
+                  type="text"
+                  [value]="streamServer()"
+                  (input)="updateStreamServer($any($event.target).value)"
+                  placeholder="rtmp://..."
+                />
+              </div>
+
+              <div class="setting-group">
+                <label>Stream Key</label>
+                <input
+                  type="password"
+                  [value]="streamKey()"
+                  (input)="updateStreamKey($any($event.target).value)"
+                  placeholder="Your stream key..."
+                />
+                <small>⚠️ Keep your stream key private!</small>
+              </div>
+            </div>
+          }
+
+          @if (selectedTab() === 'output') {
+            <div class="settings-section">
+              <h3>Output Settings</h3>
+
+              <div class="setting-group">
+                <label>Encoder</label>
+                <select [value]="encoder()" (change)="updateEncoder($any($event.target).value)">
+                  @for (enc of encoders; track enc) {
+                    <option [value]="enc">{{ enc.toUpperCase() }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Video Bitrate (kbps)</label>
+                <input
+                  type="range"
+                  min="1000"
+                  max="20000"
+                  step="500"
+                  [value]="videoBitrate()"
+                  (input)="updateVideoBitrate(+$any($event.target).value)"
+                />
+                <span class="value-display">{{ videoBitrate() }} kbps</span>
+              </div>
+
+              <div class="setting-group">
+                <label>Audio Bitrate (kbps)</label>
+                <input
+                  type="range"
+                  min="64"
+                  max="320"
+                  step="32"
+                  [value]="audioBitrate()"
+                  (input)="updateAudioBitrate(+$any($event.target).value)"
+                />
+                <span class="value-display">{{ audioBitrate() }} kbps</span>
+              </div>
+
+              <div class="setting-group">
+                <label>Recording Format</label>
+                <select [value]="recordingFormat()" (change)="updateRecordingFormat($any($event.target).value)">
+                  @for (format of recordingFormats; track format) {
+                    <option [value]="format">{{ format.toUpperCase() }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Recording Path</label>
+                <input
+                  type="text"
+                  [value]="recordingPath()"
+                  (input)="updateRecordingPath($any($event.target).value)"
+                />
+              </div>
+            </div>
+          }
+
+          @if (selectedTab() === 'video') {
+            <div class="settings-section">
+              <h3>Video Settings</h3>
+
+              <div class="setting-group">
+                <label>Base (Canvas) Resolution</label>
+                <select [value]="baseResolution()" (change)="updateBaseResolution($any($event.target).value)">
+                  @for (res of resolutions; track res) {
+                    <option [value]="res">{{ res }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Output (Scaled) Resolution</label>
+                <select [value]="outputResolution()" (change)="updateOutputResolution($any($event.target).value)">
+                  @for (res of resolutions; track res) {
+                    <option [value]="res">{{ res }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>FPS (Frames Per Second)</label>
+                <select [value]="fps()" (change)="updateFps(+$any($event.target).value)">
+                  @for (f of frameRates; track f) {
+                    <option [value]="f">{{ f }} FPS</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Downscale Filter</label>
+                <select [value]="downscaleFilter()" (change)="updateDownscaleFilter($any($event.target).value)">
+                  @for (filter of filters; track filter) {
+                    <option [value]="filter">{{ filter | titlecase }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+
+          @if (selectedTab() === 'audio') {
+            <div class="settings-section">
+              <h3>Audio Settings</h3>
+
+              <div class="setting-group">
+                <label>Sample Rate</label>
+                <select [value]="sampleRate()" (change)="updateSampleRate(+$any($event.target).value)">
+                  @for (rate of sampleRates; track rate) {
+                    <option [value]="rate">{{ rate }} Hz</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Channels</label>
+                <select [value]="channels()" (change)="updateChannels($any($event.target).value)">
+                  @for (ch of channelOptions; track ch) {
+                    <option [value]="ch">{{ ch | titlecase }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Desktop Audio Device</label>
+                <select [value]="desktopAudioDevice()" (change)="updateDesktopAudioDevice($any($event.target).value)">
+                  <option value="default">Default</option>
+                  <option value="disabled">Disabled</option>
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Microphone/Aux Device</label>
+                <select [value]="micAudioDevice()" (change)="updateMicAudioDevice($any($event.target).value)">
+                  <option value="default">Default</option>
+                  <option value="disabled">Disabled</option>
+                </select>
+              </div>
+            </div>
+          }
+
+          @if (selectedTab() === 'hotkeys') {
+            <div class="settings-section">
+              <h3>Hotkeys</h3>
+              <p>Configure keyboard shortcuts in the Hotkeys panel</p>
+              <button class="btn-secondary">Open Hotkey Configuration</button>
+            </div>
+          }
+
+          @if (selectedTab() === 'advanced') {
+            <div class="settings-section">
+              <h3>Advanced Settings</h3>
+
+              <div class="setting-group">
+                <label>Process Priority</label>
+                <select [value]="processPriority()" (change)="updateProcessPriority($any($event.target).value)">
+                  @for (priority of priorities; track priority) {
+                    <option [value]="priority">{{ priority | titlecase }}</option>
+                  }
+                </select>
+                <small>⚠️ Changing priority can affect system stability</small>
+              </div>
+
+              <div class="setting-group">
+                <label>Renderer</label>
+                <select [value]="renderer()" (change)="updateRenderer($any($event.target).value)">
+                  @for (r of renderers; track r) {
+                    <option [value]="r">{{ r }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Color Format</label>
+                <select [value]="colorFormat()" (change)="updateColorFormat($any($event.target).value)">
+                  @for (format of colorFormats; track format) {
+                    <option [value]="format">{{ format.toUpperCase() }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Color Space</label>
+                <select [value]="colorSpace()" (change)="updateColorSpace($any($event.target).value)">
+                  @for (space of colorSpaces; track space) {
+                    <option [value]="space">{{ space }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>Color Range</label>
+                <select [value]="colorRange()" (change)="updateColorRange($any($event.target).value)">
+                  @for (range of colorRanges; track range) {
+                    <option [value]="range">{{ range | titlecase }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+
+          @if (selectedTab() === 'ai') {
+            <div class="settings-section">
+              <h3>AI Features</h3>
+              <p>Configure AI-powered features in the AI Dashboard</p>
+              <button class="btn-secondary">Open AI Dashboard</button>
+            </div>
+          }
+
+          @if (selectedTab() === 'cloud') {
+            <div class="settings-section">
+              <h3>Cloud & Sync</h3>
+              <p>Firebase authentication and cloud sync settings</p>
+              <button class="btn-secondary">Manage Cloud Settings</button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="dialog-footer">
+        @if (hasUnsavedChanges()) {
+          <span class="unsaved-indicator">● Unsaved changes</span>
+        }
+        <button class="btn-secondary" (click)="resetToDefaults()">
+          Reset to Defaults
+        </button>
+        <button class="btn-secondary" (click)="close()">
+          Cancel
+        </button>
+        <button class="btn-primary" (click)="saveSettings()">
+          Save Settings
+        </button>
+      </div>
+    </div>
+  </div>
+}
