@@ -122,6 +122,10 @@ export class Multistream implements OnDestroy {
     this.saveToStorage();
   }
 
+  addPlatformByType(type: string): void {
+    this.addPlatform(type as PlatformType);
+  }
+
   removePlatform(id: string): void {
     const platform = this.platforms().find(p => p.id === id);
     if (platform?.status === 'live') {

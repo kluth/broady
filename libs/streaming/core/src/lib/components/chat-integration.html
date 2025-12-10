@@ -79,8 +79,8 @@
               <span class="timestamp">{{ msg.timestamp.toLocaleTimeString() }}</span>
             }
             @if (settings().showPlatformIcons) {
-              <span class="platform-badge" [style.color]="platforms().find(p => p.id === msg.platform)?.color">
-                {{ platforms().find(p => p.id === msg.platform)?.icon }}
+              <span class="platform-badge" [style.color]="getPlatformColor(msg.platform)">
+                {{ getPlatformIcon(msg.platform) }}
               </span>
             }
             @if (settings().showBadges) {
@@ -192,7 +192,7 @@
               <select
                 class="setting-select"
                 [value]="settings().fontSize"
-                (change)="updateSetting('fontSize', $any($event.target).value as 'small' | 'medium' | 'large')">
+                (change)="updateSetting('fontSize', $any($event.target).value)">
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
                 <option value="large">Large</option>

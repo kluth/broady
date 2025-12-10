@@ -10,8 +10,8 @@ import {
   AlertsSystem,
   OverlaysManager,
   Multistream,
-  StatsDashboard,
-  SettingsDialog,
+  StatsDashboardComponent,
+  SettingsDialogComponent,
 } from '@org/streaming-core';
 
 @Component({
@@ -27,8 +27,8 @@ import {
     AlertsSystem,
     OverlaysManager,
     Multistream,
-    StatsDashboard,
-    SettingsDialog,
+    StatsDashboardComponent,
+    SettingsDialogComponent,
   ],
   selector: 'app-root',
   templateUrl: './app.html',

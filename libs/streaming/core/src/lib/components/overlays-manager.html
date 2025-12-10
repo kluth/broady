@@ -263,9 +263,9 @@
             @for (type of ['webcam', 'text', 'image', 'video', 'browser', 'alertbox', 'chatbox', 'timer', 'scoreboard', 'logo']; track type) {
               <button
                 class="overlay-type-btn"
-                (click)="addOverlay(type as any)">
-                <span class="type-icon">{{ getOverlayIcon(type as any) }}</span>
-                <span class="type-name">{{ getOverlayTypeName(type as any) }}</span>
+                (click)="addOverlayByType(type)">
+                <span class="type-icon">{{ getOverlayIcon(type) }}</span>
+                <span class="type-name">{{ getOverlayTypeName(type) }}</span>
               </button>
             }
           </div>

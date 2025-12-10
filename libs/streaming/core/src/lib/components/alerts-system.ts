@@ -181,7 +181,7 @@ export class AlertsSystem implements OnDestroy {
     const savedConfigs = localStorage.getItem('alert_configs');
     if (savedConfigs) {
       const parsed = JSON.parse(savedConfigs);
-      this.alertConfigs.set(new Map(Object.entries(parsed)));
+      this.alertConfigs.set(new Map(Object.entries(parsed) as [AlertType, AlertConfig][]));
     }
 
     // Start alert simulator for demo
@@ -261,6 +261,10 @@ export class AlertsSystem implements OnDestroy {
 
   toggleHistory(): void {
     this.showHistory.update(v => !v);
+  }
+
+  setConfigType(type: string): void {
+    this.selectedConfigType.set(type as AlertType);
   }
 
   updateConfig(type: AlertType, updates: Partial<AlertConfig>): void {

@@ -222,6 +222,10 @@ export class OverlaysManager {
     this.saveToStorage();
   }
 
+  addOverlayByType(type: string): void {
+    this.addOverlay(type as OverlayType);
+  }
+
   removeOverlay(id: string): void {
     if (confirm('Remove this overlay?')) {
       this.overlays.update(overlays => overlays.filter(o => o.id !== id));

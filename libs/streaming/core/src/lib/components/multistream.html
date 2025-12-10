@@ -241,10 +241,10 @@
             @for (type of ['twitch', 'youtube', 'facebook', 'kick', 'tiktok', 'custom']; track type) {
               <button
                 class="platform-type-btn"
-                [style.border-color]="getPlatformColor(type as any)"
-                (click)="addPlatform(type as any)">
-                <span class="type-icon">{{ getPlatformIcon(type as any) }}</span>
-                <span class="type-name">{{ getPlatformName(type as any) }}</span>
+                [style.border-color]="getPlatformColor(type)"
+                (click)="addPlatformByType(type)">
+                <span class="type-icon">{{ getPlatformIcon(type) }}</span>
+                <span class="type-name">{{ getPlatformName(type) }}</span>
               </button>
             }
           </div>

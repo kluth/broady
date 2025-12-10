@@ -202,6 +202,14 @@ export class ChatIntegration implements OnDestroy {
     this.settings.update(s => ({ ...s, [key]: value }));
   }
 
+  getPlatformColor(platformId: string): string | undefined {
+    return this.platforms().find(p => p.id === platformId)?.color;
+  }
+
+  getPlatformIcon(platformId: string): string | undefined {
+    return this.platforms().find(p => p.id === platformId)?.icon;
+  }
+
   private addMessage(message: ChatMessage): void {
     this.messages.update(msgs => {
       const newMsgs = [...msgs, message];

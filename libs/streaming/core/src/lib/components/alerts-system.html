@@ -87,8 +87,8 @@
             <button
               class="config-tab"
               [class.active]="selectedConfigType() === type"
-              (click)="selectedConfigType.set(type as any)">
-              {{ getAlertIcon(type as any) }} {{ getAlertTypeName(type as any) }}
+              (click)="setConfigType(type)">
+              {{ getAlertIcon(type) }} {{ getAlertTypeName(type) }}
             </button>
           }
         </div>
@@ -183,7 +183,7 @@
                 <select
                   class="config-select"
                   [value]="config.animation"
-                  (change)="updateConfig(config.type, { animation: $any($event.target).value as any })">
+                  (change)="updateConfig(config.type, { animation: $any($event.target).value })">
                   <option value="slide">Slide</option>
                   <option value="fade">Fade</option>
                   <option value="bounce">Bounce</option>
@@ -201,7 +201,7 @@
                   [value]="config.textTemplate"
                   (input)="updateConfig(config.type, { textTemplate: $any($event.target).value })"
                   rows="3"></textarea>
-                <small>Use {username}, {amount}, {message}, {months}, {tier}, {viewerCount}</small>
+                <small>Use {{ '{' }}username{{ '}' }}, {{ '{' }}amount{{ '}' }}, {{ '{' }}message{{ '}' }}, {{ '{' }}months{{ '}' }}, {{ '{' }}tier{{ '}' }}, {{ '{' }}viewerCount{{ '}' }}</small>
               </label>
             </div>
 

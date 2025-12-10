@@ -333,16 +333,27 @@ import { StudioModeService } from '../../services/studio-mode.service';
   ],
 })
 export class StreamingControlsComponent {
-  // Signal-based state
-  private recordingStartTime = signal<Date | null>(null);
+  // Services
+  private readonly streamingService = inject(StreamingService);
+  private readonly recordingService = inject(RecordingService);
+  private readonly virtualCameraService = inject(VirtualCameraService);
+  private readonly studioModeService = inject(StudioModeService);
 
-  // Computed signals - so clean!
-  readonly isStreaming = computed(
-    () => this.streamingService.streamingState().isStreaming
+  // Signals
+  private readonly recordingStartTime = signal<Date | null>(null);
   readonly virtualCameraActive = signal(false);
   readonly studioModeEnabled = signal(false);
   readonly inTransition = signal(false);
   readonly connectedApps = signal<string[]>([]);
+  readonly replayBufferEnabled = signal(false);
+
+  // Computed signals
+  readonly isStreaming = computed(
+    () => this.streamingService.streamingState().isStreaming
+  );
+
+  readonly isRecording = computed(() => this.recordingService.isRecording());
+
   readonly streamStats = computed(() => this.streamingService.streamingState());
 
   readonly dropPercentage = computed(() => {
@@ -351,15 +362,29 @@ export class StreamingControlsComponent {
     return (stats.droppedFrames / stats.totalFrames) * 100;
   });
 
-    totalFrames: 0,
+  readonly recordingDuration = computed(() => {
+    const startTime = this.recordingStartTime();
+    if (!startTime) return '00:00:00';
 
-  constructor(
-    private streamingService: StreamingService,
-    private recordingService: RecordingService,
-    private virtualCameraService: VirtualCameraService,
-    private studioModeService: StudioModeService
-  ) {
-    // Using effect to monitor recording state changes
+    const now = new Date();
+    const diff = now.getTime() - startTime.getTime();
+    const seconds = Math.floor(diff / 1000) % 60;
+    const minutes = Math.floor(diff / 60000) % 60;
+    const hours = Math.floor(diff / 3600000);
+
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(
+      2,
+      '0'
+    )}:${String(seconds).padStart(2, '0')}`;
+  });
+
+  readonly streamingDestinations = computed(() => {
+    // In real implementation, this would come from streaming service
+    return [];
+  });
+
+  constructor() {
+    // Monitor recording state changes
     effect(() => {
       const recording = this.recordingService.isRecording();
       if (recording) {
@@ -370,36 +395,39 @@ export class StreamingControlsComponent {
     });
   }
 
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(
-      2,
-      '0'
-    )}:${String(seconds).padStart(2, '0')}`;
+  async startStreaming(): Promise<void> {
     try {
       await this.streamingService.startStreaming();
-  private readonly streamingService = inject(StreamingService);
-  private readonly recordingService = inject(RecordingService);
-  private readonly virtualCameraService = inject(VirtualCameraService);
-  private readonly studioModeService = inject(StudioModeService);
+    } catch (error) {
+      alert('Failed to start streaming: ' + error);
+    }
+  }
 
-  constructor() {
+  async stopStreaming(): Promise<void> {
     if (confirm('Stop streaming?')) {
-      await this.streamingService.stopStreaming();
-      const recording = this.recordingService.isRecording();
-      this.isRecording.set(recording);
-      if (recording) {
-        this.recordingStartTime.set(new Date());
-      } else {
-        this.recordingStartTime.set(null);
+      try {
+        await this.streamingService.stopStreaming();
+      } catch (error) {
+        alert('Failed to stop streaming: ' + error);
       }
     }
   }
 
-      const state = this.streamingService.streamingState();
-      this.streamStats.set({
-        fps: state.fps,
-        bitrate: state.bitrate,
-        droppedFrames: state.droppedFrames,
-        totalFrames: state.totalFrames,
+  async startRecording(): Promise<void> {
+    try {
+      await this.recordingService.startRecording();
+    } catch (error) {
+      alert('Failed to start recording: ' + error);
+    }
+  }
+
+  async stopRecording(): Promise<void> {
+    try {
+      await this.recordingService.stopRecording();
+    } catch (error) {
+      alert('Failed to stop recording: ' + error);
+    }
+  }
 
   enableReplayBuffer(): void {
     const duration = prompt('Enter replay buffer duration (seconds):', '30');
@@ -459,10 +487,4 @@ export class StreamingControlsComponent {
   openSettings(): void {
     alert('Settings dialog would open here');
   }
-
-  // Computed signal for destinations
-  streamingDestinations = computed(() => {
-    // In real implementation, this would come from streaming service
-    return [];
-  });
 }
