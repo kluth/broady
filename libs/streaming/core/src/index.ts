@@ -23,6 +23,15 @@ export * from './lib/services/ai.service';
 export * from './lib/services/firebase.service';
 export * from './lib/services/firebase-enhanced.service';
 export * from './lib/services/music-library.service';
+export * from './lib/services/stream-health-monitor.service';
+export * from './lib/services/voice-commands.service';
+export * from './lib/services/chat-moderation.service';
+export * from './lib/services/donations.service';
+export * from './lib/services/social-media.service';
+export * from './lib/services/theme.service';
+export * from './lib/services/stream-scheduler.service';
+export * from './lib/services/auto-scene-switcher.service';
+export * from './lib/services/viewer-engagement.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';
