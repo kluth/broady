@@ -34,6 +34,10 @@ import {
   LowerThirdsService,
   NDIService,
   BackgroundRemovalService,
+  AutomationService,
+  ScriptingService,
+  WorkflowBuilderComponent,
+  ScriptEditorComponent,
 } from '@org/streaming-core';
 
 @Component({
@@ -52,6 +56,8 @@ import {
     StatsDashboardComponent,
     SettingsDialogComponent,
     CloudSync,
+    WorkflowBuilderComponent,
+    ScriptEditorComponent,
   ],
   selector: 'app-root',
   templateUrl: './app.html',
@@ -63,7 +69,7 @@ export class App {
     'sources' | 'overlays' | 'multistream' | 'alerts' | 'chat' | 'stats' |
     'cloud' | 'ai' | 'music' | 'health' | 'engagement' | 'moderation' |
     'analytics' | 'clips' | 'tts' | 'sounds' | 'templates' | 'chroma' |
-    'lowerthirds' | 'ndi' | 'aibackground'
+    'lowerthirds' | 'ndi' | 'aibackground' | 'automation' | 'scripting'
   >('sources');
 
   // Inject core services
@@ -92,6 +98,10 @@ export class App {
   protected lowerThirds = inject(LowerThirdsService);
   protected ndi = inject(NDIService);
   protected backgroundRemoval = inject(BackgroundRemovalService);
+
+  // Wave 3 feature services (Automation)
+  protected automation = inject(AutomationService);
+  protected scripting = inject(ScriptingService);
 
   // Core service state
   readonly isCloudConnected = this.firebase.isAuthenticated;
@@ -124,4 +134,10 @@ export class App {
   readonly bgRemovalEnabled = this.backgroundRemoval.isEnabled;
   readonly personDetected = this.backgroundRemoval.personDetection;
   readonly bgRemovalFps = this.backgroundRemoval.performanceMetrics;
+
+  // Wave 3 feature state (Automation)
+  readonly workflows = this.automation.workflows;
+  readonly automationStats = this.automation.statistics;
+  readonly scripts = this.scripting.scripts;
+  readonly activeScripts = this.scripting.activeScripts;
 }

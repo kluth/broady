@@ -41,6 +41,8 @@ export * from './lib/services/chroma-key.service';
 export * from './lib/services/lower-thirds.service';
 export * from './lib/services/ndi.service';
 export * from './lib/services/background-removal.service';
+export * from './lib/services/automation.service';
+export * from './lib/services/scripting.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';
@@ -59,3 +61,5 @@ export * from './lib/components/alerts-system';
 export * from './lib/components/overlays-manager';
 export * from './lib/components/multistream';
 export * from './lib/components/cloud-sync/cloud-sync';
+export * from './lib/components/workflow-builder/workflow-builder.component';
+export * from './lib/components/script-editor/script-editor.component';
