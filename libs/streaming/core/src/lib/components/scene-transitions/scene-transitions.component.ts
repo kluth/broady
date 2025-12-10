@@ -9,14 +9,14 @@ import { SceneService } from '../../services/scene.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './scene-transitions.component.html',
-  styleUrls: ['./scene-transitions.component.css']
+  styleUrls: ['./scene-transitions.component.css'],
 })
 export class SceneTransitionsComponent {
   // Current transition settings
   private currentTransitionSignal = signal<Transition>({
     type: TransitionType.FADE,
     duration: 300,
-    settings: {}
+    settings: {},
   });
 
   readonly currentTransition = this.currentTransitionSignal.asReadonly();
@@ -30,12 +30,42 @@ export class SceneTransitionsComponent {
     { name: 'Fast Fade', type: TransitionType.FADE, duration: 150 },
     { name: 'Smooth Fade', type: TransitionType.FADE, duration: 300 },
     { name: 'Long Fade', type: TransitionType.FADE, duration: 600 },
-    { name: 'Swipe Left', type: TransitionType.SWIPE, duration: 400, settings: { direction: 'left' } },
-    { name: 'Swipe Right', type: TransitionType.SWIPE, duration: 400, settings: { direction: 'right' } },
-    { name: 'Slide Up', type: TransitionType.SLIDE, duration: 500, settings: { direction: 'up' } },
-    { name: 'Slide Down', type: TransitionType.SLIDE, duration: 500, settings: { direction: 'down' } },
-    { name: 'Fade to Black', type: TransitionType.FADE_TO_COLOR, duration: 500, settings: { color: '#000000' } },
-    { name: 'Fade to White', type: TransitionType.FADE_TO_COLOR, duration: 500, settings: { color: '#FFFFFF' } }
+    {
+      name: 'Swipe Left',
+      type: TransitionType.SWIPE,
+      duration: 400,
+      settings: { direction: 'left' },
+    },
+    {
+      name: 'Swipe Right',
+      type: TransitionType.SWIPE,
+      duration: 400,
+      settings: { direction: 'right' },
+    },
+    {
+      name: 'Slide Up',
+      type: TransitionType.SLIDE,
+      duration: 500,
+      settings: { direction: 'up' },
+    },
+    {
+      name: 'Slide Down',
+      type: TransitionType.SLIDE,
+      duration: 500,
+      settings: { direction: 'down' },
+    },
+    {
+      name: 'Fade to Black',
+      type: TransitionType.FADE_TO_COLOR,
+      duration: 500,
+      settings: { color: '#000000' },
+    },
+    {
+      name: 'Fade to White',
+      type: TransitionType.FADE_TO_COLOR,
+      duration: 500,
+      settings: { color: '#FFFFFF' },
+    },
   ];
 
   readonly transitionInfo = computed(() => {
@@ -46,35 +76,35 @@ export class SceneTransitionsComponent {
   constructor(public sceneService: SceneService) {}
 
   updateTransitionType(type: TransitionType): void {
-    this.currentTransitionSignal.update(t => ({
+    this.currentTransitionSignal.update((t) => ({
       ...t,
       type,
-      settings: this.getDefaultSettings(type)
+      settings: this.getDefaultSettings(type),
     }));
   }
 
   updateDuration(duration: number): void {
-    this.currentTransitionSignal.update(t => ({
+    this.currentTransitionSignal.update((t) => ({
       ...t,
-      duration: Math.max(0, Math.min(5000, duration))
+      duration: Math.max(0, Math.min(5000, duration)),
     }));
   }
 
   updateSetting(key: string, value: any): void {
-    this.currentTransitionSignal.update(t => ({
+    this.currentTransitionSignal.update((t) => ({
       ...t,
       settings: {
         ...t.settings,
-        [key]: value
-      }
+        [key]: value,
+      },
     }));
   }
 
-  applyPreset(preset: typeof this.presets[0]): void {
+  applyPreset(preset: (typeof this.presets)[0]): void {
     this.currentTransitionSignal.set({
       type: preset.type,
       duration: preset.duration,
-      settings: preset.settings || {}
+      settings: preset.settings || {},
     });
   }
 
@@ -94,26 +124,31 @@ export class SceneTransitionsComponent {
       [TransitionType.STINGER]: 'Stinger',
       [TransitionType.FADE_TO_COLOR]: 'Fade to Color',
       [TransitionType.WIPE]: 'Wipe',
-      [TransitionType.LUMA_WIPE]: 'Luma Wipe'
+      [TransitionType.LUMA_WIPE]: 'Luma Wipe',
     };
     return names[type] || type;
   }
 
-  private getTransitionInfo(type: TransitionType): {
+  getTransitionInfo(type: TransitionType): {
     description: string;
     icon: string;
-    settings: Array<{ key: string; label: string; type: string; options?: any[] }>;
+    settings: Array<{
+      key: string;
+      label: string;
+      type: string;
+      options?: any[];
+    }>;
   } {
     const info: Record<TransitionType, any> = {
       [TransitionType.CUT]: {
         description: 'Instant switch between scenes',
         icon: '✂️',
-        settings: []
+        settings: [],
       },
       [TransitionType.FADE]: {
         description: 'Smooth fade between scenes',
         icon: '🌓',
-        settings: []
+        settings: [],
       },
       [TransitionType.SWIPE]: {
         description: 'Swipe from one scene to another',
@@ -123,9 +158,9 @@ export class SceneTransitionsComponent {
             key: 'direction',
             label: 'Direction',
             type: 'select',
-            options: ['left', 'right', 'up', 'down']
-          }
-        ]
+            options: ['left', 'right', 'up', 'down'],
+          },
+        ],
       },
       [TransitionType.SLIDE]: {
         description: 'Slide from one scene to another',
@@ -135,24 +170,26 @@ export class SceneTransitionsComponent {
             key: 'direction',
             label: 'Direction',
             type: 'select',
-            options: ['left', 'right', 'up', 'down']
-          }
-        ]
+            options: ['left', 'right', 'up', 'down'],
+          },
+        ],
       },
       [TransitionType.STINGER]: {
         description: 'Use a video stinger for transitions',
         icon: '🎬',
         settings: [
           { key: 'videoPath', label: 'Stinger Video', type: 'file' },
-          { key: 'transitionPoint', label: 'Transition Point (ms)', type: 'number' }
-        ]
+          {
+            key: 'transitionPoint',
+            label: 'Transition Point (ms)',
+            type: 'number',
+          },
+        ],
       },
       [TransitionType.FADE_TO_COLOR]: {
         description: 'Fade through a solid color',
         icon: '🎨',
-        settings: [
-          { key: 'color', label: 'Color', type: 'color' }
-        ]
+        settings: [{ key: 'color', label: 'Color', type: 'color' }],
       },
       [TransitionType.WIPE]: {
         description: 'Wipe across the screen',
@@ -162,18 +199,18 @@ export class SceneTransitionsComponent {
             key: 'direction',
             label: 'Direction',
             type: 'select',
-            options: ['left', 'right', 'up', 'down']
-          }
-        ]
+            options: ['left', 'right', 'up', 'down'],
+          },
+        ],
       },
       [TransitionType.LUMA_WIPE]: {
         description: 'Use a luma matte for transition',
         icon: '🖼️',
         settings: [
           { key: 'imagePath', label: 'Luma Image', type: 'file' },
-          { key: 'invert', label: 'Invert', type: 'checkbox' }
-        ]
-      }
+          { key: 'invert', label: 'Invert', type: 'checkbox' },
+        ],
+      },
     };
 
     return info[type] || { description: '', icon: '', settings: [] };
@@ -188,7 +225,7 @@ export class SceneTransitionsComponent {
       [TransitionType.STINGER]: { videoPath: '', transitionPoint: 0 },
       [TransitionType.FADE_TO_COLOR]: { color: '#000000' },
       [TransitionType.WIPE]: { direction: 'left' },
-      [TransitionType.LUMA_WIPE]: { imagePath: '', invert: false }
+      [TransitionType.LUMA_WIPE]: { imagePath: '', invert: false },
     };
     return defaults[type] || {};
   }

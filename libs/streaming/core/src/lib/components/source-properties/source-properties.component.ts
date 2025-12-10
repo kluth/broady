@@ -16,9 +16,9 @@ export class SourcePropertiesComponent {
   readonly sourceId = input<string | null>(null);
 
   // Events
-  readonly onPropertyChanged = output<{ sourceId: string; property: string; value: any }>();
-  readonly onFilterAdded = output<{ sourceId: string; filterType: FilterType }>();
-  readonly onFilterRemoved = output<{ sourceId: string; filterId: string }>();
+  readonly propertyChanged = output<{ sourceId: string; property: string; value: any }>();
+  readonly filterAdded = output<{ sourceId: string; filterType: FilterType }>();
+  readonly filterRemoved = output<{ sourceId: string; filterId: string }>();
 
   // UI state
   private selectedTabSignal = signal<'transform' | 'filters' | 'audio' | 'advanced'>('transform');
@@ -59,7 +59,7 @@ export class SourcePropertiesComponent {
     };
 
     this.sourceService.updateSource(src.id, { transform: newTransform });
-    this.onPropertyChanged.emit({ sourceId: src.id, property: `position.${axis}`, value });
+    this.propertyChanged.emit({ sourceId: src.id, property: `position.${axis}`, value });
   }
 
   updateScale(axis: 'x' | 'y', value: number): void {
@@ -72,7 +72,7 @@ export class SourcePropertiesComponent {
     };
 
     this.sourceService.updateSource(src.id, { transform: newTransform });
-    this.onPropertyChanged.emit({ sourceId: src.id, property: `scale.${axis}`, value });
+    this.propertyChanged.emit({ sourceId: src.id, property: `scale.${axis}`, value });
   }
 
   updateRotation(value: number): void {
@@ -85,7 +85,7 @@ export class SourcePropertiesComponent {
     };
 
     this.sourceService.updateSource(src.id, { transform: newTransform });
-    this.onPropertyChanged.emit({ sourceId: src.id, property: 'rotation', value });
+    this.propertyChanged.emit({ sourceId: src.id, property: 'rotation', value });
   }
 
   updateCrop(edge: 'top' | 'bottom' | 'left' | 'right', value: number): void {
@@ -98,7 +98,7 @@ export class SourcePropertiesComponent {
     };
 
     this.sourceService.updateSource(src.id, { transform: newTransform });
-    this.onPropertyChanged.emit({ sourceId: src.id, property: `crop.${edge}`, value });
+    this.propertyChanged.emit({ sourceId: src.id, property: `crop.${edge}`, value });
   }
 
   updateBoundsType(type: 'none' | 'stretch' | 'scale' | 'crop'): void {
@@ -111,7 +111,7 @@ export class SourcePropertiesComponent {
     };
 
     this.sourceService.updateSource(src.id, { transform: newTransform });
-    this.onPropertyChanged.emit({ sourceId: src.id, property: 'boundsType', value: type });
+    this.propertyChanged.emit({ sourceId: src.id, property: 'boundsType', value: type });
   }
 
   // Audio controls
@@ -120,7 +120,7 @@ export class SourcePropertiesComponent {
     if (!src) return;
 
     this.sourceService.updateSource(src.id, { volume: value });
-    this.onPropertyChanged.emit({ sourceId: src.id, property: 'volume', value });
+    this.propertyChanged.emit({ sourceId: src.id, property: 'volume', value });
   }
 
   toggleMute(): void {
@@ -128,7 +128,7 @@ export class SourcePropertiesComponent {
     if (!src) return;
 
     this.sourceService.updateSource(src.id, { muted: !src.muted });
-    this.onPropertyChanged.emit({ sourceId: src.id, property: 'muted', value: !src.muted });
+    this.propertyChanged.emit({ sourceId: src.id, property: 'muted', value: !src.muted });
   }
 
   // Visibility controls
@@ -137,7 +137,7 @@ export class SourcePropertiesComponent {
     if (!src) return;
 
     this.sourceService.updateSource(src.id, { visible: !src.visible });
-    this.onPropertyChanged.emit({ sourceId: src.id, property: 'visible', value: !src.visible });
+    this.propertyChanged.emit({ sourceId: src.id, property: 'visible', value: !src.visible });
   }
 
   toggleLock(): void {
@@ -145,7 +145,7 @@ export class SourcePropertiesComponent {
     if (!src) return;
 
     this.sourceService.updateSource(src.id, { locked: !src.locked });
-    this.onPropertyChanged.emit({ sourceId: src.id, property: 'locked', value: !src.locked });
+    this.propertyChanged.emit({ sourceId: src.id, property: 'locked', value: !src.locked });
   }
 
   // Filter management
@@ -162,7 +162,7 @@ export class SourcePropertiesComponent {
     };
 
     this.sourceService.addFilter(src.id, newFilter);
-    this.onFilterAdded.emit({ sourceId: src.id, filterType });
+    this.filterAdded.emit({ sourceId: src.id, filterType });
   }
 
   removeFilter(filterId: string): void {
@@ -170,7 +170,7 @@ export class SourcePropertiesComponent {
     if (!src) return;
 
     this.sourceService.removeFilter(src.id, filterId);
-    this.onFilterRemoved.emit({ sourceId: src.id, filterId });
+    this.filterRemoved.emit({ sourceId: src.id, filterId });
   }
 
   toggleFilter(filterId: string): void {
@@ -227,7 +227,7 @@ export class SourcePropertiesComponent {
     this.sourceService.updateSource(src.id, { transform: defaultTransform });
   }
 
-  private getFilterName(type: FilterType): string {
+  getFilterName(type: FilterType): string {
     const names: Record<FilterType, string> = {
       [FilterType.CHROMA_KEY]: 'Chroma Key',
       [FilterType.COLOR_CORRECTION]: 'Color Correction',

@@ -229,7 +229,7 @@
             </select>
             <button
               class="btn-add"
-              (click)="addFilter(filterSelect.value); filterSelect.value = ''"
+              (click)="addFilter($any(filterSelect.value)); filterSelect.value = ''"
               [disabled]="!filterSelect.value"
             >
               Add
@@ -283,21 +283,23 @@
             </div>
           </div>
 
-          <div class="control-section">
-            <h4>Transform Summary</h4>
-            <div class="info-row">
-              <span class="label">Position:</span>
-              <span class="value">{{ t.position.x }}, {{ t.position.y }}</span>
+          @if (transform(); as t) {
+            <div class="control-section">
+              <h4>Transform Summary</h4>
+              <div class="info-row">
+                <span class="label">Position:</span>
+                <span class="value">{{ t.position.x }}, {{ t.position.y }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Scale:</span>
+                <span class="value">{{ t.scale.x }}x, {{ t.scale.y }}y</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Rotation:</span>
+                <span class="value">{{ t.rotation }}°</span>
+              </div>
             </div>
-            <div class="info-row">
-              <span class="label">Scale:</span>
-              <span class="value">{{ t.scale.x }}x, {{ t.scale.y }}y</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Rotation:</span>
-              <span class="value">{{ t.rotation }}°</span>
-            </div>
-          </div>
+          }
         </div>
       }
     </div>

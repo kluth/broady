@@ -154,8 +154,8 @@ import { SceneService } from '../../services/scene.service';
 })
 export class SceneListComponent {
   // Modern Angular inputs/outputs
-  readonly onSceneSelected = output<Scene>();
-  readonly onSceneDeleted = output<Scene>();
+  readonly sceneSelected = output<Scene>();
+  readonly sceneDeleted = output<Scene>();
 
   constructor(public sceneService: SceneService) {
     // Using effect for side effects
@@ -166,7 +166,7 @@ export class SceneListComponent {
 
   onSceneClick(scene: Scene): void {
     this.sceneService.setActiveScene(scene.id);
-    this.onSceneSelected.emit(scene);
+    this.sceneSelected.emit(scene);
   }
 
   onAddScene(): void {
@@ -193,7 +193,7 @@ export class SceneListComponent {
     event.stopPropagation();
     if (confirm(`Delete scene "${scene.name}"?`)) {
       this.sceneService.deleteScene(scene.id);
-      this.onSceneDeleted.emit(scene);
+      this.sceneDeleted.emit(scene);
     }
   }
 }
