@@ -36,3 +36,4 @@ export * from './lib/components/settings-dialog/settings-dialog.component';
 export * from './lib/components/stats-dashboard/stats-dashboard.component';
 export * from './lib/components/chat-integration';
 export * from './lib/components/alerts-system';
+export * from './lib/components/overlays-manager';
