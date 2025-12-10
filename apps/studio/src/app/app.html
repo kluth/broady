@@ -12,24 +12,99 @@
     <!-- Preview Area -->
     <div class="preview-area">
       <streaming-video-preview></streaming-video-preview>
+
+      <!-- Alerts Display Overlay -->
+      <div class="preview-overlay">
+        <streaming-alerts-system></streaming-alerts-system>
+      </div>
     </div>
 
-    <!-- Side Panel -->
+    <!-- Side Panel with Tabs -->
     <aside class="side-panel">
-      <!-- Scenes -->
-      <section class="panel-section">
-        <streaming-scene-list></streaming-scene-list>
-      </section>
+      <!-- Tab Navigation -->
+      <nav class="panel-tabs">
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'sources'"
+          (click)="activeTab.set('sources')">
+          📋 Sources
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'overlays'"
+          (click)="activeTab.set('overlays')">
+          🎨 Overlays
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'multistream'"
+          (click)="activeTab.set('multistream')">
+          🌐 Multi-Stream
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'chat'"
+          (click)="activeTab.set('chat')">
+          💬 Chat
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'alerts'"
+          (click)="activeTab.set('alerts')">
+          🔔 Alerts
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'stats'"
+          (click)="activeTab.set('stats')">
+          📊 Stats
+        </button>
+      </nav>
 
-      <!-- Sources Manager -->
-      <section class="panel-section">
-        <streaming-sources-manager></streaming-sources-manager>
-      </section>
+      <!-- Tab Content -->
+      <div class="panel-content">
+        @if (activeTab() === 'sources') {
+          <section class="panel-section">
+            <streaming-scene-list></streaming-scene-list>
+          </section>
+          <section class="panel-section">
+            <streaming-sources-manager></streaming-sources-manager>
+          </section>
+          <section class="panel-section">
+            <streaming-audio-mixer></streaming-audio-mixer>
+          </section>
+        }
 
-      <!-- Audio Mixer -->
-      <section class="panel-section">
-        <streaming-audio-mixer></streaming-audio-mixer>
-      </section>
+        @if (activeTab() === 'overlays') {
+          <section class="panel-section full-height">
+            <streaming-overlays-manager></streaming-overlays-manager>
+          </section>
+        }
+
+        @if (activeTab() === 'multistream') {
+          <section class="panel-section full-height">
+            <streaming-multistream></streaming-multistream>
+          </section>
+        }
+
+        @if (activeTab() === 'chat') {
+          <section class="panel-section full-height">
+            <streaming-chat-integration></streaming-chat-integration>
+          </section>
+        }
+
+        @if (activeTab() === 'alerts') {
+          <section class="panel-section full-height">
+            <streaming-alerts-system></streaming-alerts-system>
+          </section>
+        }
+
+        @if (activeTab() === 'stats') {
+          <section class="panel-section full-height">
+            <streaming-stats-dashboard></streaming-stats-dashboard>
+          </section>
+        }
+      </div>
     </aside>
   </div>
 
@@ -38,5 +113,8 @@
     <streaming-controls></streaming-controls>
   </footer>
 </div>
+
+<!-- Settings Dialog -->
+<streaming-settings-dialog></streaming-settings-dialog>
 
 <router-outlet></router-outlet>

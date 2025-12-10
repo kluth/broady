@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import {
   SceneListComponent,
@@ -6,6 +6,12 @@ import {
   VideoPreviewComponent,
   AudioMixerComponent,
   SourcesManagerComponent,
+  ChatIntegration,
+  AlertsSystem,
+  OverlaysManager,
+  Multistream,
+  StatsDashboard,
+  SettingsDialog,
 } from '@org/streaming-core';
 
 @Component({
@@ -17,6 +23,12 @@ import {
     VideoPreviewComponent,
     AudioMixerComponent,
     SourcesManagerComponent,
+    ChatIntegration,
+    AlertsSystem,
+    OverlaysManager,
+    Multistream,
+    StatsDashboard,
+    SettingsDialog,
   ],
   selector: 'app-root',
   templateUrl: './app.html',
@@ -24,4 +36,5 @@ import {
 })
 export class App {
   protected title = 'OBS Studio - Built with Angular 20';
+  protected activeTab = signal<'sources' | 'overlays' | 'multistream' | 'alerts' | 'chat' | 'stats'>('sources');
 }
