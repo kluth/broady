@@ -1,0 +1,162 @@
+<div class="stats-dashboard">
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h3>📊 Performance Dashboard</h3>
+      @if (isStreaming() || isRecording()) {
+        <span class="status-live">● LIVE</span>
+      }
+    </div>
+    <div class="header-actions">
+      <button class="btn-action" (click)="resetStats()" title="Reset Statistics">
+        Reset
+      </button>
+      <button class="btn-action" (click)="exportStats()" title="Export Statistics">
+        Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Health Score -->
+  <div class="health-section">
+    <div class="health-score">
+      <div
+        class="health-circle"
+        [style.background]="'conic-gradient(' + healthStatus().color + ' ' + healthScore() + '%, #333 0)'"
+      >
+        <div class="health-inner">
+          <span class="health-icon">{{ healthStatus().icon }}</span>
+          <span class="health-value">{{ healthScore() }}</span>
+          <span class="health-label">Score</span>
+        </div>
+      </div>
+      <div class="health-info">
+        <span
+          class="health-status"
+          [style.color]="healthStatus().color"
+        >
+          {{ healthStatus().text }}
+        </span>
+        <span class="health-description">Stream Health</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    @for (stat of stats(); track stat.label) {
+      <div class="stat-card" [style.border-left-color]="stat.color">
+        <div class="stat-icon">{{ stat.icon }}</div>
+        <div class="stat-info">
+          <div class="stat-label">{{ stat.label }}</div>
+          <div class="stat-value" [style.color]="stat.color">
+            {{ stat.value }}
+          </div>
+        </div>
+        @if (stat.trend) {
+          <div class="stat-trend" [class]="'trend-' + stat.trend">
+            @if (stat.trend === 'up') {
+              ↗
+            } @else if (stat.trend === 'down') {
+              ↘
+            } @else {
+              →
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Performance Graph -->
+  <div class="performance-section">
+    <h4>Performance History (Last 60s)</h4>
+    <div class="performance-graph">
+      @if (performanceHistory().length > 0) {
+        <svg class="graph-svg" viewBox="0 0 600 200">
+          <!-- Grid lines -->
+          @for (i of [0, 1, 2, 3, 4]; track i) {
+            <line
+              [attr.x1]="0"
+              [attr.y1]="i * 50"
+              [attr.x2]="600"
+              [attr.y2]="i * 50"
+              stroke="#333"
+              stroke-width="1"
+            />
+          }
+
+          <!-- FPS Line -->
+          <polyline
+            [attr.points]="getGraphPoints(performanceHistory(), 'fps', 100)"
+            fill="none"
+            stroke="#28a745"
+            stroke-width="2"
+          />
+
+          <!-- CPU Line -->
+          <polyline
+            [attr.points]="getGraphPoints(performanceHistory(), 'cpu', 100)"
+            fill="none"
+            stroke="#2a7fff"
+            stroke-width="2"
+          />
+
+          <!-- Memory Line -->
+          <polyline
+            [attr.points]="getGraphPoints(performanceHistory(), 'memory', 100)"
+            fill="none"
+            stroke="#ffc107"
+            stroke-width="2"
+          />
+        </svg>
+
+        <div class="graph-legend">
+          <div class="legend-item">
+            <span class="legend-color" style="background: #28a745;"></span>
+            <span>FPS</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background: #2a7fff;"></span>
+            <span>CPU %</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background: #ffc107;"></span>
+            <span>Memory %</span>
+          </div>
+        </div>
+      } @else {
+        <div class="no-data">
+          <p>No performance data yet</p>
+          <span>Start streaming or recording to see metrics</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Network Stats -->
+  <div class="network-section">
+    <h4>Network Statistics</h4>
+    <div class="network-stats">
+      <div class="network-stat">
+        <span class="network-label">Current Bitrate</span>
+        <span class="network-value">{{ (currentBitrate() / 1000).toFixed(2) }} Mbps</span>
+      </div>
+      <div class="network-stat">
+        <span class="network-label">Dropped Frames</span>
+        <span class="network-value" [class.warning]="droppedFrames() > 0">
+          {{ droppedFrames() }}
+        </span>
+      </div>
+      <div class="network-stat">
+        <span class="network-label">Skipped Frames</span>
+        <span class="network-value" [class.warning]="skippedFrames() > 0">
+          {{ skippedFrames() }}
+        </span>
+      </div>
+      <div class="network-stat">
+        <span class="network-label">Total Uptime</span>
+        <span class="network-value">{{ formatUptime(uptime()) }}</span>
+      </div>
+    </div>
+  </div>
+</div>

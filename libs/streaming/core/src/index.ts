@@ -33,3 +33,4 @@ export * from './lib/components/hotkey-config/hotkey-config.component';
 export * from './lib/components/ai-dashboard/ai-dashboard.component';
 export * from './lib/components/sources-manager/sources-manager.component';
 export * from './lib/components/settings-dialog/settings-dialog.component';
+export * from './lib/components/stats-dashboard/stats-dashboard.component';
