@@ -1,5 +1,3 @@
-import { Injectable } from '@nestjs/common';
-
 /**
  * Database Service
  * Handles all database operations for users, payments, and subscriptions
@@ -58,7 +56,6 @@ export interface Subscription {
   updatedAt: Date;
 }
 
-@Injectable()
 export class DatabaseService {
   // In-memory storage for demo purposes
   // Replace with actual database calls in production

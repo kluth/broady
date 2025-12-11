@@ -65,6 +65,7 @@ export class MusicLibraryService {
   // Loading state
   readonly isLoading = signal(false);
   readonly syncStatus = signal<'idle' | 'syncing' | 'error'>('idle');
+  readonly downloadedTracks = signal<string[]>([]);
 
   // Computed values
   readonly favorites = computed(() =>
@@ -579,7 +580,7 @@ export class MusicLibraryService {
     try {
       // Create download link
       const link = document.createElement('a');
-      link.href = track.audioUrl;
+      link.href = track.downloadUrl;
       link.download = `${track.artist} - ${track.title}.mp3`;
       link.style.display = 'none';
 
@@ -588,9 +589,9 @@ export class MusicLibraryService {
       document.body.removeChild(link);
 
       // If the track URL is external, we need to fetch and download
-      if (track.audioUrl.startsWith('http')) {
+      if (track.downloadUrl.startsWith('http')) {
         try {
-          const response = await fetch(track.audioUrl);
+          const response = await fetch(track.downloadUrl);
           if (!response.ok) throw new Error('Download failed');
 
           const blob = await response.blob();

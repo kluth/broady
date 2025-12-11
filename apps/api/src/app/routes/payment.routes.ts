@@ -161,7 +161,7 @@ paymentRouter.post('/webhook', async (req: Request, res: Response) => {
 
     case 'customer.subscription.created':
     case 'customer.subscription.updated': {
-      const subscription = event.data.object as Stripe.Subscription;
+      const subscription = event.data.object as any;
       console.log(`Subscription ${event.type}:`, subscription.id);
 
       // Find or create user and update subscription
@@ -197,7 +197,7 @@ paymentRouter.post('/webhook', async (req: Request, res: Response) => {
     }
 
     case 'customer.subscription.deleted': {
-      const subscription = event.data.object as Stripe.Subscription;
+      const subscription = event.data.object as any;
       console.log('Subscription cancelled:', subscription.id);
 
       // Cancel subscription and revoke access

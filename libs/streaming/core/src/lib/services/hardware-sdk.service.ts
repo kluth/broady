@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { HIDDevice } from '../types/hid-device.interface';
 
 /**
  * Hardware SDK Service

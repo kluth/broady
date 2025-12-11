@@ -328,7 +328,7 @@ export class SocialMediaAPIService {
     if (this.twitterConnected() && post.text) {
       promises.push(
         this.postToTwitter(post.text).then(success => {
-          results.twitter = success;
+          results['twitter'] = success;
         })
       );
     }
@@ -336,7 +336,7 @@ export class SocialMediaAPIService {
     if (this.facebookConnected() && post.text) {
       promises.push(
         this.postToFacebook(post.text, post.link).then(success => {
-          results.facebook = success;
+          results['facebook'] = success;
         })
       );
     }
@@ -344,7 +344,7 @@ export class SocialMediaAPIService {
     if (this.instagramConnected() && post.imageUrl && post.text) {
       promises.push(
         this.postToInstagram(post.imageUrl, post.text).then(success => {
-          results.instagram = success;
+          results['instagram'] = success;
         })
       );
     }

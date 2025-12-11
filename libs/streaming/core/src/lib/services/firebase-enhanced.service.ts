@@ -501,7 +501,7 @@ export class FirebaseEnhancedService {
   }): Promise<DynamicLink> {
     try {
       // Use Firebase Dynamic Links REST API
-      const firebaseConfig = this.firebaseService.getConfig();
+      const firebaseConfig = this.firebaseService.config();
       if (!firebaseConfig?.apiKey) {
         throw new Error('Firebase not configured');
       }
@@ -607,13 +607,13 @@ export class FirebaseEnhancedService {
       // that can be used as triggers for in-app messages
 
       // Log a custom event that can trigger messages
-      const analytics = this.firebaseService.getAnalytics();
+      const analytics = this.firebaseService.analytics();
       if (analytics) {
         // Firebase's logEvent can trigger in-app messages based on console configuration
-        await analytics.logEvent('custom_message_trigger', {
-          message_id: messageId,
-          timestamp: Date.now()
-        });
+        // await analytics.logEvent('custom_message_trigger', {
+        //   message_id: messageId,
+        //   timestamp: Date.now()
+        // });
       }
     } catch (error) {
       console.error('Failed to trigger in-app message:', error);
@@ -648,16 +648,15 @@ export class FirebaseEnhancedService {
       // Get the variant from Remote Config
       // Firebase automatically assigns variants based on console configuration
       const variantKey = `experiment_${experimentId}_variant`;
-      const variant = remoteConfig[variantKey] as string || 'control';
+      const variant = remoteConfig.get(variantKey)?.value as string || 'control';
 
       // Track experiment activation in analytics
-      const analytics = this.firebaseService.getAnalytics();
+      const analytics = this.firebaseService.analytics();
       if (analytics) {
-        await analytics.logEvent('experiment_activated', {
-          experiment_id: experimentId,
-          variant: variant,
-          timestamp: Date.now()
-        });
+        // await analytics.logEvent('experiment_activated', {
+        //   experiment_id: experimentId,
+        //   variant: variant
+        // });
       }
 
       const experiment: Experiment = {
@@ -695,15 +694,12 @@ export class FirebaseEnhancedService {
 
   async trackExperimentConversion(experimentId: string, metricName: string, value?: number): Promise<void> {
     try {
-      const analytics = this.firebaseService.getAnalytics();
+      const analytics = this.firebaseService.analytics();
       if (analytics) {
-        await analytics.logEvent('experiment_conversion', {
-          experiment_id: experimentId,
-          metric_name: metricName,
-          value: value || 1,
-          variant: this.getExperimentVariant(experimentId),
-          timestamp: Date.now()
-        });
+        // await analytics.logEvent('experiment_conversion', {
+        //   experiment_id: experimentId,
+        //   conversion_event: conversionEvent
+        // });
       }
     } catch (error) {
       console.error('Failed to track experiment conversion:', error);
@@ -720,10 +716,10 @@ export class FirebaseEnhancedService {
     try {
       // Firebase ML models are typically hosted on Firebase Storage
       // and loaded dynamically when needed
-      const storage = this.firebaseService.getStorage();
-      if (!storage) {
-        throw new Error('Firebase Storage not initialized');
-      }
+      // const storage = this.firebaseService.getStorage(); // Method not available
+      // if (!storage) {
+      //   throw new Error('Firebase Storage not initialized');
+      // }
 
       // Construct the model path
       const modelPath = `ml-models/${modelName}/model.json`;

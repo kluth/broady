@@ -407,11 +407,11 @@ export class RGBPeripheralsService {
       import('./hardware-sdk.service').then(async ({ HardwareSDKService }) => {
         const hardwareSDK = new HardwareSDKService();
 
-        if (device.brand === 'Razer') {
+        if (device.brand === 'razer') {
           await hardwareSDK.setRazerColor(device.type, color);
-        } else if (device.brand === 'Corsair') {
+        } else if (device.brand === 'corsair') {
           await hardwareSDK.setCorsairColor(deviceId, color);
-        } else if (device.brand === 'Logitech') {
+        } else if (device.brand === 'logitech') {
           await hardwareSDK.setLogitechColor(color);
         }
       }).catch(error => console.error('Failed to set device color:', error));
