@@ -467,58 +467,90 @@ export class ChannelRewardsService {
    * Execute reward action
    */
   private async executeRewardAction(reward: ChannelReward, redemption: RewardRedemption): Promise<void> {
-    console.log(`Executing reward: ${reward.title}`, reward.action);
+    try {
+      // Lazy load StreamActionsService
+      const { StreamActionsService } = await import('./stream-actions.service');
+      const actionsService = new StreamActionsService();
 
-    // Play sound effect if specified
-    if (reward.soundEffect) {
-      console.log(`Playing sound: ${reward.soundEffect}`);
-    }
+      // Play sound effect if specified
+      if (reward.soundEffect) {
+        await actionsService.playSound(reward.soundEffect);
+      }
 
-    // Show alert if specified
-    if (reward.alertMessage) {
-      console.log(`Alert: ${reward.alertMessage}`);
-    }
+      // Show alert if specified
+      if (reward.alertMessage) {
+        await actionsService.showAlert({
+          message: reward.alertMessage,
+          title: reward.title,
+          duration: 5000
+        });
+      }
 
-    // Execute specific action
-    switch (reward.action.type) {
-      case 'play-sound':
-        console.log('Playing sound:', reward.action.params['sound']);
-        break;
+      // Execute specific action
+      switch (reward.action.type) {
+        case 'play-sound':
+          await actionsService.playSound(reward.action.params['sound']);
+          break;
 
-      case 'switch-scene':
-        console.log('Switching scene:', reward.action.params['scene']);
-        break;
+        case 'switch-scene':
+          await actionsService.switchScene(reward.action.params['scene']);
+          break;
 
-      case 'show-alert':
-        console.log('Showing alert');
-        break;
+        case 'show-alert':
+          await actionsService.showAlert({
+            message: reward.alertMessage || `${redemption.viewerName} redeemed ${reward.title}!`,
+            title: reward.title,
+            duration: reward.action.params['duration'] || 5000
+          });
+          break;
 
-      case 'tts-message':
-        console.log('TTS:', redemption.userInput);
-        break;
+        case 'tts-message':
+          const ttsText = redemption.userInput || `${redemption.viewerName} redeemed ${reward.title}`;
+          await actionsService.speak(ttsText);
+          break;
 
-      case 'highlight-message':
-        console.log('Highlighting message from:', redemption.viewerName);
-        break;
+        case 'highlight-message':
+          actionsService.highlightMessage(redemption.viewerName, redemption.userInput);
+          break;
 
-      case 'trigger-effect':
-        console.log('Triggering effect:', reward.action.params['effect']);
-        break;
+        case 'trigger-effect':
+          const effect = reward.action.params['effect'];
+          if (effect === 'screen-shake') {
+            actionsService.triggerScreenShake();
+          } else {
+            actionsService.applyColorEffect(effect);
+          }
+          break;
 
-      case 'hydrate-reminder':
-        console.log('HYDRATE! 💧');
-        break;
+        case 'hydrate-reminder':
+          await actionsService.showAlert({
+            message: '💧 Time to Hydrate! 💧',
+            title: 'Hydration Break',
+            duration: 8000,
+            sound: '/assets/sounds/hydrate.mp3'
+          });
+          break;
 
-      case 'screen-shake':
-        console.log('Screen shake activated!');
-        break;
+        case 'screen-shake':
+          actionsService.triggerScreenShake(
+            reward.action.params['intensity'] || 10,
+            reward.action.params['duration'] || 500
+          );
+          break;
 
-      case 'color-change':
-        console.log('Color effect:', reward.action.params['effect']);
-        break;
+        case 'color-change':
+          actionsService.applyColorEffect(
+            reward.action.params['effect'] || 'hue-rotate',
+            reward.action.params['duration'] || 3000
+          );
+          break;
 
-      default:
-        console.log('Custom action:', reward.action.type);
+        default:
+          console.log('Custom action:', reward.action.type);
+      }
+    } catch (error) {
+      console.error('Failed to execute reward action:', error);
+      throw error;
     }
 
     // Mark as fulfilled
