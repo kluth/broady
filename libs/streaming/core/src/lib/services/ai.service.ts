@@ -155,7 +155,7 @@ export class AIService {
     const config = this.config();
     const provider = config?.provider;
 
-    if (provider === 'openai') {
+    if (provider === 'openai' && config) {
       try {
         return await this.callWhisperAPI(media, config.apiKey);
       } catch (error) {
@@ -164,7 +164,7 @@ export class AIService {
       }
     }
 
-    if (provider === 'google') {
+    if (provider === 'google' && config) {
       try {
         return await this.callGeminiAPI(media, config.apiKey);
       } catch (error) {

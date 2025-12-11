@@ -525,9 +525,9 @@ export class ScriptVariablesService {
       }
 
       const stocks: StockData = {
-        spy: prices.spy || 0,
-        aapl: prices.aapl || 0,
-        tsla: prices.tsla || 0,
+        spy: prices['spy'] || 0,
+        aapl: prices['aapl'] || 0,
+        tsla: prices['tsla'] || 0,
         prices,
         lastUpdated: new Date()
       };

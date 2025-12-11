@@ -284,8 +284,9 @@ export class SmartLightingService {
       const discoveredLights: SmartLight[] = [];
 
       for (const [lightId, lightData] of Object.entries(lightsData as any)) {
-        const state = lightData.state;
-        const capabilities = lightData.capabilities?.control;
+        const data = lightData as any;
+        const state = data.state;
+        const capabilities = data.capabilities?.control;
 
         // Convert XY color to RGB
         let color: RGBColor | undefined;
@@ -299,8 +300,8 @@ export class SmartLightingService {
         discoveredLights.push({
           id: `hue-${bridgeId}-${lightId}`,
           brand: 'philips-hue',
-          name: lightData.name,
-          type: lightData.type.toLowerCase().includes('strip') ? 'strip' : 'bulb',
+          name: data.name,
+          type: data.type.toLowerCase().includes('strip') ? 'strip' : 'bulb',
           ipAddress: bridge.ipAddress,
           on: state.on,
           brightness: Math.round((state.bri / 254) * 100),
@@ -309,7 +310,7 @@ export class SmartLightingService {
           supportsColor: capabilities?.colorgamuttype !== undefined,
           supportsTemperature: capabilities?.ct !== undefined,
           connected: state.reachable,
-          room: lightData.room
+          room: data.room
         });
       }
 

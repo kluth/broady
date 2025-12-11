@@ -437,7 +437,7 @@ export class FirebaseEnhancedService {
 
     // Get reCAPTCHA site key from localStorage or environment
     const recaptchaSiteKey = localStorage.getItem('recaptcha_site_key') ||
-                              (typeof process !== 'undefined' && process.env?.['RECAPTCHA_SITE_KEY']) ||
+                              ((typeof (globalThis as any).process !== 'undefined' && (globalThis as any).process.env?.['RECAPTCHA_SITE_KEY']) as string) ||
                               '';
 
     if (!recaptchaSiteKey) {
