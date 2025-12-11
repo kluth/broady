@@ -60,6 +60,9 @@ export * from './lib/services/audio-hardware.service';
 export * from './lib/services/smart-lighting.service';
 export * from './lib/services/hardware-control.service';
 export * from './lib/services/hardware-integration.service';
+export * from './lib/services/capture-device.service';
+export * from './lib/services/rgb-peripherals.service';
+export * from './lib/services/production-hardware.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';

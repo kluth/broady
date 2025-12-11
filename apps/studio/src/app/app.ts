@@ -53,6 +53,9 @@ import {
   SmartLightingService,
   HardwareControlService,
   HardwareIntegrationService,
+  CaptureDeviceService,
+  RGBPeripheralsService,
+  ProductionHardwareService,
 } from '@org/streaming-core';
 
 @Component({
@@ -141,6 +144,9 @@ export class App {
   protected smartLighting = inject(SmartLightingService);
   protected hardwareControl = inject(HardwareControlService);
   protected hardwareIntegration = inject(HardwareIntegrationService);
+  protected captureDevice = inject(CaptureDeviceService);
+  protected rgbPeripherals = inject(RGBPeripheralsService);
+  protected productionHardware = inject(ProductionHardwareService);
 
   // Core service state
   readonly isCloudConnected = this.firebase.isAuthenticated;
@@ -216,4 +222,10 @@ export class App {
   readonly hardwareStatus = this.hardwareIntegration.allHardwareStatus;
   readonly hardwareInitialized = this.hardwareIntegration.initialized;
   readonly totalHardware = this.hardwareIntegration.totalDevices;
+  readonly captureCards = this.captureDevice.connectedCaptureCards;
+  readonly webcams = this.captureDevice.connectedWebcams;
+  readonly rgbDevices = this.rgbPeripherals.connectedDevices;
+  readonly totalLEDs = this.rgbPeripherals.totalLEDs;
+  readonly videoSwitchers = this.productionHardware.videoSwitchers;
+  readonly motorizedSliders = this.productionHardware.motorizedSliders;
 }
