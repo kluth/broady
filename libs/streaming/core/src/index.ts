@@ -55,6 +55,11 @@ export * from './lib/services/subscription.service';
 export * from './lib/services/payment.service';
 export * from './lib/services/marketplace.service';
 export * from './lib/services/licensing.service';
+export * from './lib/services/streamdeck.service';
+export * from './lib/services/audio-hardware.service';
+export * from './lib/services/smart-lighting.service';
+export * from './lib/services/hardware-control.service';
+export * from './lib/services/hardware-integration.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';

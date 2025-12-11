@@ -48,6 +48,11 @@ import {
   PaymentService,
   MarketplaceService,
   LicensingService,
+  StreamDeckService,
+  AudioHardwareService,
+  SmartLightingService,
+  HardwareControlService,
+  HardwareIntegrationService,
 } from '@org/streaming-core';
 
 @Component({
@@ -130,6 +135,13 @@ export class App {
   protected marketplace = inject(MarketplaceService);
   protected licensing = inject(LicensingService);
 
+  // Hardware integration services
+  protected streamDeck = inject(StreamDeckService);
+  protected audioHardware = inject(AudioHardwareService);
+  protected smartLighting = inject(SmartLightingService);
+  protected hardwareControl = inject(HardwareControlService);
+  protected hardwareIntegration = inject(HardwareIntegrationService);
+
   // Core service state
   readonly isCloudConnected = this.firebase.isAuthenticated;
   readonly currentUser = this.firebase.currentUser;
@@ -193,4 +205,15 @@ export class App {
   readonly purchasedItems = this.marketplace.purchasedItems;
   readonly availableFeatures = this.licensing.availableFeatures;
   readonly lockedFeatures = this.licensing.lockedFeatures;
+
+  // Hardware integration state
+  readonly streamDeckDevices = this.streamDeck.connectedDevices;
+  readonly audioDevices = this.audioHardware.connectedDevices;
+  readonly smartLights = this.smartLighting.connectedLights;
+  readonly ptzCameras = this.hardwareControl.connectedPTZ;
+  readonly dslrCameras = this.hardwareControl.connectedDSLR;
+  readonly midiControllers = this.hardwareControl.connectedMIDI;
+  readonly hardwareStatus = this.hardwareIntegration.allHardwareStatus;
+  readonly hardwareInitialized = this.hardwareIntegration.initialized;
+  readonly totalHardware = this.hardwareIntegration.totalDevices;
 }
