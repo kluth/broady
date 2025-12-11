@@ -484,7 +484,19 @@ export class StreamingControlsComponent {
     }
   }
 
-  openSettings(): void {
-    alert('Settings dialog would open here');
+  async openSettings(): Promise<void> {
+    // Lazy load dialog service
+    const { DialogService } = await import('../ui-dialog/dialog.service');
+    const dialog = new DialogService();
+
+    await dialog.info(
+      'Streaming Settings',
+      'Configure streaming parameters:\n\n' +
+      '• Encoder settings\n' +
+      '• Bitrate configuration\n' +
+      '• Resolution and FPS\n' +
+      '• Advanced encoding options\n' +
+      '• Network settings'
+    );
   }
 }

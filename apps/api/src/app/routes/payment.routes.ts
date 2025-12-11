@@ -1,6 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import express from 'express'; // Import express
 import { StripeService } from '../services/payment.service';
+import { databaseService } from '../services/database.service';
+import { emailService } from '../services/email.service';
 import Stripe from 'stripe';
 
 const paymentRouter = Router();
@@ -80,21 +82,50 @@ paymentRouter.post('/webhook', async (req: Request, res: Response) => {
           currency: session.currency
         });
 
-        // TODO: Implement your business logic here:
-        // 1. Create user account if needed
-        // 2. Grant access to premium features
-        // 3. Update user subscription status in database
-        // 4. Send confirmation email
-        // 5. Update analytics
+        // 1. Create or update user account
+        if (customerEmail) {
+          let user = await databaseService.findUserByEmail(customerEmail);
 
-        // Example database update (implement with your database):
-        // await db.users.update({
-        //   email: customerEmail,
-        //   subscription: { active: true, stripeCustomerId: customerId, itemId }
-        // });
+          if (!user) {
+            // Create new user
+            user = await databaseService.createUser({
+              email: customerEmail,
+              stripeCustomerId: customerId,
+              itemId: itemId
+            });
 
-        // Example email notification:
-        // await sendEmail(customerEmail, 'Purchase Confirmed', '...');
+            // Send welcome email
+            await emailService.sendWelcomeEmail(customerEmail);
+          } else {
+            // Update existing user
+            await databaseService.updateUser(user.id, {
+              stripeCustomerId: customerId
+            });
+          }
+
+          // 2. Grant access to premium features
+          if (itemId) {
+            await databaseService.grantPremiumAccess(user.id, itemId);
+          }
+
+          // 3. Create payment record
+          await databaseService.createPayment({
+            userId: user.id,
+            stripePaymentIntentId: session.payment_intent as string || '',
+            amount: session.amount_total || 0,
+            currency: session.currency || 'usd',
+            itemId: itemId,
+            metadata: { sessionId: session.id }
+          });
+
+          // 4. Send confirmation email
+          await emailService.sendPurchaseConfirmation(customerEmail, {
+            itemName: itemId || 'Premium Features',
+            amount: session.amount_total || 0,
+            currency: session.currency || 'usd',
+            orderId: session.id
+          });
+        }
       }
       break;
     }
@@ -112,15 +143,19 @@ paymentRouter.post('/webhook', async (req: Request, res: Response) => {
         status: paymentIntent.status
       });
 
-      // TODO: Implement your database update:
-      // await db.payments.create({
-      //   paymentIntentId: paymentIntent.id,
-      //   amount: paymentIntent.amount,
-      //   currency: paymentIntent.currency,
-      //   customerId: paymentIntent.customer as string,
-      //   status: 'completed',
-      //   timestamp: new Date()
-      // });
+      // Find user and create payment record
+      if (paymentIntent.customer) {
+        const user = await databaseService.findUserByStripeCustomerId(paymentIntent.customer as string);
+        if (user) {
+          await databaseService.createPayment({
+            userId: user.id,
+            stripePaymentIntentId: paymentIntent.id,
+            amount: paymentIntent.amount,
+            currency: paymentIntent.currency,
+            metadata: { status: paymentIntent.status }
+          });
+        }
+      }
       break;
     }
 
@@ -129,13 +164,35 @@ paymentRouter.post('/webhook', async (req: Request, res: Response) => {
       const subscription = event.data.object as Stripe.Subscription;
       console.log(`Subscription ${event.type}:`, subscription.id);
 
-      // TODO: Update subscription status in database
-      // await db.subscriptions.upsert({
-      //   subscriptionId: subscription.id,
-      //   customerId: subscription.customer as string,
-      //   status: subscription.status,
-      //   currentPeriodEnd: new Date(subscription.current_period_end * 1000)
-      // });
+      // Find or create user and update subscription
+      const user = await databaseService.findUserByStripeCustomerId(subscription.customer as string);
+      if (user) {
+        // Create or update subscription record
+        await databaseService.createSubscription({
+          userId: user.id,
+          stripeSubscriptionId: subscription.id,
+          stripeCustomerId: subscription.customer as string,
+          status: subscription.status as any,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+        });
+
+        // Grant premium access
+        const itemId = subscription.items.data[0]?.price.product as string;
+        if (itemId) {
+          await databaseService.grantPremiumAccess(user.id, itemId);
+        }
+
+        // Send confirmation email for new subscriptions
+        if (event.type === 'customer.subscription.created') {
+          await emailService.sendSubscriptionConfirmation(user.email, {
+            planName: itemId || 'Premium Plan',
+            amount: subscription.items.data[0]?.price.unit_amount || 0,
+            currency: subscription.currency || 'usd',
+            nextBillingDate: new Date(subscription.current_period_end * 1000)
+          });
+        }
+      }
       break;
     }
 
@@ -143,12 +200,21 @@ paymentRouter.post('/webhook', async (req: Request, res: Response) => {
       const subscription = event.data.object as Stripe.Subscription;
       console.log('Subscription cancelled:', subscription.id);
 
-      // TODO: Revoke access to premium features
-      // await db.subscriptions.update({
-      //   subscriptionId: subscription.id,
-      //   status: 'cancelled',
-      //   cancelledAt: new Date()
-      // });
+      // Cancel subscription and revoke access
+      const user = await databaseService.findUserByStripeCustomerId(subscription.customer as string);
+      if (user) {
+        // Update subscription status
+        await databaseService.cancelSubscription(subscription.id);
+
+        // Revoke premium access
+        await databaseService.revokePremiumAccess(user.id);
+
+        // Send cancellation email
+        await emailService.sendSubscriptionCanceled(user.email, {
+          planName: subscription.items.data[0]?.price.product as string || 'Premium Plan',
+          endDate: new Date(subscription.current_period_end * 1000)
+        });
+      }
       break;
     }
 
@@ -156,8 +222,15 @@ paymentRouter.post('/webhook', async (req: Request, res: Response) => {
       const invoice = event.data.object as Stripe.Invoice;
       console.log('Invoice payment failed:', invoice.id);
 
-      // TODO: Notify customer of payment failure
-      // await sendEmail(invoice.customer_email, 'Payment Failed', '...');
+      // Notify customer of payment failure
+      if (invoice.customer_email) {
+        await emailService.sendPaymentFailed(invoice.customer_email, {
+          invoiceId: invoice.id,
+          amount: invoice.amount_due || 0,
+          currency: invoice.currency || 'usd',
+          reason: invoice.last_finalization_error?.message
+        });
+      }
       break;
     }
 

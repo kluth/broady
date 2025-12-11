@@ -393,83 +393,93 @@ export class StreamDeckService {
    * Execute key action
    */
   async executeAction(action: KeyAction): Promise<void> {
-    console.log('Executing action:', action.type, action.settings);
+    try {
+      // Lazy load StreamActionsService to avoid circular dependencies
+      const { StreamActionsService } = await import('./stream-actions.service');
+      const actionsService = new StreamActionsService();
 
-    switch (action.type) {
-      case 'scene-switch':
-        // In real implementation, call scene service
-        console.log('Switching to scene:', action.settings['sceneId']);
-        break;
+      switch (action.type) {
+        case 'scene-switch':
+          await actionsService.switchScene(action.settings['sceneId']);
+          break;
 
-      case 'source-toggle':
-        console.log('Toggling source:', action.settings['sourceId']);
-        break;
+        case 'source-toggle':
+          await actionsService.toggleSource(action.settings['sourceId']);
+          break;
 
-      case 'start-stream':
-        console.log('Starting stream');
-        break;
+        case 'start-stream':
+          await actionsService.startStream();
+          break;
 
-      case 'stop-stream':
-        console.log('Stopping stream');
-        break;
+        case 'stop-stream':
+          await actionsService.stopStream();
+          break;
 
-      case 'start-recording':
-        console.log('Starting recording');
-        break;
+        case 'start-recording':
+          await actionsService.startRecording();
+          break;
 
-      case 'stop-recording':
-        console.log('Stopping recording');
-        break;
+        case 'stop-recording':
+          await actionsService.stopRecording();
+          break;
 
-      case 'mute-audio':
-        console.log('Muting audio:', action.settings['sourceId']);
-        break;
+        case 'mute-audio':
+          await actionsService.muteAudio(action.settings['sourceId']);
+          break;
 
-      case 'unmute-audio':
-        console.log('Unmuting audio:', action.settings['sourceId']);
-        break;
+        case 'unmute-audio':
+          await actionsService.unmuteAudio(action.settings['sourceId']);
+          break;
 
-      case 'play-sound':
-        console.log('Playing sound:', action.settings['soundFile']);
-        break;
+        case 'play-sound':
+          await actionsService.playSound(action.settings['soundFile']);
+          break;
 
-      case 'show-alert':
-        console.log('Showing alert:', action.settings['message']);
-        break;
+        case 'show-alert':
+          await actionsService.showAlert({
+            message: action.settings['message'],
+            title: action.settings['title'],
+            duration: action.settings['duration']
+          });
+          break;
 
-      case 'run-script':
-        console.log('Running script:', action.settings['scriptId']);
-        break;
+        case 'run-script':
+          await actionsService.runScript(action.settings['scriptId']);
+          break;
 
-      case 'run-workflow':
-        console.log('Running workflow:', action.settings['workflowId']);
-        break;
+        case 'run-workflow':
+          await actionsService.runWorkflow(action.settings['workflowId']);
+          break;
 
-      case 'text-to-speech':
-        console.log('TTS:', action.settings['text']);
-        break;
+        case 'text-to-speech':
+          await actionsService.speak(action.settings['text']);
+          break;
 
-      case 'multi-action':
-        // Execute multiple actions in sequence
-        if (action.multiActions) {
-          for (const subAction of action.multiActions) {
-            await this.executeAction(subAction);
-            await this.delay(action.settings['delayBetween'] || 100);
+        case 'multi-action':
+          // Execute multiple actions in sequence
+          if (action.multiActions) {
+            for (const subAction of action.multiActions) {
+              await this.executeAction(subAction);
+              await this.delay(action.settings['delayBetween'] || 100);
+            }
           }
-        }
-        break;
+          break;
 
-      case 'folder':
-        console.log('Opening folder:', action.settings['folderId']);
-        break;
+        case 'folder':
+          // Folder actions are handled by the Stream Deck itself
+          // This just updates the UI state
+          break;
 
-      case 'website':
-        console.log('Opening website:', action.settings['url']);
-        window.open(action.settings['url'], '_blank');
-        break;
+        case 'website':
+          actionsService.openWebsite(action.settings['url']);
+          break;
 
-      default:
-        console.warn('Unknown action type:', action.type);
+        default:
+          console.warn('Unknown action type:', action.type);
+      }
+    } catch (error) {
+      console.error('Failed to execute action:', error);
+      throw error;
     }
   }
 

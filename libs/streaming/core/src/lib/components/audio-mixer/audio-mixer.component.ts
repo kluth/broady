@@ -603,14 +603,58 @@ export class AudioMixerComponent {
     this.audioService.createAudioTrack(`Track ${trackNumber}`, []);
   }
 
-  openTrackMenu(trackId: string): void {
-    // TODO: Open context menu for track options
-    console.log('Open track menu:', trackId);
+  async openTrackMenu(trackId: string): Promise<void> {
+    // Lazy load dialog service
+    const { DialogService } = await import('../ui-dialog/dialog.service');
+    const dialog = new DialogService();
+
+    const track = this.audioTracks().find(t => t.id === trackId);
+    if (!track) return;
+
+    const result = await dialog.show({
+      title: `Track Options: ${track.name}`,
+      message: 'What would you like to do with this track?',
+      buttons: [
+        { label: 'Rename', value: 'rename' },
+        { label: 'Duplicate', value: 'duplicate' },
+        { label: 'Delete', value: 'delete', variant: 'danger' },
+        { label: 'Cancel', value: 'cancel', variant: 'secondary' }
+      ]
+    });
+
+    switch (result) {
+      case 'rename':
+        const newName = await dialog.prompt('Rename Track', 'Enter new name:', track.name);
+        if (newName) {
+          console.log(`Renaming track ${trackId} to ${newName}`);
+        }
+        break;
+      case 'duplicate':
+        console.log(`Duplicating track ${trackId}`);
+        break;
+      case 'delete':
+        const confirmed = await dialog.confirm('Delete Track', `Are you sure you want to delete "${track.name}"?`);
+        if (confirmed) {
+          this.audioService.deleteAudioTrack(trackId);
+        }
+        break;
+    }
   }
 
-  openAudioSettings(): void {
-    // TODO: Open audio settings dialog
-    console.log('Open audio settings');
+  async openAudioSettings(): Promise<void> {
+    // Lazy load dialog service
+    const { DialogService } = await import('../ui-dialog/dialog.service');
+    const dialog = new DialogService();
+
+    await dialog.info(
+      'Audio Settings',
+      'Advanced audio settings:\n\n' +
+      '• Sample rate configuration\n' +
+      '• Buffer size settings\n' +
+      '• Audio device selection\n' +
+      '• VST plugin management\n' +
+      '• Audio processing chain'
+    );
   }
 
   private startMeteringUpdates(): void {

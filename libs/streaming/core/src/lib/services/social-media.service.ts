@@ -106,18 +106,32 @@ export class SocialMediaService {
     };
 
     try {
-      // Simulate API call
-      await this.delay(1000);
+      // Use actual social media API
+      const { SocialMediaAPIService } = await import('./social-media-api.service');
+      const socialAPI = new SocialMediaAPIService();
 
-      // In production, this would call actual social media APIs
-      const success = Math.random() > 0.1; // 90% success rate
+      let success = false;
+
+      switch (platform) {
+        case 'twitter':
+          success = await socialAPI.postToTwitter(content);
+          break;
+        case 'facebook':
+          success = await socialAPI.postToFacebook(content);
+          break;
+        case 'instagram':
+          // Instagram requires an image
+          success = false;
+          break;
+        default:
+          success = false;
+      }
 
       if (success) {
         post.status = 'success';
         post.postUrl = `https://${platform}.com/post/${post.id}`;
-        console.log(`Posted to ${platform}: ${content}`);
       } else {
-        throw new Error('API error');
+        throw new Error('API call failed');
       }
     } catch (error: any) {
       post.status = 'failed';

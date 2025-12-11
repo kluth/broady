@@ -412,24 +412,8 @@ export class ScriptVariablesService {
       this.updateVariable('weather.humidity', weather.humidity);
     } catch (error) {
       console.error('Failed to fetch weather:', error);
-
-      // Fallback to mock data
-      const mockWeather: WeatherData = {
-        location: 'New York',
-        temperature: 72,
-        condition: 'Sunny',
-        humidity: 65,
-        windSpeed: 8,
-        icon: '☀️',
-        lastUpdated: new Date()
-      };
-
-      this.externalData.update(data => ({ ...data, weather: mockWeather }));
-
-      this.updateVariable('weather.temp', mockWeather.temperature);
-      this.updateVariable('weather.condition', mockWeather.condition);
-      this.updateVariable('weather.location', mockWeather.location);
-      this.updateVariable('weather.humidity', mockWeather.humidity);
+      // Set error state - no mock fallback
+      this.updateVariable('weather.error', 'Failed to fetch weather data');
     }
   }
 
@@ -468,21 +452,8 @@ export class ScriptVariablesService {
       this.updateVariable('crypto.dogecoin', crypto.dogecoin.toFixed(4));
     } catch (error) {
       console.error('Failed to fetch crypto:', error);
-
-      // Fallback to mock data
-      const mockCrypto: CryptoData = {
-        bitcoin: 45000 + Math.random() * 1000,
-        ethereum: 3000 + Math.random() * 100,
-        dogecoin: 0.15 + Math.random() * 0.05,
-        prices: {},
-        lastUpdated: new Date()
-      };
-
-      this.externalData.update(data => ({ ...data, crypto: mockCrypto }));
-
-      this.updateVariable('crypto.bitcoin', Math.round(mockCrypto.bitcoin));
-      this.updateVariable('crypto.ethereum', Math.round(mockCrypto.ethereum));
-      this.updateVariable('crypto.dogecoin', mockCrypto.dogecoin.toFixed(4));
+      // Set error state - no mock fallback
+      this.updateVariable('crypto.error', 'Failed to fetch cryptocurrency data');
     }
   }
 
@@ -539,21 +510,8 @@ export class ScriptVariablesService {
       this.updateVariable('stocks.tsla', stocks.tsla.toFixed(2));
     } catch (error) {
       console.error('Failed to fetch stocks:', error);
-
-      // Fallback to mock data
-      const mockStocks: StockData = {
-        spy: 450 + Math.random() * 10,
-        aapl: 180 + Math.random() * 5,
-        tsla: 250 + Math.random() * 20,
-        prices: {},
-        lastUpdated: new Date()
-      };
-
-      this.externalData.update(data => ({ ...data, stocks: mockStocks }));
-
-      this.updateVariable('stocks.spy', mockStocks.spy.toFixed(2));
-      this.updateVariable('stocks.aapl', mockStocks.aapl.toFixed(2));
-      this.updateVariable('stocks.tsla', mockStocks.tsla.toFixed(2));
+      // Set error state - no mock fallback
+      this.updateVariable('stocks.error', 'Failed to fetch stock data. Please configure Alpha Vantage API key.');
     }
   }
 

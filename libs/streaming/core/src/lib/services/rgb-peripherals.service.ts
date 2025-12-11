@@ -400,8 +400,22 @@ export class RGBPeripheralsService {
       )
     );
 
-    // In real implementation, send to SDK
-    console.log('Setting device color:', deviceId, color);
+    // Send to actual SDK
+    const device = this.devices().find(d => d.id === deviceId);
+    if (device) {
+      // Lazy load Hardware SDK
+      import('./hardware-sdk.service').then(async ({ HardwareSDKService }) => {
+        const hardwareSDK = new HardwareSDKService();
+
+        if (device.brand === 'Razer') {
+          await hardwareSDK.setRazerColor(device.type, color);
+        } else if (device.brand === 'Corsair') {
+          await hardwareSDK.setCorsairColor(deviceId, color);
+        } else if (device.brand === 'Logitech') {
+          await hardwareSDK.setLogitechColor(color);
+        }
+      }).catch(error => console.error('Failed to set device color:', error));
+    }
   }
 
   /**
@@ -421,7 +435,15 @@ export class RGBPeripheralsService {
       )
     );
 
-    console.log('Setting zone color:', deviceId, zoneId, color);
+    // Zone control implementation - depends on device capabilities
+    const device = this.devices().find(d => d.id === deviceId);
+    if (device && device.zones.length > 0) {
+      import('./hardware-sdk.service').then(async ({ HardwareSDKService }) => {
+        const hardwareSDK = new HardwareSDKService();
+        // Zone-specific control would go here
+        // Most SDKs support per-key or per-zone RGB
+      }).catch(console.error);
+    }
   }
 
   /**
