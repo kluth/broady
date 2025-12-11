@@ -576,9 +576,53 @@ export class MusicLibraryService {
     const track = this.allTracks().find(t => t.id === trackId);
     if (!track) return;
 
-    // Simulate download
-    console.log(`Downloading: ${track.title} by ${track.artist}`);
-    // In production, would trigger actual download
+    try {
+      // Create download link
+      const link = document.createElement('a');
+      link.href = track.audioUrl;
+      link.download = `${track.artist} - ${track.title}.mp3`;
+      link.style.display = 'none';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // If the track URL is external, we need to fetch and download
+      if (track.audioUrl.startsWith('http')) {
+        try {
+          const response = await fetch(track.audioUrl);
+          if (!response.ok) throw new Error('Download failed');
+
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+
+          const downloadLink = document.createElement('a');
+          downloadLink.href = url;
+          downloadLink.download = `${track.artist} - ${track.title}.mp3`;
+          downloadLink.style.display = 'none';
+
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error('Failed to download track:', error);
+          throw error;
+        }
+      }
+
+      // Update download count
+      this.downloadedTracks.update(tracks => {
+        if (!tracks.includes(trackId)) {
+          return [...tracks, trackId];
+        }
+        return tracks;
+      });
+    } catch (error) {
+      console.error(`Failed to download ${track.title}:`, error);
+      throw error;
+    }
   }
 
   private delay(ms: number): Promise<void> {
