@@ -44,6 +44,10 @@ import {
   GameIntegrationComponent,
   BettingService,
   BettingSystemComponent,
+  SubscriptionService,
+  PaymentService,
+  MarketplaceService,
+  LicensingService,
 } from '@org/streaming-core';
 
 @Component({
@@ -77,7 +81,8 @@ export class App {
     'sources' | 'overlays' | 'multistream' | 'alerts' | 'chat' | 'stats' |
     'cloud' | 'ai' | 'music' | 'health' | 'engagement' | 'moderation' |
     'analytics' | 'clips' | 'tts' | 'sounds' | 'templates' | 'chroma' |
-    'lowerthirds' | 'ndi' | 'aibackground' | 'automation' | 'scripting' | 'games' | 'betting'
+    'lowerthirds' | 'ndi' | 'aibackground' | 'automation' | 'scripting' | 'games' | 'betting' |
+    'subscription' | 'marketplace' | 'billing'
   >('sources');
 
   // Inject core services
@@ -118,6 +123,12 @@ export class App {
 
   // Wave 5 feature services (Betting System)
   protected betting = inject(BettingService);
+
+  // Monetization services
+  protected subscription = inject(SubscriptionService);
+  protected payment = inject(PaymentService);
+  protected marketplace = inject(MarketplaceService);
+  protected licensing = inject(LicensingService);
 
   // Core service state
   readonly isCloudConnected = this.firebase.isAuthenticated;
@@ -169,4 +180,17 @@ export class App {
   readonly activeBets = this.betting.activeBets;
   readonly bettingLeaderboard = this.betting.leaderboard;
   readonly bettingStats = this.betting.statistics;
+
+  // Monetization state
+  readonly currentSubscription = this.subscription.currentSubscription;
+  readonly currentPlan = this.subscription.currentPlan;
+  readonly usageMetrics = this.subscription.usageMetrics;
+  readonly isTrialing = this.subscription.isTrialing;
+  readonly paymentMethods = this.payment.paymentMethods;
+  readonly transactions = this.payment.transactions;
+  readonly marketplaceItems = this.marketplace.filteredItems;
+  readonly featuredItems = this.marketplace.featuredItems;
+  readonly purchasedItems = this.marketplace.purchasedItems;
+  readonly availableFeatures = this.licensing.availableFeatures;
+  readonly lockedFeatures = this.licensing.lockedFeatures;
 }

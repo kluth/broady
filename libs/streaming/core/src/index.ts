@@ -51,6 +51,10 @@ export * from './lib/services/betting.service';
 export * from './lib/services/channel-rewards.service';
 export * from './lib/services/chat-minigames.service';
 export * from './lib/services/premium-templates.service';
+export * from './lib/services/subscription.service';
+export * from './lib/services/payment.service';
+export * from './lib/services/marketplace.service';
+export * from './lib/services/licensing.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';
