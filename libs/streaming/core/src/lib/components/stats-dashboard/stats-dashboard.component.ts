@@ -1,5 +1,11 @@
 import { Component, signal, computed, effect, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { MatDividerModule } from '@angular/material/divider';
 import { StreamingService } from '../../services/streaming.service';
 import { RecordingService } from '../../services/recording.service';
 
@@ -22,7 +28,15 @@ interface PerformanceMetric {
 @Component({
   selector: 'streaming-stats-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatChipsModule,
+    MatGridListModule,
+    MatDividerModule
+  ],
   templateUrl: './stats-dashboard.component.html',
   styleUrls: ['./stats-dashboard.component.css']
 })
@@ -208,6 +222,20 @@ export class StatsDashboardComponent implements OnDestroy {
     // Simulate viewer count changes
     const change = Math.round((Math.random() - 0.5) * 5);
     this.viewerCountSignal.update(v => Math.max(0, v + change));
+  }
+
+  getIconName(emoji: string): string {
+    const iconMap: Record<string, string> = {
+      '🎬': 'movie',
+      '⚡': 'flash_on',
+      '💾': 'storage',
+      '📊': 'bar_chart',
+      '⚠️': 'warning',
+      '⏭️': 'skip_next',
+      '⏱️': 'schedule',
+      '👥': 'people'
+    };
+    return iconMap[emoji] || 'info';
   }
 
   formatUptime(seconds: number): string {

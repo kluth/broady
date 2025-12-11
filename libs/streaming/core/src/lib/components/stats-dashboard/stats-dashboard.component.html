@@ -1,162 +1,211 @@
-<div class="stats-dashboard">
-  <div class="dashboard-header">
-    <div class="header-left">
-      <h3>📊 Performance Dashboard</h3>
-      @if (isStreaming() || isRecording()) {
-        <span class="status-live">● LIVE</span>
-      }
-    </div>
-    <div class="header-actions">
-      <button class="btn-action" (click)="resetStats()" title="Reset Statistics">
-        Reset
-      </button>
-      <button class="btn-action" (click)="exportStats()" title="Export Statistics">
-        Export
-      </button>
-    </div>
-  </div>
-
-  <!-- Health Score -->
-  <div class="health-section">
-    <div class="health-score">
-      <div
-        class="health-circle"
-        [style.background]="'conic-gradient(' + healthStatus().color + ' ' + healthScore() + '%, #333 0)'"
-      >
-        <div class="health-inner">
-          <span class="health-icon">{{ healthStatus().icon }}</span>
-          <span class="health-value">{{ healthScore() }}</span>
-          <span class="health-label">Score</span>
-        </div>
-      </div>
-      <div class="health-info">
-        <span
-          class="health-status"
-          [style.color]="healthStatus().color"
-        >
-          {{ healthStatus().text }}
-        </span>
-        <span class="health-description">Stream Health</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Stats Grid -->
-  <div class="stats-grid">
-    @for (stat of stats(); track stat.label) {
-      <div class="stat-card" [style.border-left-color]="stat.color">
-        <div class="stat-icon">{{ stat.icon }}</div>
-        <div class="stat-info">
-          <div class="stat-label">{{ stat.label }}</div>
-          <div class="stat-value" [style.color]="stat.color">
-            {{ stat.value }}
-          </div>
-        </div>
-        @if (stat.trend) {
-          <div class="stat-trend" [class]="'trend-' + stat.trend">
-            @if (stat.trend === 'up') {
-              ↗
-            } @else if (stat.trend === 'down') {
-              ↘
-            } @else {
-              →
-            }
-          </div>
-        }
-      </div>
+<mat-card class="stats-dashboard">
+  <mat-card-header>
+    <mat-card-title>
+      <mat-icon>analytics</mat-icon>
+      Performance Dashboard
+    </mat-card-title>
+    @if (isStreaming() || isRecording()) {
+      <mat-chip color="warn" class="live-chip">
+        <mat-icon>fiber_manual_record</mat-icon>
+        LIVE
+      </mat-chip>
     }
-  </div>
+    <div class="header-actions">
+      <button mat-icon-button (click)="resetStats()" matTooltip="Reset Statistics">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button mat-icon-button (click)="exportStats()" matTooltip="Export Statistics">
+        <mat-icon>download</mat-icon>
+      </button>
+    </div>
+  </mat-card-header>
 
-  <!-- Performance Graph -->
-  <div class="performance-section">
-    <h4>Performance History (Last 60s)</h4>
-    <div class="performance-graph">
-      @if (performanceHistory().length > 0) {
-        <svg class="graph-svg" viewBox="0 0 600 200">
-          <!-- Grid lines -->
-          @for (i of [0, 1, 2, 3, 4]; track i) {
-            <line
-              [attr.x1]="0"
-              [attr.y1]="i * 50"
-              [attr.x2]="600"
-              [attr.y2]="i * 50"
-              stroke="#333"
-              stroke-width="1"
-            />
-          }
-
-          <!-- FPS Line -->
-          <polyline
-            [attr.points]="getGraphPoints(performanceHistory(), 'fps', 100)"
-            fill="none"
-            stroke="#28a745"
-            stroke-width="2"
-          />
-
-          <!-- CPU Line -->
-          <polyline
-            [attr.points]="getGraphPoints(performanceHistory(), 'cpu', 100)"
-            fill="none"
-            stroke="#2a7fff"
-            stroke-width="2"
-          />
-
-          <!-- Memory Line -->
-          <polyline
-            [attr.points]="getGraphPoints(performanceHistory(), 'memory', 100)"
-            fill="none"
-            stroke="#ffc107"
-            stroke-width="2"
-          />
-        </svg>
-
-        <div class="graph-legend">
-          <div class="legend-item">
-            <span class="legend-color" style="background: #28a745;"></span>
-            <span>FPS</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color" style="background: #2a7fff;"></span>
-            <span>CPU %</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color" style="background: #ffc107;"></span>
-            <span>Memory %</span>
+  <mat-card-content>
+    <!-- Health Score Section -->
+    <mat-card class="health-card">
+      <mat-card-content>
+        <div class="health-section">
+          <div class="health-score">
+            <div
+              class="health-circle"
+              [style.background]="'conic-gradient(' + healthStatus().color + ' ' + healthScore() + '%, #424242 0)'"
+            >
+              <div class="health-inner">
+                <mat-icon class="health-icon">{{ healthStatus().icon }}</mat-icon>
+                <span class="health-value">{{ healthScore() }}</span>
+                <span class="health-label">Score</span>
+              </div>
+            </div>
+            <div class="health-info">
+              <span
+                class="health-status"
+                [style.color]="healthStatus().color"
+              >
+                {{ healthStatus().text }}
+              </span>
+              <span class="health-description">Stream Health</span>
+            </div>
           </div>
         </div>
-      } @else {
-        <div class="no-data">
-          <p>No performance data yet</p>
-          <span>Start streaming or recording to see metrics</span>
-        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-divider></mat-divider>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      @for (stat of stats(); track stat.label) {
+        <mat-card class="stat-card" [style.border-left-color]="stat.color">
+          <mat-card-content>
+            <div class="stat-content">
+              <mat-icon class="stat-icon" [style.color]="stat.color">
+                {{ getIconName(stat.icon) }}
+              </mat-icon>
+              <div class="stat-info">
+                <div class="stat-label">{{ stat.label }}</div>
+                <div class="stat-value" [style.color]="stat.color">
+                  {{ stat.value }}
+                </div>
+              </div>
+              @if (stat.trend) {
+                <mat-icon class="stat-trend" [class]="'trend-' + stat.trend">
+                  @if (stat.trend === 'up') {
+                    trending_up
+                  } @else if (stat.trend === 'down') {
+                    trending_down
+                  } @else {
+                    trending_flat
+                  }
+                </mat-icon>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
       }
     </div>
-  </div>
 
-  <!-- Network Stats -->
-  <div class="network-section">
-    <h4>Network Statistics</h4>
-    <div class="network-stats">
-      <div class="network-stat">
-        <span class="network-label">Current Bitrate</span>
-        <span class="network-value">{{ (currentBitrate() / 1000).toFixed(2) }} Mbps</span>
-      </div>
-      <div class="network-stat">
-        <span class="network-label">Dropped Frames</span>
-        <span class="network-value" [class.warning]="droppedFrames() > 0">
-          {{ droppedFrames() }}
-        </span>
-      </div>
-      <div class="network-stat">
-        <span class="network-label">Skipped Frames</span>
-        <span class="network-value" [class.warning]="skippedFrames() > 0">
-          {{ skippedFrames() }}
-        </span>
-      </div>
-      <div class="network-stat">
-        <span class="network-label">Total Uptime</span>
-        <span class="network-value">{{ formatUptime(uptime()) }}</span>
-      </div>
-    </div>
-  </div>
-</div>
+    <mat-divider></mat-divider>
+
+    <!-- Performance Graph -->
+    <mat-card class="performance-card">
+      <mat-card-header>
+        <mat-card-title>Performance History (Last 60s)</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="performance-graph">
+          @if (performanceHistory().length > 0) {
+            <svg class="graph-svg" viewBox="0 0 600 200">
+              <!-- Grid lines -->
+              @for (i of [0, 1, 2, 3, 4]; track i) {
+                <line
+                  [attr.x1]="0"
+                  [attr.y1]="i * 50"
+                  [attr.x2]="600"
+                  [attr.y2]="i * 50"
+                  stroke="#424242"
+                  stroke-width="1"
+                  opacity="0.3"
+                />
+              }
+
+              <!-- FPS Line -->
+              <polyline
+                [attr.points]="getGraphPoints(performanceHistory(), 'fps', 100)"
+                fill="none"
+                stroke="#4caf50"
+                stroke-width="2"
+              />
+
+              <!-- CPU Line -->
+              <polyline
+                [attr.points]="getGraphPoints(performanceHistory(), 'cpu', 100)"
+                fill="none"
+                stroke="#2196f3"
+                stroke-width="2"
+              />
+
+              <!-- Memory Line -->
+              <polyline
+                [attr.points]="getGraphPoints(performanceHistory(), 'memory', 100)"
+                fill="none"
+                stroke="#ff9800"
+                stroke-width="2"
+              />
+            </svg>
+
+            <div class="graph-legend">
+              <mat-chip-set>
+                <mat-chip>
+                  <span class="legend-dot" style="background: #4caf50;"></span>
+                  FPS
+                </mat-chip>
+                <mat-chip>
+                  <span class="legend-dot" style="background: #2196f3;"></span>
+                  CPU %
+                </mat-chip>
+                <mat-chip>
+                  <span class="legend-dot" style="background: #ff9800;"></span>
+                  Memory %
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          } @else {
+            <div class="no-data">
+              <mat-icon class="no-data-icon">show_chart</mat-icon>
+              <p>No performance data yet</p>
+              <span>Start streaming or recording to see metrics</span>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-divider></mat-divider>
+
+    <!-- Network Stats -->
+    <mat-card class="network-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>network_check</mat-icon>
+          Network Statistics
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="network-stats">
+          <div class="network-stat">
+            <mat-icon>speed</mat-icon>
+            <div class="network-info">
+              <span class="network-label">Current Bitrate</span>
+              <span class="network-value">{{ (currentBitrate() / 1000).toFixed(2) }} Mbps</span>
+            </div>
+          </div>
+          <div class="network-stat">
+            <mat-icon [color]="droppedFrames() > 0 ? 'warn' : ''">warning</mat-icon>
+            <div class="network-info">
+              <span class="network-label">Dropped Frames</span>
+              <span class="network-value" [class.warning]="droppedFrames() > 0">
+                {{ droppedFrames() }}
+              </span>
+            </div>
+          </div>
+          <div class="network-stat">
+            <mat-icon [color]="skippedFrames() > 0 ? 'warn' : ''">skip_next</mat-icon>
+            <div class="network-info">
+              <span class="network-label">Skipped Frames</span>
+              <span class="network-value" [class.warning]="skippedFrames() > 0">
+                {{ skippedFrames() }}
+              </span>
+            </div>
+          </div>
+          <div class="network-stat">
+            <mat-icon>schedule</mat-icon>
+            <div class="network-info">
+              <span class="network-label">Total Uptime</span>
+              <span class="network-value">{{ formatUptime(uptime()) }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </mat-card-content>
+</mat-card>
