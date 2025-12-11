@@ -1,6 +1,16 @@
 import { Component, signal, computed, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
 import { SettingsService } from '../../services/settings.service';
 
 interface SettingsTab {
@@ -12,7 +22,20 @@ interface SettingsTab {
 @Component({
   selector: 'streaming-settings-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatDialogModule,
+    MatTabsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatSliderModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule
+  ],
   templateUrl: './settings-dialog.component.html',
   styleUrls: ['./settings-dialog.component.css']
 })
@@ -25,6 +48,7 @@ export class SettingsDialogComponent {
   private isOpenSignal = signal<boolean>(false);
   private selectedTabSignal = signal<string>('general');
   private hasUnsavedChangesSignal = signal<boolean>(false);
+  selectedTabIndex = 0;
 
   readonly isOpen = this.isOpenSignal.asReadonly();
   readonly selectedTab = this.selectedTabSignal.asReadonly();

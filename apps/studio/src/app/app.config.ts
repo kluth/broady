@@ -6,6 +6,7 @@ import {
   inject
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { appRoutes } from './app.routes';
 import { FirebaseService, FirebaseConfig } from '@org/streaming-core';
 
@@ -30,6 +31,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(appRoutes),
+    provideAnimationsAsync(),
     {
       provide: APP_INITIALIZER,
       useFactory: initializeFirebaseFactory,

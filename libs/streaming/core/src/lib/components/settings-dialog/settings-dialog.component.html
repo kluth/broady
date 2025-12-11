@@ -1,341 +1,374 @@
 @if (isOpen()) {
   <div class="settings-overlay" (click)="close()">
-    <div class="settings-dialog" (click)="$event.stopPropagation()">
-      <div class="dialog-header">
-        <h2>⚙️ Settings</h2>
-        <button class="btn-close" (click)="close()">✕</button>
-      </div>
+    <mat-card class="settings-dialog" (click)="$event.stopPropagation()">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>settings</mat-icon>
+          Settings
+        </mat-card-title>
+        <button mat-icon-button class="close-button" (click)="close()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-card-header>
 
-      <div class="dialog-body">
-        <div class="settings-sidebar">
-          @for (tab of tabs; track tab.id) {
-            <button
-              class="tab-btn"
-              [class.active]="selectedTab() === tab.id"
-              (click)="selectTab(tab.id)"
-            >
-              <span class="tab-icon">{{ tab.icon }}</span>
-              <span class="tab-name">{{ tab.name }}</span>
-            </button>
-          }
-        </div>
-
-        <div class="settings-content">
-          @if (selectedTab() === 'general') {
-            <div class="settings-section">
+      <mat-card-content>
+        <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="settings-tabs">
+          <!-- General Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">settings</mat-icon>
+              General
+            </ng-template>
+            <div class="tab-content">
               <h3>General Settings</h3>
 
-              <div class="setting-group">
-                <label>Language</label>
-                <select [value]="language()" (change)="updateLanguage($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Language</mat-label>
+                <mat-select [value]="language()" (valueChange)="updateLanguage($event)">
                   @for (lang of languages; track lang) {
-                    <option [value]="lang">{{ lang.toUpperCase() }}</option>
+                    <mat-option [value]="lang">{{ lang.toUpperCase() }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Theme</label>
-                <select [value]="theme()" (change)="updateTheme($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Theme</mat-label>
+                <mat-select [value]="theme()" (valueChange)="updateTheme($event)">
                   @for (t of themes; track t) {
-                    <option [value]="t">{{ t | titlecase }}</option>
+                    <mat-option [value]="t">{{ t | titlecase }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label class="checkbox-label">
-                  <input
-                    type="checkbox"
-                    [checked]="autoStart()"
-                    (change)="updateAutoStart($any($event.target).checked)"
-                  />
-                  <span>Launch on system startup</span>
-                </label>
-              </div>
+              <mat-checkbox
+                [checked]="autoStart()"
+                (change)="updateAutoStart($event.checked)"
+                class="setting-checkbox"
+              >
+                Launch on system startup
+              </mat-checkbox>
 
-              <div class="setting-group">
-                <label class="checkbox-label">
-                  <input
-                    type="checkbox"
-                    [checked]="minimizeToTray()"
-                    (change)="updateMinimizeToTray($any($event.target).checked)"
-                  />
-                  <span>Minimize to system tray</span>
-                </label>
-              </div>
+              <mat-checkbox
+                [checked]="minimizeToTray()"
+                (change)="updateMinimizeToTray($event.checked)"
+                class="setting-checkbox"
+              >
+                Minimize to system tray
+              </mat-checkbox>
             </div>
-          }
+          </mat-tab>
 
-          @if (selectedTab() === 'stream') {
-            <div class="settings-section">
+          <!-- Stream Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">cast</mat-icon>
+              Stream
+            </ng-template>
+            <div class="tab-content">
               <h3>Streaming Settings</h3>
 
-              <div class="setting-group">
-                <label>Service</label>
-                <select [value]="service()" (change)="updateService($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Service</mat-label>
+                <mat-select [value]="service()" (valueChange)="updateService($event)">
                   @for (s of services; track s) {
-                    <option [value]="s">{{ s | titlecase }}</option>
+                    <mat-option [value]="s">{{ s | titlecase }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Server</label>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Server</mat-label>
                 <input
-                  type="text"
+                  matInput
                   [value]="streamServer()"
                   (input)="updateStreamServer($any($event.target).value)"
                   placeholder="rtmp://..."
                 />
-              </div>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Stream Key</label>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Stream Key</mat-label>
                 <input
+                  matInput
                   type="password"
                   [value]="streamKey()"
                   (input)="updateStreamKey($any($event.target).value)"
                   placeholder="Your stream key..."
                 />
-                <small>⚠️ Keep your stream key private!</small>
-              </div>
+                <mat-hint>Keep your stream key private!</mat-hint>
+              </mat-form-field>
             </div>
-          }
+          </mat-tab>
 
-          @if (selectedTab() === 'output') {
-            <div class="settings-section">
+          <!-- Output Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">output</mat-icon>
+              Output
+            </ng-template>
+            <div class="tab-content">
               <h3>Output Settings</h3>
 
-              <div class="setting-group">
-                <label>Encoder</label>
-                <select [value]="encoder()" (change)="updateEncoder($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Encoder</mat-label>
+                <mat-select [value]="encoder()" (valueChange)="updateEncoder($event)">
                   @for (enc of encoders; track enc) {
-                    <option [value]="enc">{{ enc.toUpperCase() }}</option>
+                    <mat-option [value]="enc">{{ enc.toUpperCase() }}</mat-option>
                   }
-                </select>
+                </mat-select>
+              </mat-form-field>
+
+              <div class="slider-setting">
+                <label>Video Bitrate: {{ videoBitrate() }} kbps</label>
+                <mat-slider min="1000" max="20000" step="500" showTickMarks discrete class="full-width">
+                  <input matSliderThumb [value]="videoBitrate()" (valueChange)="updateVideoBitrate($event)" />
+                </mat-slider>
               </div>
 
-              <div class="setting-group">
-                <label>Video Bitrate (kbps)</label>
-                <input
-                  type="range"
-                  min="1000"
-                  max="20000"
-                  step="500"
-                  [value]="videoBitrate()"
-                  (input)="updateVideoBitrate(+$any($event.target).value)"
-                />
-                <span class="value-display">{{ videoBitrate() }} kbps</span>
+              <div class="slider-setting">
+                <label>Audio Bitrate: {{ audioBitrate() }} kbps</label>
+                <mat-slider min="64" max="320" step="32" showTickMarks discrete class="full-width">
+                  <input matSliderThumb [value]="audioBitrate()" (valueChange)="updateAudioBitrate($event)" />
+                </mat-slider>
               </div>
 
-              <div class="setting-group">
-                <label>Audio Bitrate (kbps)</label>
-                <input
-                  type="range"
-                  min="64"
-                  max="320"
-                  step="32"
-                  [value]="audioBitrate()"
-                  (input)="updateAudioBitrate(+$any($event.target).value)"
-                />
-                <span class="value-display">{{ audioBitrate() }} kbps</span>
-              </div>
-
-              <div class="setting-group">
-                <label>Recording Format</label>
-                <select [value]="recordingFormat()" (change)="updateRecordingFormat($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Recording Format</mat-label>
+                <mat-select [value]="recordingFormat()" (valueChange)="updateRecordingFormat($event)">
                   @for (format of recordingFormats; track format) {
-                    <option [value]="format">{{ format.toUpperCase() }}</option>
+                    <mat-option [value]="format">{{ format.toUpperCase() }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Recording Path</label>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Recording Path</mat-label>
                 <input
-                  type="text"
+                  matInput
                   [value]="recordingPath()"
                   (input)="updateRecordingPath($any($event.target).value)"
                 />
-              </div>
+              </mat-form-field>
             </div>
-          }
+          </mat-tab>
 
-          @if (selectedTab() === 'video') {
-            <div class="settings-section">
+          <!-- Video Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">videocam</mat-icon>
+              Video
+            </ng-template>
+            <div class="tab-content">
               <h3>Video Settings</h3>
 
-              <div class="setting-group">
-                <label>Base (Canvas) Resolution</label>
-                <select [value]="baseResolution()" (change)="updateBaseResolution($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Base (Canvas) Resolution</mat-label>
+                <mat-select [value]="baseResolution()" (valueChange)="updateBaseResolution($event)">
                   @for (res of resolutions; track res) {
-                    <option [value]="res">{{ res }}</option>
+                    <mat-option [value]="res">{{ res }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Output (Scaled) Resolution</label>
-                <select [value]="outputResolution()" (change)="updateOutputResolution($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Output (Scaled) Resolution</mat-label>
+                <mat-select [value]="outputResolution()" (valueChange)="updateOutputResolution($event)">
                   @for (res of resolutions; track res) {
-                    <option [value]="res">{{ res }}</option>
+                    <mat-option [value]="res">{{ res }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>FPS (Frames Per Second)</label>
-                <select [value]="fps()" (change)="updateFps(+$any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>FPS (Frames Per Second)</mat-label>
+                <mat-select [value]="fps()" (valueChange)="updateFps($event)">
                   @for (f of frameRates; track f) {
-                    <option [value]="f">{{ f }} FPS</option>
+                    <mat-option [value]="f">{{ f }} FPS</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Downscale Filter</label>
-                <select [value]="downscaleFilter()" (change)="updateDownscaleFilter($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Downscale Filter</mat-label>
+                <mat-select [value]="downscaleFilter()" (valueChange)="updateDownscaleFilter($event)">
                   @for (filter of filters; track filter) {
-                    <option [value]="filter">{{ filter | titlecase }}</option>
+                    <mat-option [value]="filter">{{ filter | titlecase }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
             </div>
-          }
+          </mat-tab>
 
-          @if (selectedTab() === 'audio') {
-            <div class="settings-section">
+          <!-- Audio Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">audiotrack</mat-icon>
+              Audio
+            </ng-template>
+            <div class="tab-content">
               <h3>Audio Settings</h3>
 
-              <div class="setting-group">
-                <label>Sample Rate</label>
-                <select [value]="sampleRate()" (change)="updateSampleRate(+$any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Sample Rate</mat-label>
+                <mat-select [value]="sampleRate()" (valueChange)="updateSampleRate($event)">
                   @for (rate of sampleRates; track rate) {
-                    <option [value]="rate">{{ rate }} Hz</option>
+                    <mat-option [value]="rate">{{ rate }} Hz</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Channels</label>
-                <select [value]="channels()" (change)="updateChannels($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Channels</mat-label>
+                <mat-select [value]="channels()" (valueChange)="updateChannels($event)">
                   @for (ch of channelOptions; track ch) {
-                    <option [value]="ch">{{ ch | titlecase }}</option>
+                    <mat-option [value]="ch">{{ ch | titlecase }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Desktop Audio Device</label>
-                <select [value]="desktopAudioDevice()" (change)="updateDesktopAudioDevice($any($event.target).value)">
-                  <option value="default">Default</option>
-                  <option value="disabled">Disabled</option>
-                </select>
-              </div>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Desktop Audio Device</mat-label>
+                <mat-select [value]="desktopAudioDevice()" (valueChange)="updateDesktopAudioDevice($event)">
+                  <mat-option value="default">Default</mat-option>
+                  <mat-option value="disabled">Disabled</mat-option>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Microphone/Aux Device</label>
-                <select [value]="micAudioDevice()" (change)="updateMicAudioDevice($any($event.target).value)">
-                  <option value="default">Default</option>
-                  <option value="disabled">Disabled</option>
-                </select>
-              </div>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Microphone/Aux Device</mat-label>
+                <mat-select [value]="micAudioDevice()" (valueChange)="updateMicAudioDevice($event)">
+                  <mat-option value="default">Default</mat-option>
+                  <mat-option value="disabled">Disabled</mat-option>
+                </mat-select>
+              </mat-form-field>
             </div>
-          }
+          </mat-tab>
 
-          @if (selectedTab() === 'hotkeys') {
-            <div class="settings-section">
+          <!-- Hotkeys Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">keyboard</mat-icon>
+              Hotkeys
+            </ng-template>
+            <div class="tab-content">
               <h3>Hotkeys</h3>
               <p>Configure keyboard shortcuts in the Hotkeys panel</p>
-              <button class="btn-secondary">Open Hotkey Configuration</button>
+              <button mat-raised-button color="primary">
+                <mat-icon>open_in_new</mat-icon>
+                Open Hotkey Configuration
+              </button>
             </div>
-          }
+          </mat-tab>
 
-          @if (selectedTab() === 'advanced') {
-            <div class="settings-section">
+          <!-- Advanced Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">construction</mat-icon>
+              Advanced
+            </ng-template>
+            <div class="tab-content">
               <h3>Advanced Settings</h3>
 
-              <div class="setting-group">
-                <label>Process Priority</label>
-                <select [value]="processPriority()" (change)="updateProcessPriority($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Process Priority</mat-label>
+                <mat-select [value]="processPriority()" (valueChange)="updateProcessPriority($event)">
                   @for (priority of priorities; track priority) {
-                    <option [value]="priority">{{ priority | titlecase }}</option>
+                    <mat-option [value]="priority">{{ priority | titlecase }}</mat-option>
                   }
-                </select>
-                <small>⚠️ Changing priority can affect system stability</small>
-              </div>
+                </mat-select>
+                <mat-hint>Changing priority can affect system stability</mat-hint>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Renderer</label>
-                <select [value]="renderer()" (change)="updateRenderer($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Renderer</mat-label>
+                <mat-select [value]="renderer()" (valueChange)="updateRenderer($event)">
                   @for (r of renderers; track r) {
-                    <option [value]="r">{{ r }}</option>
+                    <mat-option [value]="r">{{ r }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Color Format</label>
-                <select [value]="colorFormat()" (change)="updateColorFormat($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Color Format</mat-label>
+                <mat-select [value]="colorFormat()" (valueChange)="updateColorFormat($event)">
                   @for (format of colorFormats; track format) {
-                    <option [value]="format">{{ format.toUpperCase() }}</option>
+                    <mat-option [value]="format">{{ format.toUpperCase() }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Color Space</label>
-                <select [value]="colorSpace()" (change)="updateColorSpace($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Color Space</mat-label>
+                <mat-select [value]="colorSpace()" (valueChange)="updateColorSpace($event)">
                   @for (space of colorSpaces; track space) {
-                    <option [value]="space">{{ space }}</option>
+                    <mat-option [value]="space">{{ space }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
 
-              <div class="setting-group">
-                <label>Color Range</label>
-                <select [value]="colorRange()" (change)="updateColorRange($any($event.target).value)">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Color Range</mat-label>
+                <mat-select [value]="colorRange()" (valueChange)="updateColorRange($event)">
                   @for (range of colorRanges; track range) {
-                    <option [value]="range">{{ range | titlecase }}</option>
+                    <mat-option [value]="range">{{ range | titlecase }}</mat-option>
                   }
-                </select>
-              </div>
+                </mat-select>
+              </mat-form-field>
             </div>
-          }
+          </mat-tab>
 
-          @if (selectedTab() === 'ai') {
-            <div class="settings-section">
+          <!-- AI Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">smart_toy</mat-icon>
+              AI Features
+            </ng-template>
+            <div class="tab-content">
               <h3>AI Features</h3>
               <p>Configure AI-powered features in the AI Dashboard</p>
-              <button class="btn-secondary">Open AI Dashboard</button>
+              <button mat-raised-button color="primary">
+                <mat-icon>open_in_new</mat-icon>
+                Open AI Dashboard
+              </button>
             </div>
-          }
+          </mat-tab>
 
-          @if (selectedTab() === 'cloud') {
-            <div class="settings-section">
+          <!-- Cloud Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">cloud</mat-icon>
+              Cloud & Sync
+            </ng-template>
+            <div class="tab-content">
               <h3>Cloud & Sync</h3>
               <p>Firebase authentication and cloud sync settings</p>
-              <button class="btn-secondary">Manage Cloud Settings</button>
+              <button mat-raised-button color="primary">
+                <mat-icon>open_in_new</mat-icon>
+                Manage Cloud Settings
+              </button>
             </div>
-          }
-        </div>
-      </div>
+          </mat-tab>
+        </mat-tab-group>
+      </mat-card-content>
 
-      <div class="dialog-footer">
+      <mat-card-actions align="end" class="dialog-footer">
         @if (hasUnsavedChanges()) {
-          <span class="unsaved-indicator">● Unsaved changes</span>
+          <span class="unsaved-indicator">
+            <mat-icon>error</mat-icon>
+            Unsaved changes
+          </span>
         }
-        <button class="btn-secondary" (click)="resetToDefaults()">
+        <button mat-button (click)="resetToDefaults()">
           Reset to Defaults
         </button>
-        <button class="btn-secondary" (click)="close()">
+        <button mat-button (click)="close()">
           Cancel
         </button>
-        <button class="btn-primary" (click)="saveSettings()">
+        <button mat-raised-button color="primary" (click)="saveSettings()">
+          <mat-icon>save</mat-icon>
           Save Settings
         </button>
-      </div>
-    </div>
+      </mat-card-actions>
+    </mat-card>
   </div>
 }
