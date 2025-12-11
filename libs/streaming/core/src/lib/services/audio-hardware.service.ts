@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { SocketService } from './socket.service';
 
 /**
  * Audio Hardware Integration Service
@@ -26,9 +27,9 @@ export interface HardwareAudioDevice {
   connected: boolean;
   inputs: number;
   outputs: number;
-  sampleRate: number;
-  bitDepth: number;
-  latency: number; // ms
+  sampleRate?: number;
+  bitDepth?: number;
+  latency?: number; // ms
   firmwareVersion?: string;
 }
 
@@ -125,6 +126,8 @@ export interface GoXLREffectPreset {
   providedIn: 'root'
 })
 export class AudioHardwareService {
+  private socket = inject(SocketService);
+
   // Connected devices
   readonly devices = signal<HardwareAudioDevice[]>([]);
 
@@ -160,48 +163,49 @@ export class AudioHardwareService {
     this.channels().filter(c => !c.muted)
   );
 
+  constructor() {
+    this.setupSocketListeners();
+  }
+
+  private setupSocketListeners(): void {
+    // Listen for initial device list
+    this.socket.on<any>('hardware:devices', (data) => {
+      const audioDevices = data.audioInterfaces || [];
+      // Map backend device format to frontend interface
+      const mappedDevices: HardwareAudioDevice[] = audioDevices.map((d: any) => ({
+        id: d.id,
+        type: d.type,
+        name: d.name,
+        manufacturer: d.manufacturer,
+        connected: d.connected,
+        inputs: d.inputs,
+        outputs: d.outputs,
+        sampleRate: 48000, // Default if not provided
+        bitDepth: 24,
+        latency: 5
+      }));
+      
+      this.devices.set(mappedDevices);
+      this.initializeDeviceChannels();
+    });
+
+    // Listen for fader updates from other clients/backend
+    this.socket.on<{faderId: string, volume: number}>('audio:fader-moved', (data) => {
+      this.goXLRFaders.update(faders => 
+        faders.map(f => f.id === data.faderId ? { ...f, volume: data.volume } : f)
+      );
+    });
+  }
+
   /**
    * Scan for audio devices
    */
   async scanDevices(): Promise<HardwareAudioDevice[]> {
-    console.log('Scanning for audio hardware...');
-
-    // In real implementation, use Web MIDI API, node-hid, or device-specific SDKs
-    // For GoXLR: https://github.com/GoXLR-on-Linux/goxlr-utility
-    // For Focusrite: Focusrite Control API
-
-    const mockDevices: HardwareAudioDevice[] = [
-      {
-        id: 'goxlr-001',
-        type: 'goxlr',
-        name: 'TC Helicon GoXLR',
-        manufacturer: 'TC Helicon',
-        connected: true,
-        inputs: 4,
-        outputs: 4,
-        sampleRate: 48000,
-        bitDepth: 24,
-        latency: 5.2,
-        firmwareVersion: '1.3.8'
-      },
-      {
-        id: 'scarlett-001',
-        type: 'focusrite-scarlett',
-        name: 'Scarlett 2i2 3rd Gen',
-        manufacturer: 'Focusrite',
-        connected: true,
-        inputs: 2,
-        outputs: 2,
-        sampleRate: 192000,
-        bitDepth: 24,
-        latency: 2.8
-      }
-    ];
-
-    this.devices.set(mockDevices);
-    this.initializeDeviceChannels();
-
-    return mockDevices;
+    console.log('Requesting audio hardware list...');
+    this.socket.emit('hardware:list-devices');
+    
+    // Return current list (will be updated via socket event)
+    return this.devices();
   }
 
   /**
@@ -563,13 +567,8 @@ export class AudioHardwareService {
       )
     );
 
-    const device = this.devices().find(d =>
-      d.type === 'goxlr' || d.type === 'goxlr-mini'
-    );
-
-    if (device) {
-      this.sendToDevice(device.id, 'set_fader_volume', { faderId, volume });
-    }
+    // Send update to backend
+    this.socket.emit('audio:set-fader', { faderId, volume });
   }
 
   /**
@@ -637,10 +636,9 @@ export class AudioHardwareService {
   }
 
   /**
-   * Get channel peak level (simulated)
+   * Get channel peak level (simulated for now, would be streamed audio data)
    */
   getChannelPeakLevel(deviceId: string, channelNumber: number): number {
-    // In real implementation, read from device
     return Math.random() * 100;
   }
 
@@ -649,11 +647,8 @@ export class AudioHardwareService {
    */
   private sendToDevice(deviceId: string, command: string, params: any): void {
     console.log('Sending to device:', { deviceId, command, params });
-
-    // In real implementation:
-    // - For GoXLR: Use goxlr-utility daemon WebSocket
-    // - For Focusrite: Use Focusrite Control API
-    // - For others: Device-specific SDK or MIDI
+    // In future, this would emit specific socket events
+    this.socket.emit('hardware:command', { deviceId, command, params });
   }
 
   /**

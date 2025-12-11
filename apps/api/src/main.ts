@@ -1,15 +1,32 @@
 import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import cookieParser from 'cookie-parser'; // Import cookie-parser
 import { ProductsService } from '@org/api/products';
+import { GameProcessService } from './app/services/game-process.service';
+import { HardwareHubService } from './app/services/hardware-hub.service';
+import { FirebaseAdminService } from './app/services/firebase.service';
+import authRouter, { authenticateFirebaseToken } from './app/routes/auth.routes';
+import paymentRouter from './app/routes/payment.routes'; // Import payment router
 import { ApiResponse, Product, ProductFilter, PaginatedResponse } from '@org/models';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3333;
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
 const productsService = new ProductsService();
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser()); // Use cookie-parser middleware
 
 // CORS configuration for Angular app
 app.use((req, res, next) => {
@@ -26,6 +43,29 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.send({ message: 'Hello API' });
 });
+
+// Auth routes
+app.use('/api/auth', authRouter);
+
+// Payment routes
+app.use('/api/payment', paymentRouter);
+
+// --- WebSocket Gateway ---
+io.on('connection', (socket) => {
+  console.log(`Client connected: ${socket.id}`);
+
+  socket.on('disconnect', () => {
+    console.log(`Client disconnected: ${socket.id}`);
+  });
+});
+
+// Make io accessible for services (singleton pattern or dependency injection would be better, but this is a start)
+export { io }; 
+
+// Initialize Hardware & System Services
+new GameProcessService(io);
+new HardwareHubService(io);
+FirebaseAdminService.getInstance(); // Initialize Firebase Admin SDK
 
 // Products endpoints
 app.get('/api/products', (req, res) => {
@@ -134,6 +174,6 @@ app.get('/api/products-metadata/price-range', (req, res) => {
   }
 });
 
-app.listen(port, host, () => {
+httpServer.listen(port, host, () => {
   console.log(`[ ready ] http://${host}:${port}`);
 });

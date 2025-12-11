@@ -38,7 +38,7 @@
               [class.active]="selectedProvider() === provider"
               (click)="updateProvider(provider)"
             >
-              @if (provider === 'gemini') {
+              @if (provider === 'google') {
                 <span class="provider-icon">✨</span>
                 <span class="provider-name">Google Gemini</span>
                 <span class="provider-desc">Fast, multimodal AI</span>
@@ -48,7 +48,7 @@
                 <span class="provider-name">OpenAI</span>
                 <span class="provider-desc">GPT-4 & Whisper</span>
               }
-              @if (provider === 'claude') {
+              @if (provider === 'anthropic') {
                 <span class="provider-icon">🧠</span>
                 <span class="provider-name">Claude</span>
                 <span class="provider-desc">Thoughtful analysis</span>

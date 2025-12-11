@@ -1,4 +1,16 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, effect } from '@angular/core';
+import { FirebaseApp } from 'firebase/app';
+import { getMessaging, getToken, onMessage, MessagePayload, Messaging } from 'firebase/messaging';
+import { getRemoteConfig, fetchAndActivate, getAll, ValueSource } from 'firebase/remote-config';
+import { getPerformance, trace } from 'firebase/performance';
+// 
+import { initializeAppCheck, ReCaptchaV3Provider, AppCheck } from 'firebase/app-check';
+// For dynamic links and ML, we might need more specific client SDKs or backend integration.
+// import { getDynamicLinks, DynamicLinks, buildShortLink, onDynamicLink } from 'firebase/dynamic-links';
+// import { getMl, Ml, getModel, runInference } from 'firebase/ml';
+
+// Assuming FirebaseService already initializes the main FirebaseApp
+import { FirebaseService, FirebaseConfig, User } from './firebase.service';
 
 /**
  * Firebase Enhanced Service
@@ -8,10 +20,10 @@ import { Injectable, signal } from '@angular/core';
  * - Performance Monitoring
  * - Crashlytics
  * - App Check
- * - Dynamic Links
- * - In-App Messaging
- * - A/B Testing
- * - ML Kit
+ * - Dynamic Links (partially implemented for structure)
+ * - In-App Messaging (placeholder)
+ * - A/B Testing (placeholder)
+ * - ML Kit (partially implemented for structure)
  */
 
 // FCM - Push Notifications
@@ -35,7 +47,7 @@ export interface PushNotification {
 export interface RemoteConfigValue {
   key: string;
   value: string | number | boolean;
-  source: 'remote' | 'default' | 'static';
+  source: ValueSource; // Use Firebase's ValueSource
 }
 
 // Performance Monitoring
@@ -48,14 +60,7 @@ export interface PerformanceTrace {
 }
 
 // Crashlytics
-export interface CrashReport {
-  id: string;
-  message: string;
-  stack: string;
-  timestamp: Date;
-  userId?: string;
-  customData: Record<string, unknown>;
-}
+
 
 // App Check
 export interface AppCheckToken {
@@ -82,6 +87,13 @@ export interface Experiment {
   providedIn: 'root'
 })
 export class FirebaseEnhancedService {
+  private firebaseApp: FirebaseApp | null = null;
+  private messaging: Messaging | null = null;
+  private remoteConfigService: any | null = null;
+  private performanceService: any | null = null;
+  private crashlyticsService: any | null = null;
+  private appCheckService: any | null = null;
+
   // FCM State
   readonly fcmToken = signal<FCMToken | null>(null);
   readonly notifications = signal<PushNotification[]>([]);
@@ -96,8 +108,7 @@ export class FirebaseEnhancedService {
   readonly networkRequests = signal<{ url: string; duration: number; status: number }[]>([]);
 
   // Crashlytics State
-  readonly crashReports = signal<CrashReport[]>([]);
-  readonly crashReportingEnabled = signal(true);
+
 
   // App Check State
   readonly appCheckToken = signal<AppCheckToken | null>(null);
@@ -112,20 +123,43 @@ export class FirebaseEnhancedService {
   // ML Kit State
   readonly mlModelsDownloaded = signal<string[]>([]);
 
-  constructor() {
-    this.initializeEnhancedServices();
+  constructor(private firebaseService: FirebaseService) {
+    // React to Firebase config changes to initialize enhanced services
+    effect(() => {
+      const config = this.firebaseService.config();
+      if (config && !this.firebaseApp) {
+        this.firebaseApp = this.firebaseService['firebaseApp']; // Accessing private for now
+        if (this.firebaseApp) {
+          this.initializeEnhancedServices();
+        }
+      }
+    });
+
+    // If Firebase is already initialized
+    if (this.firebaseService['firebaseApp']) {
+      this.firebaseApp = this.firebaseService['firebaseApp'];
+      this.initializeEnhancedServices();
+    }
   }
 
   private initializeEnhancedServices(): void {
+    if (!this.firebaseApp) {
+      console.error('Firebase App not initialized for enhanced services.');
+      return;
+    }
+
     this.initializeFCM();
     this.initializeRemoteConfig();
     this.initializePerformance();
-    this.initializeCrashlytics();
+    // this.initializeCrashlytics(); // Removed Crashlytics for now
     this.initializeAppCheck();
+    // this.initializeDynamicLinks(); // Dynamic Links need specific setup, deferring
+    // this.initializeMLKit(); // ML Kit needs specific setup, deferring
     this.loadFromStorage();
   }
 
   private loadFromStorage(): void {
+    // ... (keep existing localStorage loading)
     const savedFCM = localStorage.getItem('fcm_token');
     if (savedFCM) {
       this.fcmToken.set(JSON.parse(savedFCM));
@@ -138,7 +172,7 @@ export class FirebaseEnhancedService {
 
     const savedCrashes = localStorage.getItem('crash_reports');
     if (savedCrashes) {
-      this.crashReports.set(JSON.parse(savedCrashes));
+      // this.crashReports.set(JSON.parse(savedCrashes)); // Crashlytics removed
     }
   }
 
@@ -147,36 +181,61 @@ export class FirebaseEnhancedService {
   // ============================================
 
   private initializeFCM(): void {
-    // Simulate FCM initialization
+    if (!this.firebaseApp) return;
+    this.messaging = getMessaging(this.firebaseApp);
+
+    // Handle foreground messages
+    onMessage(this.messaging, (payload) => {
+      console.log('Foreground message received:', payload);
+      this.sendNotification({
+        title: payload.notification?.title || 'New Message',
+        body: payload.notification?.body || '',
+        imageUrl: payload.notification?.image || undefined,
+        data: payload.data,
+      });
+    });
+
+    // Handle background messages (requires Service Worker)
+    // onBackgroundMessage(this.messaging, (payload) => { ... });
     console.log('Firebase Cloud Messaging initialized');
   }
 
   async requestNotificationPermission(): Promise<'granted' | 'denied' | 'default'> {
-    try {
-      // In production, would use Notification.requestPermission()
-      const permission: 'granted' | 'denied' | 'default' = 'granted';
-      this.notificationPermission.set(permission);
-      return permission;
-    } catch (error) {
-      console.error('Failed to request notification permission:', error);
+    if (!('Notification' in window)) {
+      console.warn('This browser does not support notifications.');
+      this.notificationPermission.set('denied');
       return 'denied';
     }
+
+    const permission = await Notification.requestPermission();
+    this.notificationPermission.set(permission);
+
+    if (permission === 'granted') {
+      await this.getFCMToken();
+    }
+    return permission;
   }
 
   async getFCMToken(): Promise<string> {
+    if (!this.messaging) throw new Error('FCM Messaging not initialized.');
+    if (this.notificationPermission() !== 'granted') throw new Error('Notification permission not granted.');
+
     try {
-      // Simulate FCM token generation
+      const currentToken = await getToken(this.messaging, {
+        // serviceWorkerRegistration: /* your service worker reg */
+      });
+
       const token: FCMToken = {
-        token: `fcm-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        token: currentToken,
         createdAt: new Date(),
         platform: 'web',
       };
 
       this.fcmToken.set(token);
       localStorage.setItem('fcm_token', JSON.stringify(token));
-
-      return token.token;
+      return currentToken;
     } catch (error) {
+      console.error('Failed to get FCM token:', error);
       throw new Error('Failed to get FCM token: ' + error);
     }
   }
@@ -193,16 +252,21 @@ export class FirebaseEnhancedService {
 
     // Show browser notification
     if (this.notificationPermission() === 'granted') {
-      console.log('Showing notification:', notification.title);
+      new Notification(notification.title, {
+        body: notification.body,
+        icon: notification.imageUrl,
+      });
     }
   }
 
   async subscribeToTopic(topic: string): Promise<void> {
-    console.log(`Subscribed to FCM topic: ${topic}`);
+    // Requires backend logic to call FCM Admin SDK
+    console.log(`Subscribed to FCM topic: ${topic} (Backend integration needed)`);
   }
 
   async unsubscribeFromTopic(topic: string): Promise<void> {
-    console.log(`Unsubscribed from FCM topic: ${topic}`);
+    // Requires backend logic to call FCM Admin SDK
+    console.log(`Unsubscribed from FCM topic: ${topic} (Backend integration needed)`);
   }
 
   // ============================================
@@ -210,7 +274,25 @@ export class FirebaseEnhancedService {
   // ============================================
 
   private initializeRemoteConfig(): void {
-    // Set default values
+    if (!this.firebaseApp) return;
+    this.remoteConfigService = getRemoteConfig(this.firebaseApp);
+    
+    // Set default values (optional, can be done via Firebase console)
+    this.remoteConfigService.defaultConfig = {
+      feature_multistream_enabled: true,
+      feature_ai_enabled: true,
+      max_stream_quality: '1080p',
+      chat_rate_limit: 100,
+      banner_message: 'Welcome to Broady!',
+    };
+
+    // For development, allow frequent fetches
+    this.remoteConfigService.settings.minimumFetchIntervalMillis = 3600000; // 1 hour (default)
+    if (window.location.hostname === 'localhost') {
+      this.remoteConfigService.settings.minimumFetchIntervalMillis = 10000; // 10 seconds for dev
+    }
+
+    // Set default values in the signal
     const defaults = new Map<string, RemoteConfigValue>([
       ['feature_multistream_enabled', { key: 'feature_multistream_enabled', value: true, source: 'default' }],
       ['feature_ai_enabled', { key: 'feature_ai_enabled', value: true, source: 'default' }],
@@ -218,28 +300,37 @@ export class FirebaseEnhancedService {
       ['chat_rate_limit', { key: 'chat_rate_limit', value: 100, source: 'default' }],
       ['banner_message', { key: 'banner_message', value: 'Welcome to Broady!', source: 'default' }],
     ]);
-
     this.remoteConfig.set(defaults);
+
+    console.log('Firebase Remote Config initialized');
   }
 
   async fetchRemoteConfig(): Promise<void> {
+    if (!this.remoteConfigService) throw new Error('Remote Config not initialized.');
+    // this.isSyncingSignal.set(true);
     try {
-      // Simulate fetching from Firebase Remote Config
-      await this.delay(1000);
-
-      // Update with "remote" values
-      this.remoteConfig.update(config => {
-        const updated = new Map(config);
-        updated.forEach((value, key) => {
-          updated.set(key, { ...value, source: 'remote' });
-        });
-        return updated;
-      });
-
+      await fetchAndActivate(this.remoteConfigService);
+      const allConfigs = getAll(this.remoteConfigService);
+      const newConfigMap = new Map<string, RemoteConfigValue>();
+      
+      for (const key in allConfigs) {
+        if (allConfigs.hasOwnProperty(key)) {
+          const remoteValue = allConfigs[key];
+          newConfigMap.set(key, {
+            key,
+            value: remoteValue.asString(), // or asNumber(), asBoolean() based on expected type
+            source: remoteValue.getSource()
+          });
+        }
+      }
+      this.remoteConfig.set(newConfigMap);
       this.configLastFetched.set(new Date());
-      console.log('Remote Config fetched successfully');
+      console.log('Remote Config fetched and activated successfully');
     } catch (error) {
       console.error('Failed to fetch Remote Config:', error);
+      throw error;
+    } finally {
+      // this.isSyncingSignal.set(false);
     }
   }
 
@@ -248,18 +339,15 @@ export class FirebaseEnhancedService {
   }
 
   getRemoteConfigString(key: string, defaultValue: string): string {
-    const value = this.remoteConfig().get(key);
-    return value ? String(value.value) : defaultValue;
+    return this.remoteConfigService?.getString(key) || defaultValue;
   }
 
   getRemoteConfigNumber(key: string, defaultValue: number): number {
-    const value = this.remoteConfig().get(key);
-    return value ? Number(value.value) : defaultValue;
+    return this.remoteConfigService?.getNumber(key) || defaultValue;
   }
 
   getRemoteConfigBoolean(key: string, defaultValue: boolean): boolean {
-    const value = this.remoteConfig().get(key);
-    return value ? Boolean(value.value) : defaultValue;
+    return this.remoteConfigService?.getBoolean(key) || defaultValue;
   }
 
   // ============================================
@@ -267,60 +355,62 @@ export class FirebaseEnhancedService {
   // ============================================
 
   private initializePerformance(): void {
+    if (!this.firebaseApp) return;
+    this.performanceService = getPerformance(this.firebaseApp);
     console.log('Firebase Performance Monitoring initialized');
   }
 
   startTrace(name: string): PerformanceTrace {
-    const trace: PerformanceTrace = {
+    if (!this.performanceService) throw new Error('Performance not initialized.');
+    const perfTrace = trace(this.performanceService, name);
+    perfTrace.start();
+
+    const traceData: PerformanceTrace = {
       name,
       startTime: Date.now(),
       metrics: {},
       attributes: {},
     };
 
-    this.performanceTraces.update(traces => [...traces, trace]);
-    return trace;
+    this.performanceTraces.update(traces => [...traces, traceData]);
+    return traceData;
   }
 
   stopTrace(traceName: string): void {
+    if (!this.performanceService) return;
+    // Assuming we can get the active trace instance, which requires more complex management
+    // For now, let's log and simulate the stop
+    console.log(`Stopping performance trace: ${traceName}`);
     this.performanceTraces.update(traces =>
-      traces.map(trace => {
-        if (trace.name === traceName && !trace.duration) {
-          return {
-            ...trace,
-            duration: Date.now() - trace.startTime,
-          };
-        }
-        return trace;
-      })
+      traces.map(t =>
+        t.name === traceName && !t.duration
+          ? { ...t, duration: Date.now() - t.startTime }
+          : t
+      )
     );
   }
 
   addTraceMetric(traceName: string, metricName: string, value: number): void {
+    // Requires getting the active trace instance
+    console.log(`Adding metric to trace ${traceName}: ${metricName}=${value}`);
     this.performanceTraces.update(traces =>
-      traces.map(trace => {
-        if (trace.name === traceName) {
-          return {
-            ...trace,
-            metrics: { ...trace.metrics, [metricName]: value },
-          };
-        }
-        return trace;
-      })
+      traces.map(t =>
+        t.name === traceName
+          ? { ...t, metrics: { ...t.metrics, [metricName]: value } }
+          : t
+      )
     );
   }
 
   addTraceAttribute(traceName: string, attributeName: string, value: string): void {
+    // Requires getting the active trace instance
+    console.log(`Adding attribute to trace ${traceName}: ${attributeName}=${value}`);
     this.performanceTraces.update(traces =>
-      traces.map(trace => {
-        if (trace.name === traceName) {
-          return {
-            ...trace,
-            attributes: { ...trace.attributes, [attributeName]: value },
-          };
-        }
-        return trace;
-      })
+      traces.map(t =>
+        t.name === traceName
+          ? { ...t, attributes: { ...t.attributes, [attributeName]: value } }
+          : t
+      )
     );
   }
 
@@ -329,74 +419,44 @@ export class FirebaseEnhancedService {
       ...requests,
       { url, duration, status },
     ]);
+    // Performance SDK automatically tracks network requests if enabled
   }
 
   // ============================================
   // FIREBASE CRASHLYTICS
   // ============================================
 
-  private initializeCrashlytics(): void {
-    // Set up global error handler
-    if (typeof window !== 'undefined') {
-      window.addEventListener('error', (event) => {
-        if (this.crashReportingEnabled()) {
-          this.logCrash(event.error?.message || 'Unknown error', event.error?.stack || '');
-        }
-      });
 
-      window.addEventListener('unhandledrejection', (event) => {
-        if (this.crashReportingEnabled()) {
-          this.logCrash(`Unhandled Promise Rejection: ${event.reason}`, '');
-        }
-      });
-    }
-    console.log('Firebase Crashlytics initialized');
-  }
-
-  logCrash(message: string, stack: string, customData?: Record<string, unknown>): void {
-    const crash: CrashReport = {
-      id: `crash-${Date.now()}`,
-      message,
-      stack,
-      timestamp: new Date(),
-      customData: customData || {},
-    };
-
-    this.crashReports.update(reports => [crash, ...reports.slice(0, 49)]);
-    localStorage.setItem('crash_reports', JSON.stringify(this.crashReports()));
-
-    console.error('Crash reported:', message);
-  }
-
-  logNonFatalError(error: Error): void {
-    this.logCrash(`Non-Fatal: ${error.message}`, error.stack || '');
-  }
-
-  setUserId(userId: string): void {
-    console.log('Crashlytics user ID set:', userId);
-  }
-
-  setCustomKey(key: string, value: string | number | boolean): void {
-    console.log('Crashlytics custom key set:', key, value);
-  }
 
   // ============================================
   // FIREBASE APP CHECK
   // ============================================
 
   private initializeAppCheck(): void {
+    if (!this.firebaseApp) return;
+    // Assume reCAPTCHA site key is in environment or config
+    const recaptchaSiteKey = 'YOUR_RECAPTCHA_SITE_KEY'; // TODO: Replace with actual key
+    if (!recaptchaSiteKey || recaptchaSiteKey === 'YOUR_RECAPTCHA_SITE_KEY') {
+      console.warn('reCAPTCHA site key not provided for App Check. App Check will not be fully functional.');
+      return;
+    }
+
+    this.appCheckService = initializeAppCheck(this.firebaseApp, {
+      provider: new ReCaptchaV3Provider(recaptchaSiteKey),
+      isTokenAutoRefreshEnabled: true
+    });
     console.log('Firebase App Check initialized');
     this.refreshAppCheckToken();
   }
 
   async refreshAppCheckToken(): Promise<AppCheckToken> {
+    if (!this.appCheckService) throw new Error('App Check not initialized.');
     try {
-      // Simulate App Check token generation
-      await this.delay(500);
+      const tokenResponse = await this.appCheckService.getToken(true); // force refresh
 
       const token: AppCheckToken = {
-        token: `appcheck-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        expiresAt: new Date(Date.now() + 3600000), // 1 hour
+        token: tokenResponse.token,
+        expiresAt: new Date(tokenResponse.expireTimeMillis),
       };
 
       this.appCheckToken.set(token);
@@ -404,6 +464,7 @@ export class FirebaseEnhancedService {
 
       return token;
     } catch (error) {
+      console.error('Failed to get App Check token:', error);
       throw new Error('Failed to get App Check token: ' + error);
     }
   }
@@ -413,7 +474,8 @@ export class FirebaseEnhancedService {
   }
 
   // ============================================
-  // FIREBASE DYNAMIC LINKS
+  // FIREBASE DYNAMIC LINKS (PLACEHOLDER)
+  // Requires specific setup and potentially backend.
   // ============================================
 
   async createDynamicLink(params: {
@@ -425,48 +487,31 @@ export class FirebaseEnhancedService {
     socialDescription?: string;
     socialImageUrl?: string;
   }): Promise<DynamicLink> {
-    try {
-      // Simulate Dynamic Link creation
-      await this.delay(1000);
-
-      const shortLink = `https://example.page.link/${Math.random().toString(36).substr(2, 9)}`;
-
-      const dynamicLink: DynamicLink = {
-        shortLink,
-        previewLink: `${shortLink}?d=1`,
-        longLink: `${params.domainUriPrefix}?link=${encodeURIComponent(params.link)}`,
-      };
-
-      this.dynamicLinks.update(links => [...links, dynamicLink]);
-
-      return dynamicLink;
-    } catch (error) {
-      throw new Error('Failed to create Dynamic Link: ' + error);
-    }
+    console.warn('Dynamic Links not fully implemented in frontend. Backend integration often required.');
+    // In a full implementation, you'd use getDynamicLinks and buildShortLink
+    // For now, returning a mock based on the input link
+    const shortLink = `${params.domainUriPrefix}/short`;
+    const dynamicLink: DynamicLink = {
+      shortLink,
+      previewLink: `${shortLink}?d=1`,
+      longLink: `${params.domainUriPrefix}?link=${encodeURIComponent(params.link)}`,
+    };
+    this.dynamicLinks.update(links => [...links, dynamicLink]);
+    return dynamicLink;
   }
 
   async handleDynamicLink(url: string): Promise<{ deepLink: string; params: Record<string, string> } | null> {
-    try {
-      // Simulate Dynamic Link parsing
-      await this.delay(300);
-
-      return {
-        deepLink: url,
-        params: { source: 'dynamic_link' },
-      };
-    } catch (error) {
-      console.error('Failed to handle Dynamic Link:', error);
-      return null;
-    }
+    console.warn('Dynamic Links handling not fully implemented in frontend.');
+    return null;
   }
 
   // ============================================
-  // FIREBASE IN-APP MESSAGING
+  // FIREBASE IN-APP MESSAGING (PLACEHOLDER)
   // ============================================
 
   async triggerInAppMessage(messageId: string): Promise<void> {
     console.log('Triggered in-app message:', messageId);
-    // In production, would trigger Firebase In-App Messaging
+    // Requires Firebase In-App Messaging SDK
   }
 
   suppressInAppMessages(): void {
@@ -478,51 +523,33 @@ export class FirebaseEnhancedService {
   }
 
   // ============================================
-  // FIREBASE A/B TESTING
+  // FIREBASE A/B TESTING (PLACEHOLDER)
+  // Uses Remote Config for variants, but more specific client SDK might be needed.
   // ============================================
 
   async activateExperiment(experimentId: string): Promise<string> {
-    try {
-      await this.delay(500);
-
-      const variants = ['control', 'variant_a', 'variant_b'];
-      const variant = variants[Math.floor(Math.random() * variants.length)];
-
-      const experiment: Experiment = {
-        id: experimentId,
-        name: `Experiment ${experimentId}`,
-        variant,
-        active: true,
-      };
-
-      this.activeExperiments.update(experiments => [...experiments, experiment]);
-
-      console.log(`Activated experiment ${experimentId} with variant: ${variant}`);
-      return variant;
-    } catch (error) {
-      throw new Error('Failed to activate experiment: ' + error);
-    }
+    console.warn('A/B Testing activation is a placeholder.');
+    const variants = ['control', 'variant_a', 'variant_b'];
+    const variant = variants[Math.floor(Math.random() * variants.length)];
+    const experiment: Experiment = { id: experimentId, name: `Experiment ${experimentId}`, variant, active: true };
+    this.activeExperiments.update(experiments => [...experiments, experiment]);
+    return variant;
   }
 
   getExperimentVariant(experimentId: string): string | null {
+    console.warn('A/B Testing variant retrieval is a placeholder.');
     const experiment = this.activeExperiments().find(e => e.id === experimentId);
     return experiment?.variant || null;
   }
 
   // ============================================
-  // FIREBASE ML KIT
+  // FIREBASE ML KIT (PLACEHOLDER)
+  // Requires specific ML models and integration.
   // ============================================
 
   async downloadMLModel(modelName: string): Promise<void> {
-    try {
-      console.log(`Downloading ML model: ${modelName}`);
-      await this.delay(2000);
-
-      this.mlModelsDownloaded.update(models => [...models, modelName]);
-      console.log(`ML model downloaded: ${modelName}`);
-    } catch (error) {
-      throw new Error('Failed to download ML model: ' + error);
-    }
+    console.warn('ML Kit model download is a placeholder.');
+    this.mlModelsDownloaded.update(models => [...models, modelName]);
   }
 
   isMLModelDownloaded(modelName: string): boolean {
@@ -530,22 +557,7 @@ export class FirebaseEnhancedService {
   }
 
   async runMLInference(modelName: string, input: unknown): Promise<unknown> {
-    if (!this.isMLModelDownloaded(modelName)) {
-      throw new Error(`ML model not downloaded: ${modelName}`);
-    }
-
-    // Simulate ML inference
-    await this.delay(500);
-    console.log(`Running ML inference with model: ${modelName}`);
-
-    return { result: 'inference_result', confidence: 0.95 };
-  }
-
-  // ============================================
-  // UTILITY METHODS
-  // ============================================
-
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    console.warn('ML Kit inference is a placeholder.');
+    return { result: 'simulated_inference_result', confidence: 0.95 };
   }
 }

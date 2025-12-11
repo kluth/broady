@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { SocketService } from './socket.service';
 
 /**
  * Stream Deck Integration Service
@@ -101,6 +102,8 @@ export interface KeyPressEvent {
   providedIn: 'root'
 })
 export class StreamDeckService {
+  private socket = inject(SocketService);
+
   // Connected devices
   readonly devices = signal<StreamDeckDevice[]>([]);
 
@@ -128,47 +131,57 @@ export class StreamDeckService {
     this.devices().reduce((sum, d) => sum + d.keyCount, 0)
   );
 
+  constructor() {
+    this.setupSocketListeners();
+  }
+
+  private setupSocketListeners(): void {
+    // Listen for devices
+    this.socket.on<any>('hardware:devices', (data) => {
+      const decks = data.streamDecks || [];
+      const mappedDecks: StreamDeckDevice[] = decks.map((d: any) => ({
+        id: d.id,
+        model: d.model,
+        serialNumber: d.serialNumber,
+        name: d.name,
+        rows: d.rows,
+        columns: d.columns,
+        keyCount: d.keyCount,
+        connected: d.connected,
+        brightness: d.brightness,
+        firmwareVersion: '1.0.0' // Mock version for virtual
+      }));
+
+      this.devices.set(mappedDecks);
+      this.initializeDefaultProfiles();
+    });
+
+    // Listen for device status updates (e.g. brightness changed on device)
+    this.socket.on<any>('streamdeck:status', (device) => {
+      this.devices.update(devices => 
+        devices.map(d => d.id === device.id ? { ...d, brightness: device.brightness } : d)
+      );
+    });
+
+    // Listen for physical key presses (simulated from backend)
+    this.socket.on<{deviceId: string, keyIndex: number}>('streamdeck:key-down', (data) => {
+      this.handleKeyPress(data.deviceId, data.keyIndex, true);
+    });
+
+    this.socket.on<{deviceId: string, keyIndex: number}>('streamdeck:key-up', (data) => {
+      this.handleKeyPress(data.deviceId, data.keyIndex, false);
+    });
+  }
+
   /**
    * Scan for Stream Deck devices
    */
   async scanDevices(): Promise<StreamDeckDevice[]> {
-    console.log('Scanning for Stream Deck devices...');
-
-    // In real implementation, use Stream Deck SDK or HID API
-    // const devices = await streamDeck.listDevices();
-
-    // Simulated devices
-    const mockDevices: StreamDeckDevice[] = [
-      {
-        id: 'sd-xl-001',
-        model: 'stream-deck-xl',
-        serialNumber: 'XL123456',
-        name: 'Stream Deck XL',
-        rows: 4,
-        columns: 8,
-        keyCount: 32,
-        connected: true,
-        brightness: 80,
-        firmwareVersion: '1.2.3'
-      },
-      {
-        id: 'sd-mini-001',
-        model: 'stream-deck-mini',
-        serialNumber: 'MINI789012',
-        name: 'Stream Deck Mini',
-        rows: 2,
-        columns: 3,
-        keyCount: 6,
-        connected: true,
-        brightness: 70,
-        firmwareVersion: '1.1.0'
-      }
-    ];
-
-    this.devices.set(mockDevices);
-    this.initializeDefaultProfiles();
-
-    return mockDevices;
+    console.log('Requesting Stream Deck list...');
+    this.socket.emit('hardware:list-devices');
+    
+    // Return current list (will update via socket)
+    return this.devices();
   }
 
   /**
@@ -176,19 +189,12 @@ export class StreamDeckService {
    */
   async connectDevice(deviceId: string): Promise<boolean> {
     console.log('Connecting to Stream Deck:', deviceId);
-
-    // In real implementation, open HID connection
-    // await device.open();
-
+    // In backend implementation, this is auto-handled, but we can simulate readiness
     this.devices.update(devices =>
       devices.map(d =>
         d.id === deviceId ? { ...d, connected: true } : d
       )
     );
-
-    // Start listening for key presses
-    this.startKeyListener(deviceId);
-
     return true;
   }
 
@@ -201,9 +207,6 @@ export class StreamDeckService {
         d.id === deviceId ? { ...d, connected: false } : d
       )
     );
-
-    // Stop listener
-    this.stopKeyListener(deviceId);
   }
 
   /**
@@ -214,9 +217,10 @@ export class StreamDeckService {
       throw new Error('Brightness must be between 0-100');
     }
 
-    // In real implementation, send command to device
-    // device.setBrightness(brightness);
+    // Send to backend
+    this.socket.emit('streamdeck:set-brightness', { deviceId, brightness });
 
+    // Optimistic update
     this.devices.update(devices =>
       devices.map(d =>
         d.id === deviceId ? { ...d, brightness } : d
@@ -513,20 +517,18 @@ export class StreamDeckService {
   }
 
   /**
+   * Simulate a physical key press (useful for testing virtual devices)
+   */
+  simulateKeyPress(deviceId: string, keyIndex: number): void {
+    this.socket.emit('streamdeck:simulate-press', { deviceId, keyIndex });
+  }
+
+  /**
    * Start listening for key presses
    */
   private startKeyListener(deviceId: string): void {
     console.log('Starting key listener for:', deviceId);
-
-    // In real implementation, listen to HID events
-    // device.on('down', (keyIndex) => this.handleKeyPress(deviceId, keyIndex, true));
-    // device.on('up', (keyIndex) => this.handleKeyPress(deviceId, keyIndex, false));
-
-    // Simulated listener - in real app, this would be event-driven
-    (window as any)[`streamDeckListener_${deviceId}`] = {
-      press: (keyIndex: number) => this.handleKeyPress(deviceId, keyIndex, true),
-      release: (keyIndex: number) => this.handleKeyPress(deviceId, keyIndex, false)
-    };
+    // Real listening happens via socket events in constructor
   }
 
   /**
@@ -534,7 +536,6 @@ export class StreamDeckService {
    */
   private stopKeyListener(deviceId: string): void {
     console.log('Stopping key listener for:', deviceId);
-    delete (window as any)[`streamDeckListener_${deviceId}`];
   }
 
   /**
@@ -559,7 +560,7 @@ export class StreamDeckService {
    */
   private updateKeyDisplay(deviceId: string, keyIndex: number): void {
     // In real implementation, send image buffer to device
-    // device.fillKeyBuffer(keyIndex, buffer);
+    // socket.emit('streamdeck:update-key', ...);
 
     console.log(`Updating key ${keyIndex} on device ${deviceId}`);
   }
@@ -569,10 +570,6 @@ export class StreamDeckService {
    */
   private flashKey(deviceId: string, keyIndex: number): void {
     console.log(`Flashing key ${keyIndex} on device ${deviceId}`);
-
-    // In real implementation, temporarily change key appearance
-    // device.fillKeyColor(keyIndex, 255, 255, 255);
-    // setTimeout(() => this.updateKeyDisplay(deviceId, keyIndex), 100);
   }
 
   /**
@@ -580,53 +577,56 @@ export class StreamDeckService {
    */
   private initializeDefaultProfiles(): void {
     this.devices().forEach(device => {
-      const profile = this.createProfile('Default Profile', device.id);
+      // Only create if not exists
+      if (!this.profiles().some(p => p.deviceId === device.id)) {
+        const profile = this.createProfile('Default Profile', device.id);
 
-      // Set some default actions
-      if (device.keyCount >= 15) {
-        // Stream controls
-        this.setKeyAction(profile.id, 0, {
-          type: 'start-stream',
-          id: 'start-stream',
-          name: 'Start Stream',
-          settings: {}
-        });
-
-        this.setKeyAction(profile.id, 1, {
-          type: 'stop-stream',
-          id: 'stop-stream',
-          name: 'Stop Stream',
-          settings: {}
-        });
-
-        // Recording controls
-        this.setKeyAction(profile.id, 2, {
-          type: 'start-recording',
-          id: 'start-recording',
-          name: 'Start Recording',
-          settings: {}
-        });
-
-        this.setKeyAction(profile.id, 3, {
-          type: 'stop-recording',
-          id: 'stop-recording',
-          name: 'Stop Recording',
-          settings: {}
-        });
-
-        // Scene switches (placeholder)
-        for (let i = 5; i < 10; i++) {
-          this.setKeyAction(profile.id, i, {
-            type: 'scene-switch',
-            id: `scene-${i}`,
-            name: `Scene ${i - 4}`,
-            settings: { sceneId: `scene-${i}` }
+        // Set some default actions
+        if (device.keyCount >= 15) {
+          // Stream controls
+          this.setKeyAction(profile.id, 0, {
+            type: 'start-stream',
+            id: 'start-stream',
+            name: 'Start Stream',
+            settings: {}
           });
-        }
-      }
 
-      // Set as active profile
-      this.setActiveProfile(device.id, profile.id);
+          this.setKeyAction(profile.id, 1, {
+            type: 'stop-stream',
+            id: 'stop-stream',
+            name: 'Stop Stream',
+            settings: {}
+          });
+
+          // Recording controls
+          this.setKeyAction(profile.id, 2, {
+            type: 'start-recording',
+            id: 'start-recording',
+            name: 'Start Recording',
+            settings: {}
+          });
+
+          this.setKeyAction(profile.id, 3, {
+            type: 'stop-recording',
+            id: 'stop-recording',
+            name: 'Stop Recording',
+            settings: {}
+          });
+
+          // Scene switches (placeholder)
+          for (let i = 5; i < 10; i++) {
+            this.setKeyAction(profile.id, i, {
+              type: 'scene-switch',
+              id: `scene-${i}`,
+              name: `Scene ${i - 4}`,
+              settings: { sceneId: `scene-${i}` }
+            });
+          }
+        }
+
+        // Set as active profile
+        this.setActiveProfile(device.id, profile.id);
+      }
     });
   }
 

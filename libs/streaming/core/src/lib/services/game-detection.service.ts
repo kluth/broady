@@ -1,589 +1,279 @@
-import { Injectable, signal, computed } from '@angular/core';
-
-/**
- * Game Detection Service
- * Automatically detects running games and provides game information
- */
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { SocketService } from './socket.service';
 
 export interface GameInfo {
   id: string;
   name: string;
-  platform: 'steam' | 'epic' | 'riot' | 'blizzard' | 'origin' | 'gog' | 'xbox' | 'other';
-  appId?: string;
   processName: string;
+  platform: 'Steam' | 'Epic' | 'Battle.net' | 'Riot' | 'Origin' | 'Standalone' | 'Launcher';
+  category?: string;
+  coverImage?: string;
   isRunning: boolean;
   startTime?: Date;
-  playtime: number; // in seconds
-  icon?: string;
-  coverArt?: string;
-  category?: string;
-  developer?: string;
-  publisher?: string;
-}
-
-export interface GameSession {
-  id: string;
-  gameId: string;
-  gameName: string;
-  startTime: Date;
-  endTime?: Date;
-  duration: number; // in seconds
-  stats?: Record<string, any>;
+  playtime: number; // seconds
 }
 
 export interface GameRule {
   id: string;
-  gameId: string;
   gameName: string;
-  autoSwitchScene?: string;
-  autoEnableOverlay?: string;
-  autoStartRecording?: boolean;
-  customTitle?: string;
-  customTags?: string[];
   enabled: boolean;
+  autoSwitchScene?: string;
+  autoStartRecording: boolean;
+  customTitle?: string;
+}
+
+export interface GameSession {
+  id: string;
+  gameName: string;
+  startTime: Date;
+  endTime?: Date;
+  duration: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class GameDetectionService {
-  readonly currentGame = signal<GameInfo | null>(null);
+  private socket = inject(SocketService);
+
   readonly detectedGames = signal<GameInfo[]>([]);
-  readonly gameHistory = signal<GameSession[]>([]);
+  readonly currentGame = signal<GameInfo | null>(null);
+  readonly isDetecting = signal(false);
+  
   readonly gameRules = signal<GameRule[]>([]);
-  readonly isDetecting = signal<boolean>(false);
+  readonly gameHistory = signal<GameSession[]>([]);
 
-  // Statistics
-  readonly totalPlaytime = computed(() => {
-    return this.gameHistory().reduce((sum, session) => sum + session.duration, 0);
+  readonly sessionStats = computed(() => {
+    const history = this.gameHistory();
+    const games = new Set(history.map(s => s.gameName));
+    
+    return {
+      totalPlaytime: history.reduce((sum, s) => sum + s.duration, 0),
+      gamesPlayed: games.size,
+      totalSessions: history.length,
+      currentStreak: this.calculateStreak(history),
+      favoriteGame: this.getFavoriteGame(history),
+      averageSessionLength: history.length > 0 
+        ? history.reduce((sum, s) => sum + s.duration, 0) / history.length 
+        : 0
+    };
   });
 
-  readonly favoriteGame = computed(() => {
-    const playtimeByGame = new Map<string, number>();
+  private monitoringInterval?: ReturnType<typeof setInterval>;
 
-    this.gameHistory().forEach(session => {
-      const current = playtimeByGame.get(session.gameName) || 0;
-      playtimeByGame.set(session.gameName, current + session.duration);
+  constructor() {
+    this.loadRules();
+    
+    // Listen for backend game detection events
+    this.socket.on<any[]>('games:detected', (games) => {
+      this.handleDetectedGames(games);
     });
+  }
 
-    let maxPlaytime = 0;
-    let favGame = '';
-
-    playtimeByGame.forEach((playtime, game) => {
-      if (playtime > maxPlaytime) {
-        maxPlaytime = playtime;
-        favGame = game;
-      }
-    });
-
-    return favGame;
-  });
-
-  readonly sessionStats = computed(() => ({
-    totalSessions: this.gameHistory().length,
-    totalPlaytime: this.totalPlaytime(),
-    averageSessionLength: this.gameHistory().length > 0
-      ? this.totalPlaytime() / this.gameHistory().length
-      : 0,
-    gamesPlayed: new Set(this.gameHistory().map(s => s.gameName)).size,
-    currentStreak: this.getCurrentStreak(),
-    favoriteGame: this.favoriteGame()
-  }));
-
-  // Known games database (extensible)
-  private knownGames = signal<Map<string, Partial<GameInfo>>>(new Map([
-    // Popular games with process names
-    ['LeagueofLegends.exe', {
-      name: 'League of Legends',
-      platform: 'riot',
-      category: 'MOBA',
-      developer: 'Riot Games'
-    }],
-    ['VALORANT-Win64-Shipping.exe', {
-      name: 'VALORANT',
-      platform: 'riot',
-      category: 'FPS',
-      developer: 'Riot Games'
-    }],
-    ['csgo.exe', {
-      name: 'Counter-Strike: Global Offensive',
-      platform: 'steam',
-      appId: '730',
-      category: 'FPS',
-      developer: 'Valve'
-    }],
-    ['cs2.exe', {
-      name: 'Counter-Strike 2',
-      platform: 'steam',
-      appId: '730',
-      category: 'FPS',
-      developer: 'Valve'
-    }],
-    ['Overwatch.exe', {
-      name: 'Overwatch 2',
-      platform: 'blizzard',
-      category: 'FPS',
-      developer: 'Blizzard'
-    }],
-    ['FortniteClient-Win64-Shipping.exe', {
-      name: 'Fortnite',
-      platform: 'epic',
-      category: 'Battle Royale',
-      developer: 'Epic Games'
-    }],
-    ['RocketLeague.exe', {
-      name: 'Rocket League',
-      platform: 'epic',
-      category: 'Sports',
-      developer: 'Psyonix'
-    }],
-    ['ApexLegends.exe', {
-      name: 'Apex Legends',
-      platform: 'origin',
-      category: 'Battle Royale',
-      developer: 'Respawn'
-    }],
-    ['r5apex.exe', {
-      name: 'Apex Legends',
-      platform: 'steam',
-      category: 'Battle Royale',
-      developer: 'Respawn'
-    }],
-    ['Minecraft.exe', {
-      name: 'Minecraft',
-      platform: 'other',
-      category: 'Sandbox',
-      developer: 'Mojang'
-    }],
-    ['javaw.exe', {
-      name: 'Minecraft Java Edition',
-      platform: 'other',
-      category: 'Sandbox',
-      developer: 'Mojang'
-    }],
-    ['RainbowSix.exe', {
-      name: 'Rainbow Six Siege',
-      platform: 'steam',
-      category: 'FPS',
-      developer: 'Ubisoft'
-    }],
-    ['GTA5.exe', {
-      name: 'Grand Theft Auto V',
-      platform: 'steam',
-      category: 'Action',
-      developer: 'Rockstar'
-    }],
-    ['RDR2.exe', {
-      name: 'Red Dead Redemption 2',
-      platform: 'steam',
-      category: 'Action',
-      developer: 'Rockstar'
-    }],
-    ['Dota2.exe', {
-      name: 'Dota 2',
-      platform: 'steam',
-      appId: '570',
-      category: 'MOBA',
-      developer: 'Valve'
-    }],
-    ['WoW.exe', {
-      name: 'World of Warcraft',
-      platform: 'blizzard',
-      category: 'MMORPG',
-      developer: 'Blizzard'
-    }],
-    ['Hearthstone.exe', {
-      name: 'Hearthstone',
-      platform: 'blizzard',
-      category: 'Card Game',
-      developer: 'Blizzard'
-    }],
-    ['StarCraft II.exe', {
-      name: 'StarCraft II',
-      platform: 'blizzard',
-      category: 'RTS',
-      developer: 'Blizzard'
-    }],
-    ['Diablo IV.exe', {
-      name: 'Diablo IV',
-      platform: 'blizzard',
-      category: 'ARPG',
-      developer: 'Blizzard'
-    }],
-    ['eldenring.exe', {
-      name: 'Elden Ring',
-      platform: 'steam',
-      category: 'RPG',
-      developer: 'FromSoftware'
-    }],
-    ['BaldursGate3.exe', {
-      name: "Baldur's Gate 3",
-      platform: 'steam',
-      category: 'RPG',
-      developer: 'Larian'
-    }],
-    ['Cyberpunk2077.exe', {
-      name: 'Cyberpunk 2077',
-      platform: 'gog',
-      category: 'RPG',
-      developer: 'CD Projekt Red'
-    }],
-    ['deadlock.exe', {
-      name: 'Deadlock',
-      platform: 'steam',
-      category: 'MOBA',
-      developer: 'Valve'
-    }],
-    ['MarvelRivals.exe', {
-      name: 'Marvel Rivals',
-      platform: 'steam',
-      category: 'Hero Shooter',
-      developer: 'NetEase'
-    }],
-    ['PathOfExile.exe', {
-      name: 'Path of Exile',
-      platform: 'steam',
-      category: 'ARPG',
-      developer: 'Grinding Gear Games'
-    }],
-    ['PathOfExile_x64.exe', {
-      name: 'Path of Exile',
-      platform: 'steam',
-      category: 'ARPG',
-      developer: 'Grinding Gear Games'
-    }],
-    ['Last Epoch.exe', {
-      name: 'Last Epoch',
-      platform: 'steam',
-      category: 'ARPG',
-      developer: 'Eleventh Hour Games'
-    }]
-  ]));
-
-  private detectionInterval: any;
-  private currentSessionId: string | null = null;
-  private sessionStartTime: Date | null = null;
-
-  /**
-   * Start automatic game detection
-   */
-  startDetection(intervalMs: number = 5000): void {
+  startDetection(): void {
     if (this.isDetecting()) return;
-
     this.isDetecting.set(true);
-    this.detectGames(); // Initial detection
-
-    this.detectionInterval = setInterval(() => {
-      this.detectGames();
-    }, intervalMs);
+    
+    // The backend pushes updates automatically, no interval needed here for polling
+    // But we keep the timer for updating playtime counters
+    this.monitoringInterval = setInterval(() => {
+      this.updatePlaytime();
+    }, 1000);
   }
 
-  /**
-   * Stop automatic game detection
-   */
   stopDetection(): void {
-    if (this.detectionInterval) {
-      clearInterval(this.detectionInterval);
-      this.detectionInterval = null;
-    }
     this.isDetecting.set(false);
-  }
-
-  /**
-   * Detect currently running games
-   * In a real implementation, this would use native APIs or process monitoring
-   */
-  private async detectGames(): Promise<void> {
-    // Simulated detection - in production, this would call a native API
-    // to get running processes and match against known games
-
-    // For demo purposes, we'll simulate random game detection
-    const simulatedGames = this.simulateGameDetection();
-    this.detectedGames.set(simulatedGames);
-
-    // Update current game
-    const runningGame = simulatedGames.find(g => g.isRunning);
-
-    if (runningGame && (!this.currentGame() || this.currentGame()!.id !== runningGame.id)) {
-      // New game started
-      this.onGameStarted(runningGame);
-    } else if (!runningGame && this.currentGame()) {
-      // Game stopped
-      this.onGameStopped();
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
     }
-
-    // Update playtime
-    if (this.currentGame() && this.sessionStartTime) {
-      const playtime = Math.floor((Date.now() - this.sessionStartTime.getTime()) / 1000);
-      this.currentGame.update(game =>
-        game ? { ...game, playtime } : null
-      );
+    
+    // End current session if any
+    if (this.currentGame()) {
+      this.endGameSession(this.currentGame()!);
     }
   }
 
-  /**
-   * Simulate game detection (for demo)
-   * In production, replace with actual process monitoring
-   */
-  private simulateGameDetection(): GameInfo[] {
-    // For demo, just return empty or mock data
-    return [];
-  }
+  private handleDetectedGames(backendGames: any[]): void {
+    if (!this.isDetecting()) return;
 
-  /**
-   * Manual game selection
-   */
-  setCurrentGame(processName: string): void {
-    const gameData = this.knownGames().get(processName);
-
-    if (gameData) {
-      const game: GameInfo = {
-        id: crypto.randomUUID(),
-        name: gameData.name || processName,
-        platform: gameData.platform || 'other',
-        appId: gameData.appId,
-        processName,
-        isRunning: true,
-        startTime: new Date(),
-        playtime: 0,
-        category: gameData.category,
-        developer: gameData.developer,
-        publisher: gameData.publisher
-      };
-
-      this.onGameStarted(game);
-    }
-  }
-
-  /**
-   * Add custom game to database
-   */
-  addCustomGame(processName: string, gameData: Partial<GameInfo>): void {
-    this.knownGames.update(games => {
-      const newMap = new Map(games);
-      newMap.set(processName, gameData);
-      return newMap;
-    });
-  }
-
-  /**
-   * Get all known games
-   */
-  getKnownGames(): Array<{ processName: string; data: Partial<GameInfo> }> {
-    return Array.from(this.knownGames().entries()).map(([processName, data]) => ({
-      processName,
-      data
+    // Convert backend data to GameInfo
+    const detected: GameInfo[] = backendGames.map(bg => ({
+      id: bg.processName, // Use process name as ID
+      name: bg.name,
+      processName: bg.processName,
+      platform: 'Standalone', // Default
+      category: 'Game', // Default category
+      isRunning: true,
+      playtime: 0 // Will be updated
     }));
-  }
 
-  /**
-   * Handle game started
-   */
-  private onGameStarted(game: GameInfo): void {
-    console.log(`Game started: ${game.name}`);
-
-    this.currentGame.set(game);
-    this.sessionStartTime = new Date();
-    this.currentSessionId = crypto.randomUUID();
-
-    // Apply game rules
-    const rule = this.gameRules().find(r => r.gameId === game.id || r.gameName === game.name);
-    if (rule && rule.enabled) {
-      this.applyGameRule(rule);
+    // Check if current game is still running
+    const current = this.currentGame();
+    if (current) {
+      const stillRunning = detected.find(g => g.processName === current.processName);
+      if (!stillRunning) {
+        this.endGameSession(current);
+      }
     }
 
-    // Emit event for automation triggers
-    this.emitGameEvent('game-started', game);
+    // Check for new game
+    const newGame = detected.find(g => !current || g.processName !== current.processName);
+    if (newGame) {
+      // If we switched games directly
+      if (current) {
+        this.endGameSession(current);
+      }
+      this.startGameSession(newGame);
+    }
+    
+    // Update detected list (merging with known info if we had it)
+    this.detectedGames.set(detected);
   }
 
-  /**
-   * Handle game stopped
-   */
-  private onGameStopped(): void {
-    const game = this.currentGame();
-    if (!game || !this.sessionStartTime || !this.currentSessionId) return;
+  private startGameSession(game: GameInfo): void {
+    const sessionGame = { ...game, startTime: new Date(), isRunning: true };
+    this.currentGame.set(sessionGame);
+    
+    // Apply rules
+    this.applyGameRules(sessionGame);
+  }
 
-    console.log(`Game stopped: ${game.name}`);
-
+  private endGameSession(game: GameInfo): void {
     const session: GameSession = {
-      id: this.currentSessionId,
-      gameId: game.id,
+      id: crypto.randomUUID(),
       gameName: game.name,
-      startTime: this.sessionStartTime,
+      startTime: game.startTime || new Date(),
       endTime: new Date(),
-      duration: Math.floor((Date.now() - this.sessionStartTime.getTime()) / 1000)
+      duration: game.playtime
     };
 
-    this.gameHistory.update(history => [...history, session]);
-
-    // Emit event for automation triggers
-    this.emitGameEvent('game-stopped', game);
-
+    this.gameHistory.update(h => [session, ...h]);
     this.currentGame.set(null);
-    this.sessionStartTime = null;
-    this.currentSessionId = null;
   }
 
-  /**
-   * Apply game-specific rules
-   */
-  private applyGameRule(rule: GameRule): void {
-    console.log(`Applying rule for: ${rule.gameName}`, rule);
-
-    // Integration points for automation
-    // These would trigger actual actions in the streaming app
-    if (rule.autoSwitchScene) {
-      console.log(`Auto-switching to scene: ${rule.autoSwitchScene}`);
-    }
-
-    if (rule.autoStartRecording) {
-      console.log('Auto-starting recording');
+  private updatePlaytime(): void {
+    const current = this.currentGame();
+    if (current && current.startTime) {
+      const now = new Date();
+      const diff = Math.floor((now.getTime() - current.startTime.getTime()) / 1000);
+      
+      this.currentGame.update(g => g ? { ...g, playtime: diff } : null);
     }
   }
 
-  /**
-   * Create game rule
-   */
-  createGameRule(gameId: string, gameName: string, config: Partial<GameRule>): GameRule {
+  private applyGameRules(game: GameInfo): void {
+    const rule = this.gameRules().find(r => r.enabled && r.gameName === game.name);
+    
+    if (rule) {
+      console.log(`Applying rules for ${game.name}:`, rule);
+      
+      // In production, these would trigger actual services
+      if (rule.autoSwitchScene) {
+        console.log(`Auto-switching to scene: ${rule.autoSwitchScene}`);
+      }
+      
+      if (rule.autoStartRecording) {
+        console.log('Auto-starting recording');
+      }
+      
+      if (rule.customTitle) {
+        console.log(`Updating stream title: ${rule.customTitle}`);
+      }
+    }
+  }
+
+  setCurrentGame(processName: string): void {
+    const knownGames = this.getKnownGames();
+    const game = knownGames.find(g => g.processName === processName);
+    
+    if (game) {
+      const gameInfo: GameInfo = {
+        id: crypto.randomUUID(),
+        name: game.data.name,
+        processName: game.processName,
+        platform: game.data.platform,
+        isRunning: true,
+        playtime: 0
+      };
+      
+      if (this.currentGame()) {
+        this.endGameSession(this.currentGame()!);
+      }
+      this.startGameSession(gameInfo);
+    }
+  }
+
+  createGameRule(id: string, gameName: string, config: any): void {
     const rule: GameRule = {
-      id: crypto.randomUUID(),
-      gameId,
+      id,
       gameName,
       enabled: true,
       ...config
     };
-
-    this.gameRules.update(rules => [...rules, rule]);
-    return rule;
+    this.gameRules.update(r => [...r, rule]);
+    this.saveRules();
   }
 
-  /**
-   * Update game rule
-   */
-  updateGameRule(ruleId: string, updates: Partial<GameRule>): void {
-    this.gameRules.update(rules =>
-      rules.map(r => r.id === ruleId ? { ...r, ...updates } : r)
+  toggleGameRule(id: string): void {
+    this.gameRules.update(rules => 
+      rules.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r)
     );
+    this.saveRules();
   }
 
-  /**
-   * Delete game rule
-   */
-  deleteGameRule(ruleId: string): void {
-    this.gameRules.update(rules => rules.filter(r => r.id !== ruleId));
+  deleteGameRule(id: string): void {
+    this.gameRules.update(rules => rules.filter(r => r.id !== id));
+    this.saveRules();
   }
 
-  /**
-   * Toggle game rule
-   */
-  toggleGameRule(ruleId: string): void {
-    this.gameRules.update(rules =>
-      rules.map(r => r.id === ruleId ? { ...r, enabled: !r.enabled } : r)
-    );
+  private saveRules(): void {
+    localStorage.setItem('game_rules', JSON.stringify(this.gameRules()));
   }
 
-  /**
-   * Get playtime for specific game
-   */
-  getGamePlaytime(gameName: string): number {
-    return this.gameHistory()
-      .filter(s => s.gameName === gameName)
-      .reduce((sum, s) => sum + s.duration, 0);
-  }
-
-  /**
-   * Get sessions for specific game
-   */
-  getGameSessions(gameName: string): GameSession[] {
-    return this.gameHistory().filter(s => s.gameName === gameName);
-  }
-
-  /**
-   * Get current streak (days played in a row)
-   */
-  private getCurrentStreak(): number {
-    const sessions = this.gameHistory().sort((a, b) =>
-      b.startTime.getTime() - a.startTime.getTime()
-    );
-
-    if (sessions.length === 0) return 0;
-
-    let streak = 1;
-    let currentDate = new Date(sessions[0].startTime);
-    currentDate.setHours(0, 0, 0, 0);
-
-    for (let i = 1; i < sessions.length; i++) {
-      const sessionDate = new Date(sessions[i].startTime);
-      sessionDate.setHours(0, 0, 0, 0);
-
-      const dayDiff = Math.floor(
-        (currentDate.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      if (dayDiff === 1) {
-        streak++;
-        currentDate = sessionDate;
-      } else if (dayDiff > 1) {
-        break;
-      }
+  private loadRules(): void {
+    const saved = localStorage.getItem('game_rules');
+    if (saved) {
+      this.gameRules.set(JSON.parse(saved));
     }
-
-    return streak;
   }
 
-  /**
-   * Emit game event for automation system
-   */
-  private emitGameEvent(eventType: string, game: GameInfo): void {
-    // This would integrate with the automation service
-    const event = new CustomEvent('game-event', {
-      detail: {
-        type: eventType,
-        game: game,
-        timestamp: new Date()
+  formatPlaytime(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${h}h ${m}m`;
+  }
+
+  private calculateStreak(history: GameSession[]): number {
+    // Simplified streak calculation
+    if (history.length === 0) return 0;
+    return 1;
+  }
+
+  private getFavoriteGame(history: GameSession[]): string {
+    if (history.length === 0) return '';
+    const counts = new Map<string, number>();
+    history.forEach(s => counts.set(s.gameName, (counts.get(s.gameName) || 0) + 1));
+    
+    let favorite = '';
+    let max = 0;
+    
+    counts.forEach((count, name) => {
+      if (count > max) {
+        max = count;
+        favorite = name;
       }
     });
-
-    window.dispatchEvent(event);
+    
+    return favorite;
   }
 
-  /**
-   * Format playtime
-   */
-  formatPlaytime(seconds: number): string {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
-  }
-
-  /**
-   * Export game history
-   */
-  exportHistory(): string {
-    return JSON.stringify({
-      sessions: this.gameHistory(),
-      stats: this.sessionStats(),
-      exportDate: new Date()
-    }, null, 2);
-  }
-
-  /**
-   * Import game history
-   */
-  importHistory(json: string): boolean {
-    try {
-      const data = JSON.parse(json);
-      if (data.sessions && Array.isArray(data.sessions)) {
-        this.gameHistory.set(data.sessions);
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
-    }
+  getKnownGames() {
+    return [
+      { processName: 'cs2.exe', data: { name: 'Counter-Strike 2', platform: 'Steam' } },
+      { processName: 'valorant.exe', data: { name: 'Valorant', platform: 'Riot' } },
+      { processName: 'LeagueClient.exe', data: { name: 'League of Legends', platform: 'Riot' } },
+      { processName: 'FortniteClient-Win64-Shipping.exe', data: { name: 'Fortnite', platform: 'Epic' } },
+      { processName: 'Minecraft.exe', data: { name: 'Minecraft', platform: 'Launcher' } }
+    ] as const;
   }
 }

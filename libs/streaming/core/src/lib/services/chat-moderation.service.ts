@@ -1,5 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { AIService } from './ai.service';
+import * as tf from '@tensorflow/tfjs';
+import * as toxicity from '@tensorflow-models/toxicity';
 
 /**
  * Chat Moderation Service
@@ -85,6 +87,21 @@ export class ChatModerationService {
   // Spam detection state
   private messageHistory = new Map<string, string[]>();
   private messageCounts = new Map<string, number>();
+  private toxicityModel: toxicity.ToxicityClassifier | null = null;
+
+  constructor() {
+    this.loadToxicityModel();
+  }
+
+  private async loadToxicityModel() {
+    try {
+      // Threshold of 0.7
+      this.toxicityModel = await toxicity.load(0.7, []);
+      console.log('Toxicity model loaded');
+    } catch (error) {
+      console.error('Failed to load toxicity model:', error);
+    }
+  }
 
   async moderateMessage(message: ChatMessage): Promise<boolean> {
     if (!this.isEnabled()) return true;
@@ -215,9 +232,38 @@ export class ChatModerationService {
   }
 
   private async analyzeToxicity(text: string): Promise<ToxicityAnalysis> {
-    // Simulate AI toxicity analysis
-    // In production, this would call actual AI API (Perspective API, OpenAI Moderation, etc.)
-    
+    if (this.toxicityModel) {
+      try {
+        const predictions = await this.toxicityModel.classify([text]);
+        // predictions is an array of objects { label, results: [{ match, probabilities }] }
+        
+        const categories: any = {};
+        let maxScore = 0;
+
+        predictions.forEach(prediction => {
+          const probability = prediction.results[0].probabilities[1]; // probability of being true (toxic)
+          categories[prediction.label] = probability;
+          if (probability > maxScore) maxScore = probability;
+        });
+
+        // Map TensorFlow labels to our categories structure
+        return {
+          score: maxScore,
+          categories: {
+            toxicity: categories['toxicity'] || 0,
+            severeToxicity: categories['severe_toxicity'] || 0,
+            obscene: categories['obscene'] || 0,
+            threat: categories['threat'] || 0,
+            insult: categories['insult'] || 0,
+            identityAttack: categories['identity_attack'] || 0
+          }
+        };
+      } catch (error) {
+        console.error('Toxicity analysis failed:', error);
+      }
+    }
+
+    // Fallback if model not loaded or error
     const hasBadWords = /\b(hate|stupid|idiot|dumb)\b/i.test(text);
     const hasThreats = /\b(kill|hurt|attack)\b/i.test(text);
     const hasInsults = /\b(loser|trash|garbage)\b/i.test(text);
