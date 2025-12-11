@@ -399,7 +399,7 @@ export class ChannelRewardsService {
       color: template.color,
       category: template.category,
       action: template.action,
-      requiresInput: template.action.params.requiresInput || false,
+      requiresInput: template.action.params['requiresInput'] || false,
       ...customConfig
     });
   }
@@ -482,11 +482,11 @@ export class ChannelRewardsService {
     // Execute specific action
     switch (reward.action.type) {
       case 'play-sound':
-        console.log('Playing sound:', reward.action.params.sound);
+        console.log('Playing sound:', reward.action.params['sound']);
         break;
 
       case 'switch-scene':
-        console.log('Switching scene:', reward.action.params.scene);
+        console.log('Switching scene:', reward.action.params['scene']);
         break;
 
       case 'show-alert':
@@ -502,7 +502,7 @@ export class ChannelRewardsService {
         break;
 
       case 'trigger-effect':
-        console.log('Triggering effect:', reward.action.params.effect);
+        console.log('Triggering effect:', reward.action.params['effect']);
         break;
 
       case 'hydrate-reminder':
@@ -514,7 +514,7 @@ export class ChannelRewardsService {
         break;
 
       case 'color-change':
-        console.log('Color effect:', reward.action.params.effect);
+        console.log('Color effect:', reward.action.params['effect']);
         break;
 
       default:

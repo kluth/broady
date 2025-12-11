@@ -18,7 +18,7 @@ export type AudioHardwareType =
   | 'presonus'
   | 'generic-interface';
 
-export interface AudioDevice {
+export interface HardwareAudioDevice {
   id: string;
   type: AudioHardwareType;
   name: string;
@@ -126,7 +126,7 @@ export interface GoXLREffectPreset {
 })
 export class AudioHardwareService {
   // Connected devices
-  readonly devices = signal<AudioDevice[]>([]);
+  readonly devices = signal<HardwareAudioDevice[]>([]);
 
   // Audio channels
   readonly channels = signal<AudioChannel[]>([]);
@@ -163,14 +163,14 @@ export class AudioHardwareService {
   /**
    * Scan for audio devices
    */
-  async scanDevices(): Promise<AudioDevice[]> {
+  async scanDevices(): Promise<HardwareAudioDevice[]> {
     console.log('Scanning for audio hardware...');
 
     // In real implementation, use Web MIDI API, node-hid, or device-specific SDKs
     // For GoXLR: https://github.com/GoXLR-on-Linux/goxlr-utility
     // For Focusrite: Focusrite Control API
 
-    const mockDevices: AudioDevice[] = [
+    const mockDevices: HardwareAudioDevice[] = [
       {
         id: 'goxlr-001',
         type: 'goxlr',

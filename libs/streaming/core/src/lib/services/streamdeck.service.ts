@@ -394,11 +394,11 @@ export class StreamDeckService {
     switch (action.type) {
       case 'scene-switch':
         // In real implementation, call scene service
-        console.log('Switching to scene:', action.settings.sceneId);
+        console.log('Switching to scene:', action.settings['sceneId']);
         break;
 
       case 'source-toggle':
-        console.log('Toggling source:', action.settings.sourceId);
+        console.log('Toggling source:', action.settings['sourceId']);
         break;
 
       case 'start-stream':
@@ -418,31 +418,31 @@ export class StreamDeckService {
         break;
 
       case 'mute-audio':
-        console.log('Muting audio:', action.settings.sourceId);
+        console.log('Muting audio:', action.settings['sourceId']);
         break;
 
       case 'unmute-audio':
-        console.log('Unmuting audio:', action.settings.sourceId);
+        console.log('Unmuting audio:', action.settings['sourceId']);
         break;
 
       case 'play-sound':
-        console.log('Playing sound:', action.settings.soundFile);
+        console.log('Playing sound:', action.settings['soundFile']);
         break;
 
       case 'show-alert':
-        console.log('Showing alert:', action.settings.message);
+        console.log('Showing alert:', action.settings['message']);
         break;
 
       case 'run-script':
-        console.log('Running script:', action.settings.scriptId);
+        console.log('Running script:', action.settings['scriptId']);
         break;
 
       case 'run-workflow':
-        console.log('Running workflow:', action.settings.workflowId);
+        console.log('Running workflow:', action.settings['workflowId']);
         break;
 
       case 'text-to-speech':
-        console.log('TTS:', action.settings.text);
+        console.log('TTS:', action.settings['text']);
         break;
 
       case 'multi-action':
@@ -450,18 +450,18 @@ export class StreamDeckService {
         if (action.multiActions) {
           for (const subAction of action.multiActions) {
             await this.executeAction(subAction);
-            await this.delay(action.settings.delayBetween || 100);
+            await this.delay(action.settings['delayBetween'] || 100);
           }
         }
         break;
 
       case 'folder':
-        console.log('Opening folder:', action.settings.folderId);
+        console.log('Opening folder:', action.settings['folderId']);
         break;
 
       case 'website':
-        console.log('Opening website:', action.settings.url);
-        window.open(action.settings.url, '_blank');
+        console.log('Opening website:', action.settings['url']);
+        window.open(action.settings['url'], '_blank');
         break;
 
       default:

@@ -135,7 +135,7 @@ export class SocialMediaService {
       .replace('{url}', url || '');
   }
 
-  connectPlatform(platform: keyof typeof this.platforms, token: string): void {
+  connectPlatform(platform: string, token: string): void {
     this.platforms.update(p => ({
       ...p,
       [platform]: {
@@ -148,7 +148,7 @@ export class SocialMediaService {
     console.log(`${platform} connected`);
   }
 
-  disconnectPlatform(platform: keyof typeof this.platforms): void {
+  disconnectPlatform(platform: string): void {
     this.platforms.update(p => ({
       ...p,
       [platform]: {
@@ -160,7 +160,7 @@ export class SocialMediaService {
     }));
   }
 
-  toggleAutoPost(platform: keyof typeof this.platforms): void {
+  toggleAutoPost(platform: string): void {
     this.platforms.update(p => ({
       ...p,
       [platform]: {
@@ -170,7 +170,7 @@ export class SocialMediaService {
     }));
   }
 
-  updateTemplate(platform: keyof typeof this.platforms, template: string): void {
+  updateTemplate(platform: string, template: string): void {
     this.platforms.update(p => ({
       ...p,
       [platform]: {
@@ -185,7 +185,7 @@ export class SocialMediaService {
   }
 
   // Manual post
-  async customPost(platform: keyof typeof this.platforms, content: string, imageUrl?: string): Promise<void> {
+  async customPost(platform: string, content: string, imageUrl?: string): Promise<void> {
     const post: SocialPost = {
       id: crypto.randomUUID(),
       platform: platform as any,

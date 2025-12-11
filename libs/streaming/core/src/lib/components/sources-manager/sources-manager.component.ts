@@ -143,11 +143,11 @@ export class SourcesManagerComponent {
   });
 
   readonly categorizedSourceTypes = computed(() => {
-    const categories = {
-      video: [] as SourceTypeOption[],
-      audio: [] as SourceTypeOption[],
-      media: [] as SourceTypeOption[],
-      other: [] as SourceTypeOption[]
+    const categories: Record<string, SourceTypeOption[]> = {
+      video: [],
+      audio: [],
+      media: [],
+      other: []
     };
 
     this.sourceTypes.forEach(type => {
@@ -204,7 +204,7 @@ export class SourcesManagerComponent {
     // Add to active scene
     const scene = this.activeScene();
     if (scene) {
-      this.sceneService.addSourceToScene(scene.id, source.id);
+      this.sceneService.addSourceToScene(scene.id, source);
     }
 
     this.onSourceAdded.emit(source);
@@ -230,7 +230,7 @@ export class SourcesManagerComponent {
     if (duplicated) {
       const scene = this.activeScene();
       if (scene) {
-        this.sceneService.addSourceToScene(scene.id, duplicated.id);
+        this.sceneService.addSourceToScene(scene.id, duplicated);
       }
     }
   }

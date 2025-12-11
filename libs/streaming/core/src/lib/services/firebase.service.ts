@@ -39,7 +39,7 @@ export interface CloudScene {
   likes: number;
 }
 
-export interface StreamSession {
+export interface CloudStreamSession {
   id: string;
   userId: string;
   title: string;
@@ -84,7 +84,7 @@ export class FirebaseService {
   readonly cloudScenes = this.cloudScenesSignal.asReadonly();
 
   // Stream sessions
-  private streamSessionsSignal = signal<StreamSession[]>([]);
+  private streamSessionsSignal = signal<CloudStreamSession[]>([]);
   readonly streamSessions = this.streamSessionsSignal.asReadonly();
 
   // Analytics
@@ -273,11 +273,11 @@ export class FirebaseService {
   /**
    * Start tracking stream session
    */
-  async startStreamSession(title: string, platform: string): Promise<StreamSession> {
+  async startStreamSession(title: string, platform: string): Promise<CloudStreamSession> {
     const user = this.currentUser();
     if (!user) throw new Error('User not authenticated');
 
-    const session: StreamSession = {
+    const session: CloudStreamSession = {
       id: `session_${Date.now()}`,
       userId: user.uid,
       title,

@@ -139,7 +139,7 @@ end`
       code: `when donation > 100 then
   playSound('epic-donation')
   switchScene('celebration')
-  showAlert('EPIC DONATION!', '{{donor}} donated ${{amount}}!', 10)
+  showAlert('EPIC DONATION!', '{{donor}} donated \${{amount}}!', 10)
   speak('Wow! {{donor}} just donated {{amount}} dollars!')
   createClip(30, 'Epic Donation from {{donor}}')
   wait(5)

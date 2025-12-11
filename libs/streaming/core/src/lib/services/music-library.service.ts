@@ -79,8 +79,9 @@ export class MusicLibraryService {
       tracks = tracks.filter(t => t.genre === f.genre);
     }
 
-    if (f.mood) {
-      tracks = tracks.filter(t => t.mood.includes(f.mood));
+    const mood = f.mood;
+    if (mood) {
+      tracks = tracks.filter(t => t.mood.includes(mood));
     }
 
     if (f.bpm) {

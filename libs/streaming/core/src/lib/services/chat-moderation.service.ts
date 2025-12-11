@@ -204,7 +204,7 @@ export class ChatModerationService {
     return false;
   }
 
-  private async detectToxicity(message: ChatMessage): Promise<ToxicityAnalysis | boolean> {
+  private async detectToxicity(message: ChatMessage): Promise<boolean> {
     // Use AI service to detect toxicity
     const analysis = await this.analyzeToxicity(message.message);
     

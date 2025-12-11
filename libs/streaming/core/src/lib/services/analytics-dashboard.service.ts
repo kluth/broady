@@ -8,7 +8,7 @@ export interface ViewerData {
   subscribers: number;
 }
 
-export interface StreamSession {
+export interface AnalyticsStreamSession {
   id: string;
   title: string;
   game?: string;
@@ -59,8 +59,8 @@ export interface ContentPerformance {
 })
 export class AnalyticsDashboardService {
   readonly viewerHistory = signal<ViewerData[]>([]);
-  readonly streamSessions = signal<StreamSession[]>([]);
-  readonly currentSession = signal<StreamSession | null>(null);
+  readonly streamSessions = signal<AnalyticsStreamSession[]>([]);
+  readonly currentSession = signal<AnalyticsStreamSession | null>(null);
   
   readonly metrics = signal<AnalyticsMetrics>({
     totalStreams: 0,
@@ -112,7 +112,7 @@ export class AnalyticsDashboardService {
   private monitoringInterval?: ReturnType<typeof setInterval>;
 
   startSession(title: string, game?: string): void {
-    const session: StreamSession = {
+    const session: AnalyticsStreamSession = {
       id: crypto.randomUUID(),
       title,
       game,
@@ -186,7 +186,7 @@ export class AnalyticsDashboardService {
       clearInterval(this.monitoringInterval);
     }
 
-    const finalSession: StreamSession = {
+    const finalSession: AnalyticsStreamSession = {
       ...session,
       endTime: new Date(),
       quality: this.calculateQuality(session)
@@ -200,7 +200,7 @@ export class AnalyticsDashboardService {
     this.viewerHistory.set([]);
   }
 
-  private calculateQuality(session: StreamSession): StreamSession['quality'] {
+  private calculateQuality(session: AnalyticsStreamSession): AnalyticsStreamSession['quality'] {
     const score = session.averageViewers / Math.max(session.peakViewers, 1) * 100;
     if (score >= 75) return 'excellent';
     if (score >= 60) return 'good';
@@ -208,7 +208,7 @@ export class AnalyticsDashboardService {
     return 'poor';
   }
 
-  private updateMetrics(session: StreamSession): void {
+  private updateMetrics(session: AnalyticsStreamSession): void {
     this.metrics.update(m => ({
       totalStreams: m.totalStreams + 1,
       totalStreamTime: m.totalStreamTime + session.duration,
@@ -224,7 +224,7 @@ export class AnalyticsDashboardService {
     }));
   }
 
-  private analyzePeakTimes(session: StreamSession): void {
+  private analyzePeakTimes(session: AnalyticsStreamSession): void {
     const hour = session.startTime.getHours();
     const day = session.startTime.getDay();
 
@@ -247,7 +247,7 @@ export class AnalyticsDashboardService {
     }
   }
 
-  private updateContentPerformance(session: StreamSession): void {
+  private updateContentPerformance(session: AnalyticsStreamSession): void {
     if (!session.game) return;
 
     const existing = this.contentPerformance().find(c => c.game === session.game);
@@ -314,11 +314,11 @@ export class AnalyticsDashboardService {
     }, null, 2);
   }
 
-  getSessionById(id: string): StreamSession | undefined {
+  getSessionById(id: string): AnalyticsStreamSession | undefined {
     return this.streamSessions().find(s => s.id === id);
   }
 
-  getSessionsInDateRange(start: Date, end: Date): StreamSession[] {
+  getSessionsInDateRange(start: Date, end: Date): AnalyticsStreamSession[] {
     return this.streamSessions().filter(s => 
       s.startTime >= start && s.startTime <= end
     );

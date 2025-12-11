@@ -514,13 +514,13 @@ export class PaymentService {
     if (intent && success) {
       this.addTransaction({
         userId: 'current-user',
-        type: intent.metadata.type || 'one-time',
+        type: intent.metadata['type'] || 'one-time',
         amount: intent.amount,
         currency: intent.currency,
         provider: intent.provider,
         status: 'completed',
         description: intent.description,
-        itemId: intent.metadata.itemId,
+        itemId: intent.metadata['itemId'],
         metadata: intent.metadata
       });
     }

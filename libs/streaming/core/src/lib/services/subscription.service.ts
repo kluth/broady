@@ -587,7 +587,7 @@ export class SubscriptionService {
     originalPrice?: number;
     discount?: number;
   } {
-    const price = plan.prices[interval];
+    const price = plan.prices[interval] ?? 0;
 
     if (interval === 'yearly') {
       const monthlyTotal = plan.prices.monthly * 12;

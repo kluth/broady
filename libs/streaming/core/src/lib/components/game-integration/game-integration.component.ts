@@ -302,7 +302,7 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
                 </div>
                 <div class="form-group">
                   <label>Custom Stream Title</label>
-                  <input type="text" [(ngModel)]="newRule.customTitle" placeholder="Playing {{game}}" class="input" />
+                  <input type="text" [(ngModel)]="newRule.customTitle" [placeholder]="'Playing {{game}}'" class="input" />
                 </div>
                 <div class="form-actions">
                   <button (click)="createRule()" class="btn-primary">Create Rule</button>

@@ -427,8 +427,8 @@ export class AlertsSystem implements OnDestroy {
     return text;
   }
 
-  getAlertIcon(type: AlertType): string {
-    const icons: Record<AlertType, string> = {
+  getAlertIcon(type: string): string {
+    const icons: Record<string, string> = {
       follower: '👤',
       subscriber: '⭐',
       donation: '💰',
@@ -440,8 +440,8 @@ export class AlertsSystem implements OnDestroy {
     return icons[type];
   }
 
-  getAlertTypeName(type: AlertType): string {
-    const names: Record<AlertType, string> = {
+  getAlertTypeName(type: string): string {
+    const names: Record<string, string> = {
       follower: 'Follower',
       subscriber: 'Subscriber',
       donation: 'Donation',

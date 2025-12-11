@@ -64,13 +64,7 @@ import { ScriptingService, Script } from '../../services/scripting.service';
               (ngModelChange)="onCodeChange()"
               class="code-editor"
               spellcheck="false"
-              placeholder="Write your script here...
-
-Example:
-on follower do
-  showAlert('New Follower', '{{username}} just followed!', 5)
-  speak('Thank you for following!')
-end"></textarea>
+              [placeholder]="placeholderText"></textarea>
 
             <!-- Error Display -->
             @if (currentScript()?.errors && currentScript()!.errors.length > 0) {
@@ -152,7 +146,7 @@ end"></textarea>
 
               <details>
                 <summary>Variables</summary>
-                <ul>
+                <ul ngNonBindable>
                   <li><code>{{username}}</code> - Username</li>
                   <li><code>{{donor}}</code> - Donor name</li>
                   <li><code>{{amount}}</code> - Donation amount</li>
@@ -546,6 +540,13 @@ export class ScriptEditorComponent {
 
   protected scriptName = '';
   protected scriptCode = '';
+  protected placeholderText = `Write your script here...
+
+Example:
+on follower do
+  showAlert('New Follower', '{{username}} just followed!', 5)
+  speak('Thank you for following!')
+end`;
 
   protected readonly scripts = this.scripting.scripts;
   protected readonly activeScripts = this.scripting.activeScripts;

@@ -23,7 +23,7 @@ export interface PremiumTemplate {
   scenes: SceneConfig[];
   sounds: SoundPack;
   transitions: TransitionStyle[];
-  lowerThirds: LowerThirdStyle;
+  lowerThirds: TemplateLowerThirdStyle;
   chatStyle: ChatStyle;
   tags: string[];
   createdAt: Date;
@@ -43,7 +43,7 @@ export type TemplateCategory =
 
 export interface TemplateTheme {
   mood: 'energetic' | 'dark' | 'bright' | 'minimal' | 'retro' | 'futuristic';
-  style: 'modern' | 'vintage' | 'neon' | 'clean' | 'grungy' | 'glitch';
+  style: 'modern' | 'vintage' | 'neon' | 'clean' | 'grungy' | 'glitch' | 'retro';
 }
 
 export interface ColorScheme {
@@ -102,7 +102,7 @@ export interface TransitionStyle {
   duration: number;
 }
 
-export interface LowerThirdStyle {
+export interface TemplateLowerThirdStyle {
   template: string;
   animation: string;
   position: 'bottom' | 'top';

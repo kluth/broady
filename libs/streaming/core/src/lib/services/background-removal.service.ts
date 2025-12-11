@@ -15,7 +15,7 @@ export interface BackgroundRemovalSettings {
   model: 'bodypix' | 'mediapipe' | 'deeplabv3' | 'u2net';
   segmentationThreshold: number; // 0-1
   edgeBlur: number; // 0-20 pixels
-  backgroundType: 'transparent' | 'blur' | 'image' | 'video' | 'color';
+  backgroundType: 'transparent' | 'blur' | 'image' | 'video' | 'color' | 'gradient';
   backgroundValue?: string; // URL for image/video, color for solid
   blurAmount: number; // 0-50 for blur background
   featherEdges: boolean;

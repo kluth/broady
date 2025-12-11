@@ -287,8 +287,8 @@ export class Multistream implements OnDestroy {
     URL.revokeObjectURL(url);
   }
 
-  getPlatformIcon(type: PlatformType): string {
-    const icons: Record<PlatformType, string> = {
+  getPlatformIcon(type: string): string {
+    const icons: Record<string, string> = {
       twitch: '🎮',
       youtube: '📺',
       facebook: '👥',
@@ -299,8 +299,8 @@ export class Multistream implements OnDestroy {
     return icons[type];
   }
 
-  getPlatformName(type: PlatformType): string {
-    const names: Record<PlatformType, string> = {
+  getPlatformName(type: string): string {
+    const names: Record<string, string> = {
       twitch: 'Twitch',
       youtube: 'YouTube',
       facebook: 'Facebook Gaming',
@@ -311,8 +311,8 @@ export class Multistream implements OnDestroy {
     return names[type];
   }
 
-  getPlatformColor(type: PlatformType): string {
-    const colors: Record<PlatformType, string> = {
+  getPlatformColor(type: string): string {
+    const colors: Record<string, string> = {
       twitch: '#9146FF',
       youtube: '#FF0000',
       facebook: '#1877F2',

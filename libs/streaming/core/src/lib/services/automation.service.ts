@@ -566,28 +566,28 @@ export class AutomationService {
     // Simulate node execution based on type
     switch (node.type) {
       case 'action-switch-scene':
-        console.log(`Switching to scene: ${node.config.sceneName}`);
+        console.log(`Switching to scene: ${node.config['sceneName']}`);
         await this.delay(500);
         break;
 
       case 'action-play-sound':
-        console.log(`Playing sound: ${node.config.soundId}`);
+        console.log(`Playing sound: ${node.config['soundId']}`);
         await this.delay(300);
         break;
 
       case 'action-show-alert':
-        console.log(`Showing alert: ${node.config.title}`);
+        console.log(`Showing alert: ${node.config['title']}`);
         await this.delay(200);
         break;
 
       case 'logic-delay':
-        await this.delay((node.config.seconds || 1) * 1000);
+        await this.delay((node.config['seconds'] || 1) * 1000);
         break;
 
       case 'data-random':
         const random = Math.floor(
-          Math.random() * (node.config.max - node.config.min + 1)
-        ) + node.config.min;
+          Math.random() * (node.config['max'] - node.config['min'] + 1)
+        ) + node.config['min'];
         execution.results[node.id] = random;
         break;
 

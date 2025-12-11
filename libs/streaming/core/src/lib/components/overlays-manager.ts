@@ -327,8 +327,8 @@ export class OverlaysManager {
     }
   }
 
-  getOverlayIcon(type: OverlayType): string {
-    const icons: Record<OverlayType, string> = {
+  getOverlayIcon(type: string): string {
+    const icons: Record<string, string> = {
       webcam: '📹',
       text: '📝',
       image: '🖼️',
@@ -343,8 +343,8 @@ export class OverlaysManager {
     return icons[type];
   }
 
-  getOverlayTypeName(type: OverlayType): string {
-    const names: Record<OverlayType, string> = {
+  getOverlayTypeName(type: string): string {
+    const names: Record<string, string> = {
       webcam: 'Webcam',
       text: 'Text',
       image: 'Image',
