@@ -121,25 +121,7 @@ export class FirebaseService {
   });
 
   constructor() {
-    // Firebase Auth state listener
-    onAuthStateChanged(getAuth(), async (user) => {
-      if (user) {
-        const customUser: User = {
-          uid: user.uid,
-          email: user.email!,
-          displayName: user.displayName || user.email!.split('@')[0],
-          photoURL: user.photoURL || undefined,
-          emailVerified: user.emailVerified,
-          createdAt: user.metadata.creationTime ? new Date(user.metadata.creationTime) : new Date(),
-          lastLogin: user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : new Date()
-        };
-        this.currentUserSignal.set(customUser);
-        this.isAuthenticatedSignal.set(true);
-      } else {
-        this.currentUserSignal.set(null);
-        this.isAuthenticatedSignal.set(false);
-      }
-    });
+    // Constructor kept empty, initialization logic moved to initialize()
   }
 
   /**
@@ -158,6 +140,27 @@ export class FirebaseService {
       this.storage = getStorage(this.firebaseApp);
       this.configSignal.set(config);
       console.log('Firebase client app initialized:', config.projectId);
+
+      // Firebase Auth state listener
+      onAuthStateChanged(this.auth, async (user) => {
+        if (user) {
+          const customUser: User = {
+            uid: user.uid,
+            email: user.email!,
+            displayName: user.displayName || user.email!.split('@')[0],
+            photoURL: user.photoURL || undefined,
+            emailVerified: user.emailVerified,
+            createdAt: user.metadata.creationTime ? new Date(user.metadata.creationTime) : new Date(),
+            lastLogin: user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : new Date()
+          };
+          this.currentUserSignal.set(customUser);
+          this.isAuthenticatedSignal.set(true);
+        } else {
+          this.currentUserSignal.set(null);
+          this.isAuthenticatedSignal.set(false);
+        }
+      });
+
     } catch (error) {
       console.error('Failed to initialize Firebase client app:', error);
     }
