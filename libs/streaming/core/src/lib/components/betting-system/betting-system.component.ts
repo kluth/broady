@@ -1,6 +1,16 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { BettingService, Bet, BetOption, ViewerBet } from '../../services/betting.service';
 import { GameDetectionService } from '../../services/game-detection.service';
 
@@ -12,7 +22,20 @@ import { GameDetectionService } from '../../services/game-detection.service';
 @Component({
   selector: 'lib-betting-system',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTabsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatCardModule,
+    MatChipsModule,
+    MatCheckboxModule,
+    MatProgressBarModule
+  ],
   template: `
     <div class="betting-system">
       <!-- Header with Stats -->

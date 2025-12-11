@@ -1,6 +1,16 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatBadgeModule } from '@angular/material/badge';
 import { GameDetectionService, GameInfo, GameRule } from '../../services/game-detection.service';
 import { GameAPIService } from '../../services/game-api.service';
 import { GameOverlayService, GameOverlay } from '../../services/game-overlay.service';
@@ -13,7 +23,20 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
 @Component({
   selector: 'lib-game-integration',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTabsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCardModule,
+    MatChipsModule,
+    MatCheckboxModule,
+    MatDividerModule,
+    MatBadgeModule
+  ],
   template: `
     <div class="game-integration">
       <!-- Tabs -->
@@ -58,12 +81,14 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
               <h2>Game Detection</h2>
               <div class="actions">
                 @if (gameDetection.isDetecting()) {
-                  <button (click)="gameDetection.stopDetection()" class="btn-danger">
-                    ⏸️ Stop Detection
+                  <button mat-raised-button color="warn" (click)="gameDetection.stopDetection()">
+                    <mat-icon>pause</mat-icon>
+                    Stop Detection
                   </button>
                 } @else {
-                  <button (click)="gameDetection.startDetection()" class="btn-primary">
-                    ▶️ Start Detection
+                  <button mat-raised-button color="primary" (click)="gameDetection.startDetection()">
+                    <mat-icon>play_arrow</mat-icon>
+                    Start Detection
                   </button>
                 }
               </div>
@@ -213,8 +238,9 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
           <div class="overlays-tab">
             <div class="section-header">
               <h2>Game Overlays</h2>
-              <button (click)="showOverlayTemplates = !showOverlayTemplates" class="btn-primary">
-                ➕ New Overlay
+              <button mat-raised-button color="primary" (click)="showOverlayTemplates = !showOverlayTemplates">
+                <mat-icon>add</mat-icon>
+                New Overlay
               </button>
             </div>
 
@@ -904,6 +930,7 @@ export class GameIntegrationComponent {
   protected gameOverlay = inject(GameOverlayService);
 
   protected activeTab = signal<'detection' | 'apis' | 'overlays' | 'rules' | 'stats'>('detection');
+  protected selectedTabIndex = 0;
 
   protected showOverlayTemplates = false;
   protected showRuleCreator = false;

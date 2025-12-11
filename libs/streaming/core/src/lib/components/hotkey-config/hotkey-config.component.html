@@ -1,27 +1,37 @@
-<div class="hotkey-config">
-  <div class="config-header">
-    <h3>Keyboard Shortcuts</h3>
+<mat-card class="hotkey-config">
+  <mat-card-header class="config-header">
+    <mat-card-title>
+      <mat-icon>keyboard</mat-icon>
+      Keyboard Shortcuts
+    </mat-card-title>
     <div class="header-actions">
-      <button class="btn-action" (click)="resetToDefaults()">
+      <button mat-stroked-button (click)="resetToDefaults()">
+        <mat-icon>restart_alt</mat-icon>
         Reset to Defaults
       </button>
-      <button class="btn-action" (click)="exportConfig()">
+      <button mat-stroked-button (click)="exportConfig()">
+        <mat-icon>download</mat-icon>
         Export
       </button>
     </div>
-  </div>
+  </mat-card-header>
 
-  <div class="search-bar">
-    <input
-      type="text"
-      placeholder="Search hotkeys..."
-      [value]="searchQuery()"
-      (input)="updateSearch($any($event.target).value)"
-      class="search-input"
-    />
-  </div>
+  <mat-divider></mat-divider>
 
-  @if (recordingAction()) {
+  <mat-card-content>
+    <mat-form-field appearance="outline" class="search-bar full-width">
+      <mat-label>Search hotkeys</mat-label>
+      <input
+        matInput
+        type="text"
+        placeholder="Search hotkeys..."
+        [value]="searchQuery()"
+        (input)="updateSearch($any($event.target).value)"
+      />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    @if (recordingAction()) {
     <div class="recording-overlay">
       <div class="recording-modal">
         <h4>Press a key combination</h4>
@@ -35,14 +45,14 @@
             <span>Listening...</span>
           </div>
         }
-        <button class="btn-cancel" (click)="stopRecording()">
+        <button mat-button (click)="stopRecording()">
           Cancel
         </button>
       </div>
     </div>
-  }
+    }
 
-  <div class="config-content">
+    <div class="config-content">
     @for (category of filteredCategories(); track category.name) {
       <div class="hotkey-category">
         <h4 class="category-name">{{ category.name }}</h4>
@@ -54,8 +64,8 @@
                 <div class="action-description">{{ action.description }}</div>
               </div>
               <div class="action-hotkey">
-                <button
-                  class="hotkey-button"
+                <mat-chip
+                  class="hotkey-chip"
                   (click)="startRecording(action.id)"
                   [class.recording]="recordingAction() === action.id"
                 >
@@ -64,14 +74,15 @@
                   } @else {
                     <span class="no-hotkey">Not assigned</span>
                   }
-                </button>
+                </mat-chip>
                 @if (action.defaultHotkey) {
                   <button
-                    class="btn-clear"
+                    mat-icon-button
                     (click)="clearHotkey(action.id)"
-                    title="Clear hotkey"
+                    matTooltip="Clear hotkey"
+                    color="warn"
                   >
-                    ✕
+                    <mat-icon>close</mat-icon>
                   </button>
                 }
               </div>
@@ -81,8 +92,10 @@
       </div>
     } @empty {
       <div class="no-results">
+        <mat-icon class="empty-icon">search_off</mat-icon>
         <p>No hotkeys found matching "{{ searchQuery() }}"</p>
       </div>
     }
-  </div>
-</div>
+    </div>
+  </mat-card-content>
+</mat-card>

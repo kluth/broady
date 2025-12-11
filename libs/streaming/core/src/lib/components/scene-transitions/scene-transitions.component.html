@@ -1,9 +1,14 @@
-<div class="scene-transitions">
-  <div class="transitions-header">
-    <h3>Scene Transitions</h3>
-  </div>
+<mat-card class="scene-transitions">
+  <mat-card-header class="transitions-header">
+    <mat-card-title>
+      <mat-icon>transition</mat-icon>
+      Scene Transitions
+    </mat-card-title>
+  </mat-card-header>
 
-  <div class="transitions-content">
+  <mat-divider></mat-divider>
+
+  <mat-card-content class="transitions-content">
     <!-- Current Transition -->
     <div class="current-transition">
       <div class="transition-preview">
@@ -18,7 +23,8 @@
         </div>
       </div>
 
-      <button class="btn-preview" (click)="previewTransition()">
+      <button mat-raised-button color="primary" (click)="previewTransition()">
+        <mat-icon>preview</mat-icon>
         Preview Transition
       </button>
     </div>
@@ -29,10 +35,11 @@
       <div class="transition-grid">
         @for (type of transitionTypes; track type) {
           <button
+            mat-stroked-button
             class="transition-btn"
-            [class.active]="currentTransition().type === type"
+            [color]="currentTransition().type === type ? 'primary' : ''"
             (click)="updateTransitionType(type)"
-            [title]="getTransitionInfo(type).description"
+            [matTooltip]="getTransitionInfo(type).description"
           >
             <span class="transition-icon-small">{{ getTransitionInfo(type).icon }}</span>
             <span class="transition-name">{{ getTransitionName(type) }}</span>
@@ -45,25 +52,26 @@
     <div class="control-section">
       <h4>Duration</h4>
       <div class="duration-control">
-        <input
-          type="range"
-          min="0"
-          max="2000"
-          step="50"
-          [value]="currentTransition().duration"
-          (input)="updateDuration(+$any($event.target).value)"
-          class="duration-slider"
-        />
-        <input
-          type="number"
-          min="0"
-          max="5000"
-          step="50"
-          [value]="currentTransition().duration"
-          (input)="updateDuration(+$any($event.target).value)"
-          class="duration-input"
-        />
-        <span class="duration-unit">ms</span>
+        <mat-slider min="0" max="2000" step="50" class="duration-slider" showTickMarks discrete>
+          <input
+            matSliderThumb
+            [value]="currentTransition().duration"
+            (valueChange)="updateDuration($event)"
+          />
+        </mat-slider>
+        <mat-form-field appearance="outline" class="duration-input">
+          <mat-label>Duration</mat-label>
+          <input
+            matInput
+            type="number"
+            min="0"
+            max="5000"
+            step="50"
+            [value]="currentTransition().duration"
+            (input)="updateDuration(+$any($event.target).value)"
+          />
+          <span matSuffix>ms</span>
+        </mat-form-field>
       </div>
     </div>
 
@@ -131,14 +139,15 @@
       <div class="presets-grid">
         @for (preset of presets; track preset.name) {
           <button
+            mat-stroked-button
             class="preset-btn"
             (click)="applyPreset(preset)"
-            [title]="preset.name"
+            [matTooltip]="preset.name"
           >
             {{ preset.name }}
           </button>
         }
       </div>
     </div>
-  </div>
-</div>
+  </mat-card-content>
+</mat-card>
