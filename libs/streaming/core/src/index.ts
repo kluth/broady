@@ -50,6 +50,7 @@ export * from './lib/services/game-overlay.service';
 export * from './lib/services/betting.service';
 export * from './lib/services/channel-rewards.service';
 export * from './lib/services/chat-minigames.service';
+export * from './lib/services/premium-templates.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';
