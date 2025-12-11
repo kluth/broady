@@ -1,5 +1,10 @@
 import { Component, signal, computed, effect, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCardModule } from '@angular/material/card';
 import { SceneService } from '../../services/scene.service';
 import { RecordingService } from '../../services/recording.service';
 import { StreamingService } from '../../services/streaming.service';
@@ -7,7 +12,14 @@ import { StreamingService } from '../../services/streaming.service';
 @Component({
   selector: 'streaming-video-preview',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatChipsModule,
+    MatTooltipModule,
+    MatCardModule
+  ],
   template: `
     <div class="video-preview">
       <div class="preview-container">
@@ -22,17 +34,17 @@ import { StreamingService } from '../../services/streaming.service';
         <!-- Overlay controls -->
         <div class="preview-overlay">
           @if (isLive()) {
-            <div class="live-indicator">
-              <span class="live-dot"></span>
-              <span>LIVE</span>
-            </div>
+            <mat-chip color="warn" class="live-indicator">
+              <mat-icon>fiber_manual_record</mat-icon>
+              LIVE
+            </mat-chip>
           }
 
           @if (isRecording()) {
-            <div class="recording-indicator">
-              <span class="recording-dot"></span>
-              <span>REC {{ recordingDuration() }}</span>
-            </div>
+            <mat-chip color="warn" class="recording-indicator">
+              <mat-icon>fiber_manual_record</mat-icon>
+              REC {{ recordingDuration() }}
+            </mat-chip>
           }
 
           <!-- Stats Overlay -->
@@ -76,42 +88,48 @@ import { StreamingService } from '../../services/streaming.service';
       <div class="preview-controls">
         <div class="control-group">
           <button
-            class="btn-control"
-            [class.active]="showStats()"
+            mat-button
+            [color]="showStats() ? 'primary' : ''"
             (click)="toggleStats()"
-            title="Toggle Stats"
+            matTooltip="Toggle Stats"
           >
-            📊 Stats
+            <mat-icon>analytics</mat-icon>
+            Stats
           </button>
           <button
-            class="btn-control"
-            [class.active]="showGrid()"
+            mat-button
+            [color]="showGrid() ? 'primary' : ''"
             (click)="toggleGrid()"
-            title="Toggle Grid"
+            matTooltip="Toggle Grid"
           >
-            # Grid
+            <mat-icon>grid_on</mat-icon>
+            Grid
           </button>
           <button
-            class="btn-control"
-            [class.active]="showSafeAreas()"
+            mat-button
+            [color]="showSafeAreas() ? 'primary' : ''"
             (click)="toggleSafeAreas()"
-            title="Toggle Safe Areas"
+            matTooltip="Toggle Safe Areas"
           >
-            🔲 Safe
+            <mat-icon>crop_free</mat-icon>
+            Safe
           </button>
         </div>
 
         <div class="control-group">
-          <button class="btn-control" (click)="takeScreenshot()">
-            📸 Screenshot
+          <button mat-icon-button (click)="takeScreenshot()" matTooltip="Take Screenshot">
+            <mat-icon>camera_alt</mat-icon>
           </button>
-          <button class="btn-control" (click)="toggleFullscreen()">
-            ⛶ Fullscreen
+          <button mat-icon-button (click)="toggleFullscreen()" matTooltip="Fullscreen">
+            <mat-icon>fullscreen</mat-icon>
           </button>
         </div>
 
         <div class="control-group">
-          <span class="resolution-display">{{ resolution() }} @ {{ targetFps() }} FPS</span>
+          <mat-chip>
+            <mat-icon>aspect_ratio</mat-icon>
+            {{ resolution() }} @ {{ targetFps() }} FPS
+          </mat-chip>
         </div>
       </div>
     </div>

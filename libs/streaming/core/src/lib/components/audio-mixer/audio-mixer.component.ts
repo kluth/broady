@@ -1,24 +1,50 @@
 import { Component, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { AudioService } from '../../services/audio.service';
 import { AudioFilterType, MonitoringType } from '../../models/audio.model';
 
 @Component({
   selector: 'streaming-audio-mixer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSliderModule,
+    MatTooltipModule,
+    MatChipsModule,
+    MatMenuModule,
+    MatDividerModule
+  ],
   template: `
-    <div class="audio-mixer">
-      <div class="mixer-header">
-        <h3>Audio Mixer</h3>
-        <button class="btn-settings" (click)="openAudioSettings()">⚙️</button>
-      </div>
+    <mat-card class="audio-mixer">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>graphic_eq</mat-icon>
+          Audio Mixer
+        </mat-card-title>
+        <button mat-icon-button (click)="openAudioSettings()" matTooltip="Audio Settings">
+          <mat-icon>settings</mat-icon>
+        </button>
+      </mat-card-header>
 
-      <div class="mixer-content">
+      <mat-card-content class="mixer-content">
         <!-- Master Channel -->
         <div class="mixer-channel master">
           <div class="channel-header">
-            <span class="channel-name">Master</span>
+            <span class="channel-name">
+              <mat-icon inline>volume_up</mat-icon>
+              Master
+            </span>
           </div>
 
           <div class="channel-meter">
@@ -44,11 +70,12 @@ import { AudioFilterType, MonitoringType } from '../../models/audio.model';
 
           <div class="channel-controls">
             <button
-              class="btn-mute"
-              [class.active]="masterMuted()"
+              mat-mini-fab
+              [color]="masterMuted() ? 'warn' : 'primary'"
               (click)="toggleMasterMute()"
+              matTooltip="Mute Master"
             >
-              {{ masterMuted() ? '🔇' : '🔊' }}
+              <mat-icon>{{ masterMuted() ? 'volume_off' : 'volume_up' }}</mat-icon>
             </button>
           </div>
         </div>
@@ -58,7 +85,24 @@ import { AudioFilterType, MonitoringType } from '../../models/audio.model';
           <div class="mixer-channel" [class.muted]="track.muted" [class.solo]="track.solo">
             <div class="channel-header">
               <span class="channel-name" [title]="track.name">{{ track.name }}</span>
-              <button class="btn-channel-menu" (click)="openTrackMenu(track.id)">⋯</button>
+              <button mat-icon-button [matMenuTriggerFor]="trackMenu" class="btn-channel-menu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #trackMenu="matMenu">
+                <button mat-menu-item (click)="openTrackMenu(track.id)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Rename</span>
+                </button>
+                <button mat-menu-item (click)="duplicateTrack(track.id)">
+                  <mat-icon>content_copy</mat-icon>
+                  <span>Duplicate</span>
+                </button>
+                <mat-divider></mat-divider>
+                <button mat-menu-item (click)="deleteTrack(track.id)">
+                  <mat-icon color="warn">delete</mat-icon>
+                  <span>Delete</span>
+                </button>
+              </mat-menu>
             </div>
 
             <div class="channel-meter">
@@ -104,56 +148,58 @@ import { AudioFilterType, MonitoringType } from '../../models/audio.model';
 
             <div class="channel-controls">
               <button
-                class="btn-solo"
-                [class.active]="track.solo"
+                mat-mini-fab
+                [color]="track.solo ? 'warn' : ''"
                 (click)="toggleSolo(track.id)"
-                title="Solo"
+                matTooltip="Solo"
+                class="ctrl-btn"
               >
                 S
               </button>
               <button
-                class="btn-mute"
-                [class.active]="track.muted"
+                mat-mini-fab
+                [color]="track.muted ? 'warn' : ''"
                 (click)="toggleMute(track.id)"
-                title="Mute"
+                matTooltip="Mute"
+                class="ctrl-btn"
               >
                 M
               </button>
               <button
-                class="btn-monitoring"
-                [class.active]="track.monitoring !== 'none'"
+                mat-mini-fab
+                [color]="track.monitoring !== 'none' ? 'accent' : ''"
                 (click)="cycleMonitoring(track.id)"
-                [title]="getMonitoringLabel(track.monitoring)"
+                [matTooltip]="getMonitoringLabel(track.monitoring)"
+                class="ctrl-btn"
               >
-                {{ getMonitoringIcon(track.monitoring) }}
+                <mat-icon>{{ getMonitoringMatIcon(track.monitoring) }}</mat-icon>
               </button>
             </div>
 
             @if (track.filters.length > 0) {
-              <div class="channel-filters">
+              <mat-chip-set class="channel-filters">
                 @for (filter of track.filters; track filter.id) {
-                  <div
-                    class="filter-indicator"
-                    [class.active]="filter.enabled"
-                    [title]="filter.name"
+                  <mat-chip
+                    [highlighted]="filter.enabled"
+                    [matTooltip]="filter.name"
                   >
-                    {{ getFilterIcon(filter.type) }}
-                  </div>
+                    <mat-icon>{{ getFilterMatIcon(filter.type) }}</mat-icon>
+                  </mat-chip>
                 }
-              </div>
+              </mat-chip-set>
             }
           </div>
         }
 
         <!-- Add Track Button -->
         <div class="mixer-add-track">
-          <button class="btn-add-track" (click)="addTrack()">
-            <span>+</span>
-            <span>Add Track</span>
+          <button mat-raised-button color="primary" (click)="addTrack()" class="btn-add-track">
+            <mat-icon>add</mat-icon>
+            Add Track
           </button>
         </div>
-      </div>
-    </div>
+      </mat-card-content>
+    </mat-card>
   `,
   styles: [`
     .audio-mixer {
@@ -578,6 +624,15 @@ export class AudioMixerComponent {
     return icons[type];
   }
 
+  getMonitoringMatIcon(type: MonitoringType): string {
+    const icons: Record<MonitoringType, string> = {
+      [MonitoringType.NONE]: 'headset_off',
+      [MonitoringType.MONITOR_ONLY]: 'headset',
+      [MonitoringType.MONITOR_AND_OUTPUT]: 'headset_mic'
+    };
+    return icons[type];
+  }
+
   getFilterIcon(type: AudioFilterType): string {
     const icons: Record<AudioFilterType, string> = {
       [AudioFilterType.NOISE_SUPPRESSION]: '🔇',
@@ -592,6 +647,31 @@ export class AudioMixerComponent {
       [AudioFilterType.VST]: '🔌'
     };
     return icons[type] || '🎛️';
+  }
+
+  getFilterMatIcon(type: AudioFilterType): string {
+    const icons: Record<AudioFilterType, string> = {
+      [AudioFilterType.NOISE_SUPPRESSION]: 'noise_control_off',
+      [AudioFilterType.NOISE_GATE]: 'door_back',
+      [AudioFilterType.COMPRESSOR]: 'compress',
+      [AudioFilterType.LIMITER]: 'block',
+      [AudioFilterType.EXPANDER]: 'expand',
+      [AudioFilterType.GAIN]: 'trending_up',
+      [AudioFilterType.EQ]: 'equalizer',
+      [AudioFilterType.REVERB]: 'waves',
+      [AudioFilterType.DELAY]: 'schedule',
+      [AudioFilterType.VST]: 'settings_input_component'
+    };
+    return icons[type] || 'tune';
+  }
+
+  duplicateTrack(trackId: string): void {
+    console.log(`Duplicating track ${trackId}`);
+    // Implementation would be in the service
+  }
+
+  deleteTrack(trackId: string): void {
+    this.audioService.deleteAudioTrack(trackId);
   }
 
   getTrackMetering(trackId: string): number[] {
