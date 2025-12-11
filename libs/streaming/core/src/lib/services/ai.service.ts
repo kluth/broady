@@ -151,27 +151,130 @@ export class AIService {
       });
     }
 
-    // Provider-specific implementations (placeholders)
-    const provider = this.config()?.provider;
-    
-    if (provider === 'google') {
-      // In production, would use Google's Gemini API
-      // await this.callGeminiAPI(media);
-      return this.generateMockCaptions();
-    }
-    
+    // Provider-specific implementations
+    const config = this.config();
+    const provider = config?.provider;
+
     if (provider === 'openai') {
-      // In production, would use OpenAI's Whisper API
-      // await this.callWhisperAPI(media);
-      return this.generateMockCaptions();
+      try {
+        return await this.callWhisperAPI(media, config.apiKey);
+      } catch (error) {
+        console.error('Whisper API failed, falling back to mock:', error);
+        return this.generateMockCaptions();
+      }
+    }
+
+    if (provider === 'google') {
+      try {
+        return await this.callGeminiAPI(media, config.apiKey);
+      } catch (error) {
+        console.error('Gemini API failed, falling back to mock:', error);
+        return this.generateMockCaptions();
+      }
     }
 
     if (provider === 'anthropic') {
-      // In production, would use Claude's vision/audio capabilities
+      console.warn('Claude does not support direct audio transcription yet');
       return this.generateMockCaptions();
     }
 
     return this.generateMockCaptions();
+  }
+
+  /**
+   * Call OpenAI Whisper API
+   */
+  private async callWhisperAPI(media: Blob, apiKey: string): Promise<CaptionSegment[]> {
+    const formData = new FormData();
+    formData.append('file', media, 'audio.webm');
+    formData.append('model', 'whisper-1');
+    formData.append('response_format', 'verbose_json');
+    formData.append('timestamp_granularities[]', 'word');
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`Whisper API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Convert Whisper segments to caption format
+    if (data.segments) {
+      return data.segments.map((seg: any, index: number) => ({
+        id: `caption-${index}`,
+        start: seg.start * 1000,
+        end: seg.end * 1000,
+        startTime: seg.start * 1000,
+        endTime: seg.end * 1000,
+        text: seg.text.trim(),
+        confidence: 0.95 // Whisper doesn't provide confidence scores
+      }));
+    }
+
+    // Fallback if no segments
+    return [{
+      id: 'caption-0',
+      start: 0,
+      end: 5000,
+      startTime: 0,
+      endTime: 5000,
+      text: data.text || 'Transcription available',
+      confidence: 0.95
+    }];
+  }
+
+  /**
+   * Call Google Gemini API for audio transcription
+   */
+  private async callGeminiAPI(media: Blob, apiKey: string): Promise<CaptionSegment[]> {
+    // Convert blob to base64
+    const arrayBuffer = await media.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: 'Please transcribe this audio:'
+            }, {
+              inline_data: {
+                mime_type: media.type,
+                data: base64
+              }
+            }]
+          }]
+        })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    // Create a simple caption from the full text
+    return [{
+      id: 'caption-0',
+      start: 0,
+      end: 5000,
+      startTime: 0,
+      endTime: 5000,
+      text: text.trim(),
+      confidence: 0.90
+    }];
   }
 
   /**

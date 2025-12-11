@@ -362,8 +362,58 @@ export class ScriptVariablesService {
    */
   private async fetchWeather(): Promise<void> {
     try {
-      // In production, would call actual weather API
-      // For now, simulate data
+      // Get API key and location from environment or localStorage
+      const apiKey = localStorage.getItem('openweather_api_key') || '';
+      const location = localStorage.getItem('weather_location') || 'New York';
+
+      if (!apiKey) {
+        console.warn('OpenWeatherMap API key not configured');
+        return;
+      }
+
+      // Call OpenWeatherMap API
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${apiKey}&units=imperial`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Weather API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Map weather condition to emoji
+      const conditionIcons: Record<string, string> = {
+        'Clear': '☀️',
+        'Clouds': '☁️',
+        'Rain': '🌧️',
+        'Drizzle': '🌦️',
+        'Thunderstorm': '⛈️',
+        'Snow': '❄️',
+        'Mist': '🌫️',
+        'Fog': '🌫️'
+      };
+
+      const weather: WeatherData = {
+        location: data.name,
+        temperature: Math.round(data.main.temp),
+        condition: data.weather[0].main,
+        humidity: data.main.humidity,
+        windSpeed: Math.round(data.wind.speed),
+        icon: conditionIcons[data.weather[0].main] || '🌤️',
+        lastUpdated: new Date()
+      };
+
+      this.externalData.update(d => ({ ...d, weather }));
+
+      this.updateVariable('weather.temp', weather.temperature);
+      this.updateVariable('weather.condition', weather.condition);
+      this.updateVariable('weather.location', weather.location);
+      this.updateVariable('weather.humidity', weather.humidity);
+    } catch (error) {
+      console.error('Failed to fetch weather:', error);
+
+      // Fallback to mock data
       const mockWeather: WeatherData = {
         location: 'New York',
         temperature: 72,
@@ -380,8 +430,6 @@ export class ScriptVariablesService {
       this.updateVariable('weather.condition', mockWeather.condition);
       this.updateVariable('weather.location', mockWeather.location);
       this.updateVariable('weather.humidity', mockWeather.humidity);
-    } catch (error) {
-      console.error('Failed to fetch weather:', error);
     }
   }
 
@@ -390,7 +438,38 @@ export class ScriptVariablesService {
    */
   private async fetchCrypto(): Promise<void> {
     try {
-      // Mock crypto data
+      // Call CoinGecko API (no API key required for basic usage)
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin&vs_currencies=usd'
+      );
+
+      if (!response.ok) {
+        throw new Error(`CoinGecko API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const crypto: CryptoData = {
+        bitcoin: data.bitcoin?.usd || 0,
+        ethereum: data.ethereum?.usd || 0,
+        dogecoin: data.dogecoin?.usd || 0,
+        prices: {
+          btc: data.bitcoin?.usd || 0,
+          eth: data.ethereum?.usd || 0,
+          doge: data.dogecoin?.usd || 0
+        },
+        lastUpdated: new Date()
+      };
+
+      this.externalData.update(d => ({ ...d, crypto }));
+
+      this.updateVariable('crypto.bitcoin', Math.round(crypto.bitcoin));
+      this.updateVariable('crypto.ethereum', Math.round(crypto.ethereum));
+      this.updateVariable('crypto.dogecoin', crypto.dogecoin.toFixed(4));
+    } catch (error) {
+      console.error('Failed to fetch crypto:', error);
+
+      // Fallback to mock data
       const mockCrypto: CryptoData = {
         bitcoin: 45000 + Math.random() * 1000,
         ethereum: 3000 + Math.random() * 100,
@@ -404,8 +483,6 @@ export class ScriptVariablesService {
       this.updateVariable('crypto.bitcoin', Math.round(mockCrypto.bitcoin));
       this.updateVariable('crypto.ethereum', Math.round(mockCrypto.ethereum));
       this.updateVariable('crypto.dogecoin', mockCrypto.dogecoin.toFixed(4));
-    } catch (error) {
-      console.error('Failed to fetch crypto:', error);
     }
   }
 
@@ -414,7 +491,56 @@ export class ScriptVariablesService {
    */
   private async fetchStocks(): Promise<void> {
     try {
-      // Mock stock data
+      const apiKey = localStorage.getItem('alphavantage_api_key') || '';
+
+      if (!apiKey) {
+        console.warn('Alpha Vantage API key not configured');
+        throw new Error('API key not configured');
+      }
+
+      // Fetch multiple stocks
+      const symbols = ['SPY', 'AAPL', 'TSLA'];
+      const prices: Record<string, number> = {};
+
+      for (const symbol of symbols) {
+        try {
+          const response = await fetch(
+            `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`
+          );
+
+          if (!response.ok) continue;
+
+          const data = await response.json();
+          const quote = data['Global Quote'];
+
+          if (quote && quote['05. price']) {
+            prices[symbol.toLowerCase()] = parseFloat(quote['05. price']);
+          }
+
+          // Alpha Vantage has rate limits, add a small delay
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error(`Failed to fetch ${symbol}:`, error);
+        }
+      }
+
+      const stocks: StockData = {
+        spy: prices.spy || 0,
+        aapl: prices.aapl || 0,
+        tsla: prices.tsla || 0,
+        prices,
+        lastUpdated: new Date()
+      };
+
+      this.externalData.update(d => ({ ...d, stocks }));
+
+      this.updateVariable('stocks.spy', stocks.spy.toFixed(2));
+      this.updateVariable('stocks.aapl', stocks.aapl.toFixed(2));
+      this.updateVariable('stocks.tsla', stocks.tsla.toFixed(2));
+    } catch (error) {
+      console.error('Failed to fetch stocks:', error);
+
+      // Fallback to mock data
       const mockStocks: StockData = {
         spy: 450 + Math.random() * 10,
         aapl: 180 + Math.random() * 5,
@@ -428,8 +554,6 @@ export class ScriptVariablesService {
       this.updateVariable('stocks.spy', mockStocks.spy.toFixed(2));
       this.updateVariable('stocks.aapl', mockStocks.aapl.toFixed(2));
       this.updateVariable('stocks.tsla', mockStocks.tsla.toFixed(2));
-    } catch (error) {
-      console.error('Failed to fetch stocks:', error);
     }
   }
 
