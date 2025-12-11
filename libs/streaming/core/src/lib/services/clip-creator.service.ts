@@ -119,7 +119,7 @@ export class ClipCreatorService {
     return clip;
   }
 
-  async uploadToP latform(clipId: string, platform: Clip['platform']): Promise<void> {
+  async uploadToPlatform(clipId: string, platform: Clip['platform']): Promise<void> {
     const clip = this.clips().find(c => c.id === clipId);
     if (!clip || clip.status !== 'ready') return;
 
