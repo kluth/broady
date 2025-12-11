@@ -1,0 +1,255 @@
+<div class="multistream">
+  <!-- Header -->
+  <div class="multistream-header">
+    <h3>🌐 Multi-Platform Streaming</h3>
+    <div class="multistream-stats">
+      <span class="stat">Platforms: {{ enabledPlatforms().length }}</span>
+      <span class="stat" [style.color]="livePlatforms().length > 0 ? '#00FF88' : '#6C757D'">
+        Live: {{ livePlatforms().length }}
+      </span>
+      <span class="stat">👥 Total Viewers: {{ totalViewers() }}</span>
+    </div>
+    <div class="multistream-actions">
+      <button class="btn-icon" (click)="showAddDialog.set(true)" title="Add Platform">
+        ➕
+      </button>
+      <button class="btn-icon" (click)="exportConfig()" title="Export Config">
+        💾
+      </button>
+      @if (livePlatforms().length > 0) {
+        <button class="btn-stop-all" (click)="stopAllStreaming()" title="Stop All">
+          ⏹️ Stop All
+        </button>
+      } @else if (enabledPlatforms().length > 0) {
+        <button class="btn-start-all" (click)="startAllStreaming()" title="Start All">
+          ▶️ Start All
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Platforms Grid -->
+  <div class="platforms-grid">
+    @if (platforms().length === 0) {
+      <div class="empty-state">
+        <p>No platforms configured yet</p>
+        <button class="btn-primary" (click)="showAddDialog.set(true)">
+          Add Your First Platform
+        </button>
+      </div>
+    } @else {
+      @for (platform of platforms(); track platform.id) {
+        <div
+          class="platform-card"
+          [class.enabled]="platform.enabled"
+          [class.live]="platform.status === 'live'"
+          [style.border-color]="getPlatformColor(platform.type)"
+          (click)="selectedPlatformId.set(platform.id)">
+          <div class="platform-card-header">
+            <span class="platform-icon">{{ getPlatformIcon(platform.type) }}</span>
+            <h4>{{ platform.name }}</h4>
+            <span
+              class="status-badge"
+              [style.background]="getStatusColor(platform.status)">
+              {{ getStatusLabel(platform.status) }}
+            </span>
+          </div>
+
+          <div class="platform-card-body">
+            @if (platform.status === 'live') {
+              <div class="live-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Viewers</span>
+                  <span class="stat-value">{{ platform.viewerCount }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Upload</span>
+                  <span class="stat-value">{{ platform.uploadSpeed.toFixed(0) }} kb/s</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Dropped</span>
+                  <span class="stat-value" [class.warning]="platform.droppedFrames > 10">
+                    {{ platform.droppedFrames }}
+                  </span>
+                </div>
+              </div>
+            } @else {
+              <div class="platform-config">
+                <div class="config-info">
+                  <span>{{ platform.resolution }} @ {{ platform.fps }}fps</span>
+                  <span>{{ platform.bitrate }} kb/s</span>
+                </div>
+              </div>
+            }
+
+            @if (platform.lastError) {
+              <div class="error-message">
+                ⚠️ {{ platform.lastError }}
+              </div>
+            }
+          </div>
+
+          <div class="platform-card-footer">
+            <button
+              class="btn-toggle"
+              [class.enabled]="platform.enabled"
+              (click)="togglePlatform(platform.id); $event.stopPropagation()"
+              [disabled]="platform.status === 'connecting' || platform.status === 'stopping'">
+              {{ platform.enabled ? 'Enabled' : 'Disabled' }}
+            </button>
+
+            @if (platform.status === 'disconnected' || platform.status === 'error') {
+              <button
+                class="btn-stream"
+                (click)="startStreaming(platform.id); $event.stopPropagation()"
+                [disabled]="!platform.enabled">
+                ▶️ Start
+              </button>
+            } @else if (platform.status === 'live') {
+              <button
+                class="btn-stream stop"
+                (click)="stopStreaming(platform.id); $event.stopPropagation()">
+                ⏹️ Stop
+              </button>
+            }
+
+            <button
+              class="btn-tiny"
+              (click)="removePlatform(platform.id); $event.stopPropagation()"
+              [disabled]="platform.status === 'live'"
+              title="Remove">
+              🗑️
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Platform Configuration Panel -->
+  @if (selectedPlatform(); as platform) {
+    <div class="config-panel">
+      <div class="config-header">
+        <h4>{{ platform.name }} Configuration</h4>
+        <button class="btn-test" (click)="testConnection(platform.id)">
+          🔍 Test Connection
+        </button>
+      </div>
+
+      <div class="config-content">
+        <!-- Stream URL -->
+        <div class="config-group">
+          <label>Stream URL</label>
+          <input
+            type="text"
+            class="config-input"
+            [value]="platform.streamUrl"
+            (input)="updatePlatform(platform.id, { streamUrl: $any($event.target).value })"
+            [disabled]="platform.status === 'live' || platform.status === 'connecting'">
+        </div>
+
+        <!-- Stream Key -->
+        <div class="config-group">
+          <label>Stream Key</label>
+          <input
+            type="password"
+            class="config-input"
+            [value]="platform.streamKey"
+            (input)="updatePlatform(platform.id, { streamKey: $any($event.target).value })"
+            placeholder="Enter your stream key"
+            [disabled]="platform.status === 'live' || platform.status === 'connecting'">
+          <small class="config-hint">Get this from your {{ platform.name }} dashboard</small>
+        </div>
+
+        <!-- Resolution -->
+        <div class="config-row">
+          <div class="config-group">
+            <label>Resolution</label>
+            <select
+              class="config-select"
+              [value]="platform.resolution"
+              (change)="updatePlatform(platform.id, { resolution: $any($event.target).value })"
+              [disabled]="platform.status === 'live' || platform.status === 'connecting'">
+              <option value="1920x1080">1920x1080 (Full HD)</option>
+              <option value="1280x720">1280x720 (HD)</option>
+              <option value="854x480">854x480 (SD)</option>
+              <option value="640x360">640x360 (Low)</option>
+            </select>
+          </div>
+
+          <div class="config-group">
+            <label>FPS</label>
+            <select
+              class="config-select"
+              [value]="platform.fps"
+              (change)="updatePlatform(platform.id, { fps: +$any($event.target).value })"
+              [disabled]="platform.status === 'live' || platform.status === 'connecting'">
+              <option value="60">60 fps</option>
+              <option value="30">30 fps</option>
+              <option value="24">24 fps</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Bitrate -->
+        <div class="config-group">
+          <label>Bitrate (kb/s)</label>
+          <div class="range-control">
+            <input
+              type="range"
+              class="config-range"
+              [value]="platform.bitrate"
+              (input)="updatePlatform(platform.id, { bitrate: +$any($event.target).value })"
+              min="500"
+              max="10000"
+              step="500"
+              [disabled]="platform.status === 'live' || platform.status === 'connecting'">
+            <span class="range-value">{{ platform.bitrate }} kb/s</span>
+          </div>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="config-group">
+          <label>Quick Presets</label>
+          <div class="preset-buttons">
+            @for (preset of streamPresets; track preset.name) {
+              <button
+                class="btn-preset"
+                (click)="applyPreset(platform.id, preset)"
+                [disabled]="platform.status === 'live' || platform.status === 'connecting'"
+                [title]="preset.description">
+                {{ preset.name }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Add Platform Dialog -->
+  @if (showAddDialog()) {
+    <div class="dialog-overlay" (click)="showAddDialog.set(false)">
+      <div class="dialog-panel" (click)="$event.stopPropagation()">
+        <div class="dialog-header">
+          <h4>Add Streaming Platform</h4>
+          <button class="btn-close" (click)="showAddDialog.set(false)">✕</button>
+        </div>
+
+        <div class="dialog-content">
+          <div class="platform-types">
+            @for (type of ['twitch', 'youtube', 'facebook', 'kick', 'tiktok', 'custom']; track type) {
+              <button
+                class="platform-type-btn"
+                [style.border-color]="getPlatformColor(type)"
+                (click)="addPlatformByType(type)">
+                <span class="type-icon">{{ getPlatformIcon(type) }}</span>
+                <span class="type-name">{{ getPlatformName(type) }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

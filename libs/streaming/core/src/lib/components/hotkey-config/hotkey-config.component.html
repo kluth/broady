@@ -1,0 +1,88 @@
+<div class="hotkey-config">
+  <div class="config-header">
+    <h3>Keyboard Shortcuts</h3>
+    <div class="header-actions">
+      <button class="btn-action" (click)="resetToDefaults()">
+        Reset to Defaults
+      </button>
+      <button class="btn-action" (click)="exportConfig()">
+        Export
+      </button>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      placeholder="Search hotkeys..."
+      [value]="searchQuery()"
+      (input)="updateSearch($any($event.target).value)"
+      class="search-input"
+    />
+  </div>
+
+  @if (recordingAction()) {
+    <div class="recording-overlay">
+      <div class="recording-modal">
+        <h4>Press a key combination</h4>
+        @if (recordedKeys()) {
+          <div class="recorded-key">
+            {{ getHotkeyString(recordedKeys()!) }}
+          </div>
+        } @else {
+          <div class="recording-indicator">
+            <div class="pulse"></div>
+            <span>Listening...</span>
+          </div>
+        }
+        <button class="btn-cancel" (click)="stopRecording()">
+          Cancel
+        </button>
+      </div>
+    </div>
+  }
+
+  <div class="config-content">
+    @for (category of filteredCategories(); track category.name) {
+      <div class="hotkey-category">
+        <h4 class="category-name">{{ category.name }}</h4>
+        <div class="actions-list">
+          @for (action of category.actions; track action.id) {
+            <div class="action-row">
+              <div class="action-info">
+                <div class="action-name">{{ action.name }}</div>
+                <div class="action-description">{{ action.description }}</div>
+              </div>
+              <div class="action-hotkey">
+                <button
+                  class="hotkey-button"
+                  (click)="startRecording(action.id)"
+                  [class.recording]="recordingAction() === action.id"
+                >
+                  @if (action.defaultHotkey) {
+                    {{ getHotkeyString(action.defaultHotkey) }}
+                  } @else {
+                    <span class="no-hotkey">Not assigned</span>
+                  }
+                </button>
+                @if (action.defaultHotkey) {
+                  <button
+                    class="btn-clear"
+                    (click)="clearHotkey(action.id)"
+                    title="Clear hotkey"
+                  >
+                    ✕
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="no-results">
+        <p>No hotkeys found matching "{{ searchQuery() }}"</p>
+      </div>
+    }
+  </div>
+</div>

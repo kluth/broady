@@ -1,0 +1,10 @@
+{
+  "projects": {
+    "default": "broady",
+    "development": "broady-dev",
+    "staging": "broady-staging",
+    "production": "broady-prod"
+  },
+  "targets": {},
+  "etags": {}
+}

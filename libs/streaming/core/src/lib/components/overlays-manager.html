@@ -1,0 +1,308 @@
+<div class="overlays-manager">
+  <!-- Header -->
+  <div class="overlays-header">
+    <h3>🎨 Stream Overlays</h3>
+    <div class="overlays-stats">
+      <span class="stat">Total: {{ totalOverlays() }}</span>
+      <span class="stat">Visible: {{ visibleOverlays().length }}</span>
+    </div>
+    <div class="overlays-actions">
+      <button class="btn-icon" (click)="showPresetsDialog.set(true)" title="Load Preset">
+        📦
+      </button>
+      <button class="btn-icon" (click)="exportOverlays()" title="Export">
+        💾
+      </button>
+      <button class="btn-icon" (click)="showAddDialog.set(true)" title="Add Overlay">
+        ➕
+      </button>
+    </div>
+  </div>
+
+  <!-- Overlays List -->
+  <div class="overlays-list">
+    @if (totalOverlays() === 0) {
+      <div class="empty-state">
+        <p>No overlays yet</p>
+        <button class="btn-primary" (click)="showAddDialog.set(true)">
+          Add Your First Overlay
+        </button>
+      </div>
+    } @else {
+      @for (overlay of overlays(); track overlay.id) {
+        <div
+          class="overlay-item"
+          [class.selected]="selectedOverlayId() === overlay.id"
+          [class.hidden]="!overlay.visible"
+          (click)="selectedOverlayId.set(overlay.id)">
+          <span class="overlay-icon">{{ getOverlayIcon(overlay.type) }}</span>
+          <div class="overlay-info">
+            <div class="overlay-name">{{ overlay.name }}</div>
+            <div class="overlay-details">
+              {{ overlay.width }}x{{ overlay.height }} | Z:{{ overlay.zIndex }}
+            </div>
+          </div>
+          <div class="overlay-controls">
+            <button
+              class="btn-tiny"
+              (click)="toggleVisibility(overlay.id); $event.stopPropagation()"
+              [title]="overlay.visible ? 'Hide' : 'Show'">
+              {{ overlay.visible ? '👁️' : '👁️‍🗨️' }}
+            </button>
+            <button
+              class="btn-tiny"
+              (click)="toggleLock(overlay.id); $event.stopPropagation()"
+              [title]="overlay.locked ? 'Unlock' : 'Lock'">
+              {{ overlay.locked ? '🔒' : '🔓' }}
+            </button>
+            <button
+              class="btn-tiny"
+              (click)="duplicateOverlay(overlay.id); $event.stopPropagation()"
+              title="Duplicate">
+              📋
+            </button>
+            <button
+              class="btn-tiny"
+              (click)="removeOverlay(overlay.id); $event.stopPropagation()"
+              title="Remove">
+              🗑️
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Properties Editor -->
+  @if (selectedOverlay(); as overlay) {
+    <div class="properties-editor">
+      <div class="properties-header">
+        <h4>{{ overlay.name }} Properties</h4>
+        <div class="layer-controls">
+          <button class="btn-tiny" (click)="moveUp(overlay.id)" title="Move Up">⬆️</button>
+          <button class="btn-tiny" (click)="moveDown(overlay.id)" title="Move Down">⬇️</button>
+        </div>
+      </div>
+
+      <div class="properties-content">
+        <!-- Name -->
+        <div class="property-group">
+          <label>Name</label>
+          <input
+            type="text"
+            class="property-input"
+            [value]="overlay.name"
+            (input)="updateOverlay(overlay.id, { name: $any($event.target).value })">
+        </div>
+
+        <!-- Position -->
+        <div class="property-row">
+          <div class="property-group">
+            <label>X (%)</label>
+            <input
+              type="number"
+              class="property-input"
+              [value]="overlay.x"
+              (input)="updateOverlay(overlay.id, { x: +$any($event.target).value })"
+              min="0"
+              max="100"
+              step="1">
+          </div>
+          <div class="property-group">
+            <label>Y (%)</label>
+            <input
+              type="number"
+              class="property-input"
+              [value]="overlay.y"
+              (input)="updateOverlay(overlay.id, { y: +$any($event.target).value })"
+              min="0"
+              max="100"
+              step="1">
+          </div>
+        </div>
+
+        <!-- Size -->
+        <div class="property-row">
+          <div class="property-group">
+            <label>Width (px)</label>
+            <input
+              type="number"
+              class="property-input"
+              [value]="overlay.width"
+              (input)="updateOverlay(overlay.id, { width: +$any($event.target).value })"
+              min="10"
+              max="2000"
+              step="10">
+          </div>
+          <div class="property-group">
+            <label>Height (px)</label>
+            <input
+              type="number"
+              class="property-input"
+              [value]="overlay.height"
+              (input)="updateOverlay(overlay.id, { height: +$any($event.target).value })"
+              min="10"
+              max="2000"
+              step="10">
+          </div>
+        </div>
+
+        <!-- Opacity -->
+        <div class="property-group">
+          <label>Opacity</label>
+          <div class="range-control">
+            <input
+              type="range"
+              class="property-range"
+              [value]="overlay.opacity"
+              (input)="updateOverlay(overlay.id, { opacity: +$any($event.target).value })"
+              min="0"
+              max="1"
+              step="0.1">
+            <span class="range-value">{{ (overlay.opacity * 100).toFixed(0) }}%</span>
+          </div>
+        </div>
+
+        <!-- Rotation -->
+        <div class="property-group">
+          <label>Rotation (deg)</label>
+          <div class="range-control">
+            <input
+              type="range"
+              class="property-range"
+              [value]="overlay.rotation"
+              (input)="updateOverlay(overlay.id, { rotation: +$any($event.target).value })"
+              min="0"
+              max="360"
+              step="15">
+            <span class="range-value">{{ overlay.rotation }}°</span>
+          </div>
+        </div>
+
+        <!-- Type-Specific Properties -->
+        @if (overlay.type === 'text' || overlay.type === 'timer' || overlay.type === 'scoreboard') {
+          <div class="property-group">
+            <label>Content</label>
+            <textarea
+              class="property-textarea"
+              [value]="overlay.content || ''"
+              (input)="updateOverlay(overlay.id, { content: $any($event.target).value })"
+              rows="3"></textarea>
+          </div>
+
+          <div class="property-group">
+            <label>Font Size (px)</label>
+            <input
+              type="number"
+              class="property-input"
+              [value]="overlay.fontSize || 24"
+              (input)="updateOverlay(overlay.id, { fontSize: +$any($event.target).value })"
+              min="8"
+              max="120"
+              step="2">
+          </div>
+
+          <div class="property-row">
+            <div class="property-group">
+              <label>Text Color</label>
+              <input
+                type="color"
+                class="property-color"
+                [value]="overlay.fontColor || '#FFFFFF'"
+                (input)="updateOverlay(overlay.id, { fontColor: $any($event.target).value })">
+            </div>
+            <div class="property-group">
+              <label>Background</label>
+              <input
+                type="color"
+                class="property-color"
+                [value]="overlay.backgroundColor || '#000000'"
+                (input)="updateOverlay(overlay.id, { backgroundColor: $any($event.target).value })">
+            </div>
+          </div>
+
+          <div class="property-group">
+            <label>Border Radius (px)</label>
+            <input
+              type="number"
+              class="property-input"
+              [value]="overlay.borderRadius || 0"
+              (input)="updateOverlay(overlay.id, { borderRadius: +$any($event.target).value })"
+              min="0"
+              max="50"
+              step="2">
+          </div>
+        }
+
+        @if (overlay.type === 'image' || overlay.type === 'video' || overlay.type === 'browser') {
+          <div class="property-group">
+            <label>URL</label>
+            <input
+              type="text"
+              class="property-input"
+              [value]="overlay.url || ''"
+              (input)="updateOverlay(overlay.id, { url: $any($event.target).value })"
+              placeholder="https://...">
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Add Overlay Dialog -->
+  @if (showAddDialog()) {
+    <div class="dialog-overlay" (click)="showAddDialog.set(false)">
+      <div class="dialog-panel" (click)="$event.stopPropagation()">
+        <div class="dialog-header">
+          <h4>Add Overlay</h4>
+          <button class="btn-close" (click)="showAddDialog.set(false)">✕</button>
+        </div>
+
+        <div class="dialog-content">
+          <div class="overlay-types-grid">
+            @for (type of ['webcam', 'text', 'image', 'video', 'browser', 'alertbox', 'chatbox', 'timer', 'scoreboard', 'logo']; track type) {
+              <button
+                class="overlay-type-btn"
+                (click)="addOverlayByType(type)">
+                <span class="type-icon">{{ getOverlayIcon(type) }}</span>
+                <span class="type-name">{{ getOverlayTypeName(type) }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Presets Dialog -->
+  @if (showPresetsDialog()) {
+    <div class="dialog-overlay" (click)="showPresetsDialog.set(false)">
+      <div class="dialog-panel large" (click)="$event.stopPropagation()">
+        <div class="dialog-header">
+          <h4>Overlay Presets</h4>
+          <button class="btn-close" (click)="showPresetsDialog.set(false)">✕</button>
+        </div>
+
+        <div class="dialog-content">
+          <div class="presets-grid">
+            @for (preset of presets; track preset.name) {
+              <div class="preset-card" (click)="applyPreset(preset)">
+                <h5>{{ preset.name }}</h5>
+                <p>{{ preset.description }}</p>
+                <div class="preset-info">
+                  {{ preset.overlays.length }} overlays
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (totalOverlays() > 0) {
+            <div class="preset-warning">
+              <p>⚠️ Applying a preset will replace all current overlays</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

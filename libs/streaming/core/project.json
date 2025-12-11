@@ -1,0 +1,13 @@
+{
+  "name": "streaming-core",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/core/src",
+  "prefix": "streaming",
+  "projectType": "library",
+  "tags": ["streaming", "core"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

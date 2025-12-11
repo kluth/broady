@@ -1,0 +1,316 @@
+/* OBS-Style Studio Layout */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #111;
+  color: #fff;
+  overflow: hidden;
+}
+
+.studio-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #0d0d0d;
+}
+
+/* Header */
+.studio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: #1a1a1a;
+  border-bottom: 1px solid #333;
+  z-index: 100;
+}
+
+.studio-header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2a7fff;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-header {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-header:hover {
+  background: #2a2a2a;
+  border-color: #444;
+}
+
+/* Main Content Area */
+.studio-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Preview Area */
+.preview-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  min-width: 0;
+  position: relative;
+}
+
+.preview-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.preview-overlay > * {
+  pointer-events: auto;
+}
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0.5rem;
+}
+
+.preview-screen {
+  flex: 1;
+  background: #000;
+  border: 2px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.preview-placeholder {
+  text-align: center;
+  color: #666;
+}
+
+.preview-placeholder h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #444;
+}
+
+.preview-placeholder p {
+  font-size: 1rem;
+  color: #555;
+}
+
+.preview-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem;
+  background: #1a1a1a;
+  border-radius: 6px;
+}
+
+.btn-preview {
+  padding: 0.5rem 1rem;
+  background: #2a2a2a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.btn-preview:hover {
+  background: #333;
+}
+
+.preview-resolution {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: #888;
+  font-family: 'Courier New', monospace;
+}
+
+/* Side Panel */
+.side-panel {
+  width: 400px;
+  background: #0d0d0d;
+  border-left: 1px solid #222;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Panel Tabs */
+.panel-tabs {
+  display: flex;
+  background: #1a1a1a;
+  border-bottom: 1px solid #222;
+  overflow-x: auto;
+  gap: 0.25rem;
+  padding: 0.5rem;
+}
+
+.tab-btn {
+  padding: 0.6rem 1rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: #fff;
+}
+
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.panel-section {
+  border-bottom: 1px solid #222;
+}
+
+.panel-section.full-height {
+  height: 100%;
+  border-bottom: none;
+}
+
+.panel-section h3 {
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background: #1a1a1a;
+  border-bottom: 1px solid #222;
+}
+
+.sources-list {
+  padding: 1rem;
+}
+
+.empty-text {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.btn-add-source {
+  width: 100%;
+  padding: 0.75rem;
+  background: #2a7fff;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-add-source:hover {
+  background: #1e5fd9;
+}
+
+/* Footer Controls */
+.studio-footer {
+  background: #0d0d0d;
+  border-top: 1px solid #222;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d0d0d;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .side-panel {
+    width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .studio-content {
+    flex-direction: column;
+  }
+
+  .side-panel {
+    width: 100%;
+    max-height: 40vh;
+    border-left: none;
+    border-top: 1px solid #222;
+  }
+
+  .preview-area {
+    max-height: 60vh;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.studio-container {
+  animation: fadeIn 0.3s ease-out;
+}
