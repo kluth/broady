@@ -42,6 +42,8 @@ import {
   GameAPIService,
   GameOverlayService,
   GameIntegrationComponent,
+  BettingService,
+  BettingSystemComponent,
 } from '@org/streaming-core';
 
 @Component({
@@ -63,6 +65,7 @@ import {
     WorkflowBuilderComponent,
     ScriptEditorComponent,
     GameIntegrationComponent,
+    BettingSystemComponent,
   ],
   selector: 'app-root',
   templateUrl: './app.html',
@@ -74,7 +77,7 @@ export class App {
     'sources' | 'overlays' | 'multistream' | 'alerts' | 'chat' | 'stats' |
     'cloud' | 'ai' | 'music' | 'health' | 'engagement' | 'moderation' |
     'analytics' | 'clips' | 'tts' | 'sounds' | 'templates' | 'chroma' |
-    'lowerthirds' | 'ndi' | 'aibackground' | 'automation' | 'scripting' | 'games'
+    'lowerthirds' | 'ndi' | 'aibackground' | 'automation' | 'scripting' | 'games' | 'betting'
   >('sources');
 
   // Inject core services
@@ -112,6 +115,9 @@ export class App {
   protected gameDetection = inject(GameDetectionService);
   protected gameAPI = inject(GameAPIService);
   protected gameOverlay = inject(GameOverlayService);
+
+  // Wave 5 feature services (Betting System)
+  protected betting = inject(BettingService);
 
   // Core service state
   readonly isCloudConnected = this.firebase.isAuthenticated;
@@ -158,4 +164,9 @@ export class App {
   readonly steamConnected = this.gameAPI.steamConnected;
   readonly riotConnected = this.gameAPI.riotConnected;
   readonly gameOverlays = this.gameOverlay.overlays;
+
+  // Wave 5 feature state (Betting System)
+  readonly activeBets = this.betting.activeBets;
+  readonly bettingLeaderboard = this.betting.leaderboard;
+  readonly bettingStats = this.betting.statistics;
 }
