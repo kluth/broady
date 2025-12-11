@@ -434,19 +434,31 @@ export class FirebaseEnhancedService {
 
   private initializeAppCheck(): void {
     if (!this.firebaseApp) return;
-    // Assume reCAPTCHA site key is in environment or config
-    const recaptchaSiteKey = 'YOUR_RECAPTCHA_SITE_KEY'; // TODO: Replace with actual key
-    if (!recaptchaSiteKey || recaptchaSiteKey === 'YOUR_RECAPTCHA_SITE_KEY') {
+
+    // Get reCAPTCHA site key from localStorage or environment
+    const recaptchaSiteKey = localStorage.getItem('recaptcha_site_key') ||
+                              (typeof process !== 'undefined' && process.env?.['RECAPTCHA_SITE_KEY']) ||
+                              '';
+
+    if (!recaptchaSiteKey) {
       console.warn('reCAPTCHA site key not provided for App Check. App Check will not be fully functional.');
+      console.info('To enable App Check, add your reCAPTCHA v3 site key:');
+      console.info('1. Get a key from https://www.google.com/recaptcha/admin');
+      console.info('2. Store it in localStorage: localStorage.setItem("recaptcha_site_key", "YOUR_KEY")');
+      console.info('3. Or add RECAPTCHA_SITE_KEY to your environment variables');
       return;
     }
 
-    this.appCheckService = initializeAppCheck(this.firebaseApp, {
-      provider: new ReCaptchaV3Provider(recaptchaSiteKey),
-      isTokenAutoRefreshEnabled: true
-    });
-    console.log('Firebase App Check initialized');
-    this.refreshAppCheckToken();
+    try {
+      this.appCheckService = initializeAppCheck(this.firebaseApp, {
+        provider: new ReCaptchaV3Provider(recaptchaSiteKey),
+        isTokenAutoRefreshEnabled: true
+      });
+      console.log('Firebase App Check initialized successfully');
+      this.refreshAppCheckToken();
+    } catch (error) {
+      console.error('Failed to initialize App Check:', error);
+    }
   }
 
   async refreshAppCheckToken(): Promise<AppCheckToken> {

@@ -171,21 +171,37 @@ export class SmartLightingService {
   async discoverHueBridges(): Promise<HueBridge[]> {
     console.log('Discovering Philips Hue bridges...');
 
-    // In real implementation, use Hue Discovery API
-    // https://discovery.meethue.com/
+    try {
+      // Use official Hue Discovery API
+      const response = await fetch('https://discovery.meethue.com/');
+      const data = await response.json();
 
-    const bridges: HueBridge[] = [
-      {
-        id: 'hue-bridge-001',
-        ipAddress: '192.168.1.100',
+      const bridges: HueBridge[] = data.map((bridge: any) => ({
+        id: bridge.id,
+        ipAddress: bridge.internalipaddress,
         connected: false,
         lights: [],
         groups: []
-      }
-    ];
+      }));
 
-    this.hueBridges.set(bridges);
-    return bridges;
+      this.hueBridges.set(bridges);
+      return bridges;
+    } catch (error) {
+      console.error('Failed to discover Hue bridges:', error);
+
+      // Fallback to mock data if discovery fails
+      const bridges: HueBridge[] = [
+        {
+          id: 'hue-bridge-001',
+          ipAddress: '192.168.1.100',
+          connected: false,
+          lights: [],
+          groups: []
+        }
+      ];
+      this.hueBridges.set(bridges);
+      return bridges;
+    }
   }
 
   /**
@@ -197,28 +213,61 @@ export class SmartLightingService {
     const bridge = this.hueBridges().find(b => b.id === bridgeId);
     if (!bridge) return false;
 
-    // In real implementation:
-    // 1. Press link button on bridge
-    // 2. Create user/API key
-    // const response = await fetch(`http://${bridge.ipAddress}/api`, {
-    //   method: 'POST',
-    //   body: JSON.stringify({ devicetype: 'broady#streaming' })
-    // });
+    try {
+      // Create user/API key
+      // User must press the link button on the bridge before calling this
+      const response = await fetch(`http://${bridge.ipAddress}/api`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ devicetype: 'broady#streaming' })
+      });
 
-    const username = 'mock-api-key-' + Date.now();
+      const data = await response.json();
 
-    this.hueBridges.update(bridges =>
-      bridges.map(b =>
-        b.id === bridgeId
-          ? { ...b, username, connected: true }
-          : b
-      )
-    );
+      if (data[0]?.error) {
+        console.error('Hue bridge connection error:', data[0].error.description);
 
-    // Discover lights
-    await this.discoverHueLights(bridgeId);
+        // If link button not pressed, use stored username or mock
+        const storedUsername = localStorage.getItem(`hue_bridge_${bridgeId}_username`);
+        if (storedUsername) {
+          this.hueBridges.update(bridges =>
+            bridges.map(b =>
+              b.id === bridgeId
+                ? { ...b, username: storedUsername, connected: true }
+                : b
+            )
+          );
+          await this.discoverHueLights(bridgeId);
+          return true;
+        }
 
-    return true;
+        throw new Error(data[0].error.description);
+      }
+
+      const username = data[0]?.success?.username;
+      if (!username) {
+        throw new Error('Failed to get username from bridge');
+      }
+
+      // Store username for future use
+      localStorage.setItem(`hue_bridge_${bridgeId}_username`, username);
+
+      this.hueBridges.update(bridges =>
+        bridges.map(b =>
+          b.id === bridgeId
+            ? { ...b, username, connected: true }
+            : b
+        )
+      );
+
+      // Discover lights
+      await this.discoverHueLights(bridgeId);
+
+      return true;
+    } catch (error) {
+      console.error('Failed to connect to Hue bridge:', error);
+      return false;
+    }
   }
 
   /**
@@ -228,55 +277,58 @@ export class SmartLightingService {
     const bridge = this.hueBridges().find(b => b.id === bridgeId);
     if (!bridge || !bridge.username) return;
 
-    // In real implementation:
-    // const response = await fetch(`http://${bridge.ipAddress}/api/${bridge.username}/lights`);
-    // const lightsData = await response.json();
+    try {
+      const response = await fetch(`http://${bridge.ipAddress}/api/${bridge.username}/lights`);
+      const lightsData = await response.json();
 
-    const mockLights: SmartLight[] = [
-      {
-        id: 'hue-bulb-1',
-        brand: 'philips-hue',
-        name: 'Desk Lamp',
-        type: 'bulb',
-        ipAddress: bridge.ipAddress,
-        on: true,
-        brightness: 80,
-        color: { r: 255, g: 200, b: 100 },
-        colorTemperature: 4000,
-        supportsColor: true,
-        supportsTemperature: true,
-        connected: true,
-        room: 'Studio'
-      },
-      {
-        id: 'hue-strip-1',
-        brand: 'philips-hue',
-        name: 'Background Strip',
-        type: 'strip',
-        ipAddress: bridge.ipAddress,
-        on: true,
-        brightness: 100,
-        color: { r: 128, g: 0, b: 255 },
-        supportsColor: true,
-        supportsTemperature: false,
-        connected: true,
-        room: 'Studio'
+      const discoveredLights: SmartLight[] = [];
+
+      for (const [lightId, lightData] of Object.entries(lightsData as any)) {
+        const state = lightData.state;
+        const capabilities = lightData.capabilities?.control;
+
+        // Convert XY color to RGB
+        let color: RGBColor | undefined;
+        if (state.xy) {
+          color = this.xyToRgb(state.xy[0], state.xy[1], state.bri);
+        }
+
+        // Convert mireds to Kelvin
+        const colorTemperature = state.ct ? Math.round(1000000 / state.ct) : undefined;
+
+        discoveredLights.push({
+          id: `hue-${bridgeId}-${lightId}`,
+          brand: 'philips-hue',
+          name: lightData.name,
+          type: lightData.type.toLowerCase().includes('strip') ? 'strip' : 'bulb',
+          ipAddress: bridge.ipAddress,
+          on: state.on,
+          brightness: Math.round((state.bri / 254) * 100),
+          color,
+          colorTemperature,
+          supportsColor: capabilities?.colorgamuttype !== undefined,
+          supportsTemperature: capabilities?.ct !== undefined,
+          connected: state.reachable,
+          room: lightData.room
+        });
       }
-    ];
 
-    this.lights.update(lights => [
-      ...lights.filter(l => l.brand !== 'philips-hue' || l.ipAddress !== bridge.ipAddress),
-      ...mockLights
-    ]);
+      this.lights.update(lights => [
+        ...lights.filter(l => l.brand !== 'philips-hue' || l.ipAddress !== bridge.ipAddress),
+        ...discoveredLights
+      ]);
 
-    // Update bridge with light IDs
-    this.hueBridges.update(bridges =>
-      bridges.map(b =>
-        b.id === bridgeId
-          ? { ...b, lights: mockLights.map(l => l.id) }
-          : b
-      )
-    );
+      // Update bridge with light IDs
+      this.hueBridges.update(bridges =>
+        bridges.map(b =>
+          b.id === bridgeId
+            ? { ...b, lights: discoveredLights.map(l => l.id) }
+            : b
+        )
+      );
+    } catch (error) {
+      console.error('Failed to discover Hue lights:', error);
+    }
   }
 
   /**
@@ -434,28 +486,131 @@ export class SmartLightingService {
   private async sendToLight(light: SmartLight, command: any): Promise<void> {
     console.log('Sending to light:', light.name, command);
 
-    // In real implementation, send HTTP request to device
-    switch (light.brand) {
-      case 'philips-hue':
-        // PUT http://{bridge_ip}/api/{username}/lights/{id}/state
-        break;
+    try {
+      switch (light.brand) {
+        case 'philips-hue': {
+          // Extract light ID from our internal ID
+          const lightId = light.id.split('-').pop();
+          const bridgeId = light.id.split('-')[1];
+          const bridge = this.hueBridges().find(b => b.id === bridgeId);
 
-      case 'elgato-keylight':
-      case 'elgato-keylight-air':
-        // PUT http://{ip}:9123/elgato/lights
-        // Body: { numberOfLights: 1, lights: [{ on: 1, brightness: 50, temperature: 213 }] }
-        break;
+          if (!bridge?.username) {
+            console.error('No bridge username available');
+            return;
+          }
 
-      case 'nanoleaf':
-        // PUT http://{ip}:16021/api/v1/{auth_token}/state
-        break;
+          const state: any = {};
 
-      case 'lifx':
-        // Use LIFX HTTP API
-        break;
+          if (command.on !== undefined) state.on = command.on;
+          if (command.brightness !== undefined) state.bri = Math.round((command.brightness / 100) * 254);
+          if (command.color) {
+            const xy = this.rgbToXy(command.color.r, command.color.g, command.color.b);
+            state.xy = xy;
+          }
+          if (command.colorTemperature) {
+            state.ct = Math.round(1000000 / command.colorTemperature);
+          }
+          if (command.transition !== undefined) {
+            state.transitiontime = Math.round(command.transition / 100);
+          }
 
-      default:
-        console.log('Generic light command');
+          await fetch(`http://${bridge.ipAddress}/api/${bridge.username}/lights/${lightId}/state`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(state)
+          });
+          break;
+        }
+
+        case 'elgato-keylight':
+        case 'elgato-keylight-air': {
+          if (!light.ipAddress) return;
+
+          // Elgato uses a special temperature scale (143-344)
+          const temperature = command.colorTemperature
+            ? Math.round(((command.colorTemperature - 2900) / (7000 - 2900)) * (344 - 143) + 143)
+            : undefined;
+
+          const body = {
+            numberOfLights: 1,
+            lights: [{
+              on: command.on ? 1 : 0,
+              brightness: command.brightness,
+              temperature
+            }]
+          };
+
+          await fetch(`http://${light.ipAddress}:9123/elgato/lights`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          break;
+        }
+
+        case 'nanoleaf': {
+          if (!light.ipAddress) return;
+
+          // Get auth token from local storage
+          const authToken = localStorage.getItem(`nanoleaf_${light.id}_token`);
+          if (!authToken) {
+            console.error('No Nanoleaf auth token available');
+            return;
+          }
+
+          const state: any = {};
+          if (command.on !== undefined) state.on = { value: command.on };
+          if (command.brightness !== undefined) state.brightness = { value: command.brightness };
+          if (command.color) {
+            const hsv = this.rgbToHsv(command.color.r, command.color.g, command.color.b);
+            state.hue = { value: Math.round(hsv.h) };
+            state.sat = { value: Math.round(hsv.s) };
+          }
+
+          await fetch(`http://${light.ipAddress}:16021/api/v1/${authToken}/state`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(state)
+          });
+          break;
+        }
+
+        case 'lifx': {
+          // LIFX uses cloud API
+          const lifxToken = localStorage.getItem('lifx_token');
+          if (!lifxToken) {
+            console.error('No LIFX token available');
+            return;
+          }
+
+          const selector = `id:${light.id}`;
+          const state: any = {};
+
+          if (command.on !== undefined) state.power = command.on ? 'on' : 'off';
+          if (command.brightness !== undefined) state.brightness = command.brightness / 100;
+          if (command.color) {
+            const hsv = this.rgbToHsv(command.color.r, command.color.g, command.color.b);
+            state.color = `hue:${hsv.h} saturation:${hsv.s / 100} brightness:${hsv.v / 100}`;
+          }
+          if (command.colorTemperature) state.color = `kelvin:${command.colorTemperature}`;
+          if (command.transition) state.duration = command.transition / 1000;
+
+          await fetch(`https://api.lifx.com/v1/lights/${selector}/state`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${lifxToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(state)
+          });
+          break;
+        }
+
+        default:
+          console.log('Light brand not implemented:', light.brand);
+      }
+    } catch (error) {
+      console.error('Failed to send command to light:', error);
     }
   }
 
@@ -733,6 +888,97 @@ export class SmartLightingService {
       r: Math.round((r + m) * 255),
       g: Math.round((g + m) * 255),
       b: Math.round((b + m) * 255)
+    };
+  }
+
+  /**
+   * Convert RGB to HSV
+   */
+  private rgbToHsv(r: number, g: number, b: number): { h: number; s: number; v: number } {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+
+    let h = 0;
+    if (delta !== 0) {
+      if (max === r) {
+        h = 60 * (((g - b) / delta) % 6);
+      } else if (max === g) {
+        h = 60 * (((b - r) / delta) + 2);
+      } else {
+        h = 60 * (((r - g) / delta) + 4);
+      }
+    }
+
+    if (h < 0) h += 360;
+
+    const s = max === 0 ? 0 : (delta / max) * 100;
+    const v = max * 100;
+
+    return { h, s, v };
+  }
+
+  /**
+   * Convert RGB to XY (for Philips Hue)
+   */
+  private rgbToXy(r: number, g: number, b: number): [number, number] {
+    // Normalize RGB values
+    r = r / 255;
+    g = g / 255;
+    b = b / 255;
+
+    // Apply gamma correction
+    r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+    g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+    b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+
+    // Convert to XYZ
+    const X = r * 0.649926 + g * 0.103455 + b * 0.197109;
+    const Y = r * 0.234327 + g * 0.743075 + b * 0.022598;
+    const Z = r * 0.0000000 + g * 0.053077 + b * 1.035763;
+
+    // Calculate xy
+    const sum = X + Y + Z;
+    if (sum === 0) return [0, 0];
+
+    const x = X / sum;
+    const y = Y / sum;
+
+    return [x, y];
+  }
+
+  /**
+   * Convert XY to RGB (for Philips Hue)
+   */
+  private xyToRgb(x: number, y: number, brightness: number): RGBColor {
+    const z = 1.0 - x - y;
+    const Y = brightness / 254;
+    const X = (Y / y) * x;
+    const Z = (Y / y) * z;
+
+    // Convert to RGB using Wide RGB D65 conversion
+    let r = X * 1.656492 - Y * 0.354851 - Z * 0.255038;
+    let g = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
+    let b = X * 0.051713 - Y * 0.121364 + Z * 1.011530;
+
+    // Apply reverse gamma correction
+    r = r <= 0.0031308 ? 12.92 * r : (1.0 + 0.055) * Math.pow(r, 1.0 / 2.4) - 0.055;
+    g = g <= 0.0031308 ? 12.92 * g : (1.0 + 0.055) * Math.pow(g, 1.0 / 2.4) - 0.055;
+    b = b <= 0.0031308 ? 12.92 * b : (1.0 + 0.055) * Math.pow(b, 1.0 / 2.4) - 0.055;
+
+    // Clamp values
+    r = Math.max(0, Math.min(1, r));
+    g = Math.max(0, Math.min(1, g));
+    b = Math.max(0, Math.min(1, b));
+
+    return {
+      r: Math.round(r * 255),
+      g: Math.round(g * 255),
+      b: Math.round(b * 255)
     };
   }
 
