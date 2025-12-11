@@ -43,10 +43,13 @@ export * from './lib/services/ndi.service';
 export * from './lib/services/background-removal.service';
 export * from './lib/services/automation.service';
 export * from './lib/services/scripting.service';
+export * from './lib/services/script-variables.service';
 export * from './lib/services/game-detection.service';
 export * from './lib/services/game-api.service';
 export * from './lib/services/game-overlay.service';
 export * from './lib/services/betting.service';
+export * from './lib/services/channel-rewards.service';
+export * from './lib/services/chat-minigames.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';
