@@ -14,7 +14,7 @@ import { PokemonTcgService, PokemonCard } from './pokemon-tcg.service';
  * - !cardhelp - Show available card commands
  */
 
-export interface ChatCommand {
+export interface CardChatCommand {
   command: string;
   description: string;
   usage: string;
@@ -44,7 +44,7 @@ export class CardChatCommandsService {
     timestamp: Date;
   } | null>(null);
 
-  private commands: Map<string, ChatCommand> = new Map();
+  private commands: Map<string, CardChatCommand> = new Map();
 
   constructor() {
     this.registerCommands();
@@ -229,7 +229,7 @@ export class CardChatCommandsService {
   /**
    * Get all available commands
    */
-  getAvailableCommands(): ChatCommand[] {
+  getAvailableCommands(): CardChatCommand[] {
     return Array.from(this.commands.values());
   }
 

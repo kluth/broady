@@ -278,7 +278,10 @@ export class PluginLoaderService {
    * Create restricted fetch for plugins
    */
   private createRestrictedFetch(manifest: PluginManifest): typeof fetch {
-    return async (url: string, init?: RequestInit) => {
+    return async (input: RequestInfo | URL, init?: RequestInit) => {
+      // Convert input to string for validation
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : (input as Request).url;
+
       // Only allow HTTPS requests
       if (!url.startsWith('https://')) {
         throw new Error('Only HTTPS requests are allowed');
@@ -288,7 +291,7 @@ export class PluginLoaderService {
       const headers = new Headers(init?.headers);
       headers.set('User-Agent', `StreamingStudio-Plugin/${manifest.id}/${manifest.version}`);
 
-      return fetch(url, {
+      return fetch(input, {
         ...init,
         headers
       });

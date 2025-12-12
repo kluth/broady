@@ -1,7 +1,8 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { AIService } from './ai.service';
 import * as tf from '@tensorflow/tfjs';
-import * as toxicity from '@tensorflow-models/toxicity';
+// TODO: Re-enable when compatible toxicity model is available
+// import * as toxicity from '@tensorflow-models/toxicity';
 
 /**
  * Chat Moderation Service
@@ -87,7 +88,8 @@ export class ChatModerationService {
   // Spam detection state
   private messageHistory = new Map<string, string[]>();
   private messageCounts = new Map<string, number>();
-  private toxicityModel: toxicity.ToxicityClassifier | null = null;
+  // TODO: Re-enable when compatible toxicity model is available
+  private toxicityModel: any | null = null;
 
   constructor() {
     this.loadToxicityModel();
@@ -95,9 +97,10 @@ export class ChatModerationService {
 
   private async loadToxicityModel() {
     try {
+      // TODO: Re-enable when compatible toxicity model is available
       // Threshold of 0.7
-      this.toxicityModel = await toxicity.load(0.7, []);
-      console.log('Toxicity model loaded');
+      // this.toxicityModel = await toxicity.load(0.7, []);
+      console.log('Toxicity model temporarily disabled - using rule-based moderation');
     } catch (error) {
       console.error('Failed to load toxicity model:', error);
     }
@@ -240,7 +243,7 @@ export class ChatModerationService {
         const categories: any = {};
         let maxScore = 0;
 
-        predictions.forEach(prediction => {
+        predictions.forEach((prediction: any) => {
           const probability = prediction.results[0].probabilities[1]; // probability of being true (toxic)
           categories[prediction.label] = probability;
           if (probability > maxScore) maxScore = probability;

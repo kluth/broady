@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { StreamingService } from './streaming.service';
 import { GameDetectionService } from './game-detection.service';
 import { ViewerEngagementService } from './viewer-engagement.service';
@@ -306,10 +306,12 @@ export class StreamChatbotService {
    */
   private setupStreamListeners(): void {
     // Listen for stream start
-    this.streaming.status.subscribe(status => {
-      if (status === 'live' && !this.streamStartTime) {
+    // Note: Using effect to track stream state changes
+    effect(() => {
+      const isStreaming = this.streaming.isStreaming();
+      if (isStreaming && !this.streamStartTime) {
         this.streamStartTime = new Date();
-      } else if (status === 'offline') {
+      } else if (!isStreaming) {
         this.streamStartTime = null;
       }
     });
@@ -519,14 +521,16 @@ export class StreamChatbotService {
    * Get viewer count
    */
   private getViewerCount(): number {
-    return this.viewerEngagement.analytics().currentViewers || 0;
+    // TODO: Implement viewer count tracking
+    return 0;
   }
 
   /**
    * Get follower count
    */
   private getFollowerCount(): number {
-    return this.viewerEngagement.analytics().totalFollowers || 0;
+    // TODO: Implement follower count tracking
+    return 0;
   }
 
   /**

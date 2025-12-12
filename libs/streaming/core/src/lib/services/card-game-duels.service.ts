@@ -7,7 +7,7 @@ import { PokemonTcgService, PokemonCard } from './pokemon-tcg.service';
  * Allows viewers to duel each other in Lorcana or Pokémon TCG in chat
  */
 
-export type GameType = 'lorcana' | 'pokemon';
+export type CardGameType = 'lorcana' | 'pokemon';
 export type DuelState = 'waiting' | 'active' | 'finished';
 export type TurnPhase = 'draw' | 'main' | 'attack' | 'end';
 
@@ -36,7 +36,7 @@ export interface DuelCard {
 
 export interface Duel {
   id: string;
-  gameType: GameType;
+  gameType: CardGameType;
   challenger: Player;
   opponent: Player;
   currentTurn: 'challenger' | 'opponent';
@@ -53,7 +53,7 @@ export interface DuelChallenge {
   id: string;
   challenger: string;
   opponent: string;
-  gameType: GameType;
+  gameType: CardGameType;
   timestamp: Date;
   expiresAt: Date;
 }
@@ -80,7 +80,7 @@ export class CardGameDuelsService {
   /**
    * Challenge another player to a duel
    */
-  async challenge(challenger: string, opponent: string, gameType: GameType): Promise<string> {
+  async challenge(challenger: string, opponent: string, gameType: CardGameType): Promise<string> {
     // Check if user is already in a duel
     if (this.isPlayerInActiveDuel(challenger)) {
       return `${challenger}, you are already in an active duel!`;
@@ -161,7 +161,7 @@ export class CardGameDuelsService {
   /**
    * Create a new duel
    */
-  private async createDuel(challenger: string, opponent: string, gameType: GameType): Promise<Duel> {
+  private async createDuel(challenger: string, opponent: string, gameType: CardGameType): Promise<Duel> {
     const duel: Duel = {
       id: crypto.randomUUID(),
       gameType,
@@ -183,7 +183,7 @@ export class CardGameDuelsService {
   /**
    * Create a player with a random deck
    */
-  private async createPlayer(username: string, gameType: GameType): Promise<Player> {
+  private async createPlayer(username: string, gameType: CardGameType): Promise<Player> {
     const deck = await this.generateRandomDeck(gameType);
 
     const player: Player = {
@@ -209,7 +209,7 @@ export class CardGameDuelsService {
   /**
    * Generate a random deck
    */
-  private async generateRandomDeck(gameType: GameType): Promise<DuelCard[]> {
+  private async generateRandomDeck(gameType: CardGameType): Promise<DuelCard[]> {
     const deck: DuelCard[] = [];
 
     if (gameType === 'lorcana') {
@@ -496,14 +496,14 @@ export class CardGameDuelsService {
   /**
    * Forfeit duel
    */
-  forfeit(username: string): string {
+  async forfeit(username: string): Promise<string> {
     const duel = this.findPlayerDuel(username);
     if (!duel) {
       return `${username}, you are not in an active duel!`;
     }
 
     const opponent = this.getOpponent(duel, username);
-    return this.endDuel(duel, opponent.username, `${username} forfeited the match!`);
+    return await this.endDuel(duel, opponent.username, `${username} forfeited the match!`);
   }
 
   /**
