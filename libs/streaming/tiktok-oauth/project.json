@@ -1,0 +1,13 @@
+{
+  "name": "tiktok-oauth",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/tiktok-oauth/src",
+  "prefix": "tiktok",
+  "projectType": "library",
+  "tags": ["streaming", "oauth", "tiktok"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

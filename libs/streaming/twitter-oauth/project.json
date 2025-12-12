@@ -1,0 +1,13 @@
+{
+  "name": "twitter-oauth",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/twitter-oauth/src",
+  "prefix": "twitter",
+  "projectType": "library",
+  "tags": ["streaming", "oauth", "twitter"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

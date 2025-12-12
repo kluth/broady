@@ -1,0 +1,13 @@
+{
+  "name": "linkedin-oauth",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/linkedin-oauth/src",
+  "prefix": "linkedin",
+  "projectType": "library",
+  "tags": ["streaming", "oauth", "linkedin"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
