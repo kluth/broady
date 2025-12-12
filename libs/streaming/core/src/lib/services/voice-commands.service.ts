@@ -176,7 +176,7 @@ export class VoiceCommandsService {
     }));
   }
 
-  addCommand(phrase: string, action: string, confidence: number = 0.8, parameters?: Record<string, unknown>): void {
+  addCommand(phrase: string, action: string, confidence = 0.8, parameters?: Record<string, unknown>): void {
     const command: VoiceCommand = {
       id: crypto.randomUUID(),
       phrase: phrase.toLowerCase(),

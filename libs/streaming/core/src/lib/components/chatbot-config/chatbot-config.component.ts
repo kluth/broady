@@ -201,7 +201,7 @@ import { StreamChatbotService, ChatCommand, CommandCategory } from '../../servic
                     [(ngModel)]="newCommand.response"
                     placeholder="Your command response here..."
                     rows="3"></textarea>
-                  <mat-hint>Use placeholders: {user}, {uptime}, {viewers}, {game}</mat-hint>
+                  <mat-hint>Use placeholders: {{ '{' }}user{{ '}' }}, {{ '{' }}uptime{{ '}' }}, {{ '{' }}viewers{{ '}' }}, {{ '{' }}game{{ '}' }}</mat-hint>
                 </mat-form-field>
 
                 <div class="command-options">
@@ -296,7 +296,7 @@ import { StreamChatbotService, ChatCommand, CommandCategory } from '../../servic
                   matInput
                   [(ngModel)]="config().greetingMessage"
                   (change)="updateConfig()">
-                <mat-hint>Use {user} for the follower's name</mat-hint>
+                <mat-hint>Use {{ '{' }}user{{ '}' }} for the follower's name</mat-hint>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="full-width">
@@ -305,7 +305,7 @@ import { StreamChatbotService, ChatCommand, CommandCategory } from '../../servic
                   matInput
                   [(ngModel)]="config().subscriptionMessage"
                   (change)="updateConfig()">
-                <mat-hint>Use {user} for the subscriber's name</mat-hint>
+                <mat-hint>Use {{ '{' }}user{{ '}' }} for the subscriber's name</mat-hint>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="full-width">
@@ -314,7 +314,7 @@ import { StreamChatbotService, ChatCommand, CommandCategory } from '../../servic
                   matInput
                   [(ngModel)]="config().donationMessage"
                   (change)="updateConfig()">
-                <mat-hint>Use {user} and {amount}</mat-hint>
+                <mat-hint>Use {{ '{' }}user{{ '}' }} and {{ '{' }}amount{{ '}' }}</mat-hint>
               </mat-form-field>
             </div>
           </mat-tab>

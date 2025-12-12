@@ -1,4 +1,4 @@
-import { Component, signal, inject, computed } from '@angular/core';
+import { Component, signal, inject, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -729,7 +729,7 @@ import { PokemonTcgService, PokemonCard } from '../../services/pokemon-tcg.servi
     }
   `]
 })
-export class CardOverlayComponent {
+export class CardOverlayComponent implements OnInit {
   readonly lorcanaService = inject(LorcanaCardService);
   readonly pokemonService = inject(PokemonTcgService);
 

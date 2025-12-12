@@ -591,7 +591,7 @@ export class ProductionHardwareService {
   /**
    * Trigger effect
    */
-  triggerEffect(machineId: string, duration: number = 5000): void {
+  triggerEffect(machineId: string, duration = 5000): void {
     this.effectsMachines.update(machines =>
       machines.map(m =>
         m.id === machineId ? { ...m, on: true, intensity: 100 } : m

@@ -251,7 +251,7 @@ export class StreamActionsService {
   /**
    * Trigger screen shake effect
    */
-  triggerScreenShake(intensity: number = 10, duration: number = 500): void {
+  triggerScreenShake(intensity = 10, duration = 500): void {
     const element = document.body;
     const originalTransform = element.style.transform;
 
@@ -276,7 +276,7 @@ export class StreamActionsService {
   /**
    * Apply color filter effect
    */
-  applyColorEffect(effect: string, duration: number = 3000): void {
+  applyColorEffect(effect: string, duration = 3000): void {
     const element = document.body;
     const originalFilter = element.style.filter;
 

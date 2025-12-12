@@ -1062,7 +1062,7 @@ export class PremiumTemplatesService {
   /**
    * Get top rated
    */
-  getTopRated(limit: number = 10): PremiumTemplate[] {
+  getTopRated(limit = 10): PremiumTemplate[] {
     return [...this.templates()]
       .sort((a, b) => b.rating - a.rating)
       .slice(0, limit);
@@ -1071,7 +1071,7 @@ export class PremiumTemplatesService {
   /**
    * Get most downloaded
    */
-  getMostDownloaded(limit: number = 10): PremiumTemplate[] {
+  getMostDownloaded(limit = 10): PremiumTemplate[] {
     return [...this.templates()]
       .sort((a, b) => b.downloads - a.downloads)
       .slice(0, limit);
