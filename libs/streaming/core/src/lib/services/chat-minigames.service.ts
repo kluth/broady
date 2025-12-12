@@ -186,7 +186,7 @@ export class ChatMinigamesService {
   /**
    * Start dice roll
    */
-  startDiceRoll(sides: number = 6): MiniGame {
+  startDiceRoll(sides = 6): MiniGame {
     return this.createGame({
       name: `Roll the D${sides}!`,
       description: 'Highest roll wins!',
@@ -239,7 +239,7 @@ export class ChatMinigamesService {
   /**
    * Start number guessing
    */
-  startNumberGuess(min: number = 1, max: number = 100): MiniGame {
+  startNumberGuess(min = 1, max = 100): MiniGame {
     const correctAnswer = Math.floor(Math.random() * (max - min + 1)) + min;
 
     return this.createGame({

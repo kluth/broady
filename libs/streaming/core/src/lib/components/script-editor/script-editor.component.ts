@@ -1,6 +1,15 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatChipsModule } from '@angular/material/chips';
 import { ScriptingService, Script } from '../../services/scripting.service';
 
 /**
@@ -11,40 +20,63 @@ import { ScriptingService, Script } from '../../services/scripting.service';
 @Component({
   selector: 'lib-script-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCardModule,
+    MatDividerModule,
+    MatExpansionModule,
+    MatChipsModule
+  ],
   template: `
-    <div class="script-editor">
+    <mat-card class="script-editor">
       <!-- Toolbar -->
-      <div class="toolbar">
-        <button (click)="createNewScript()" class="btn-primary">
-          ➕ New Script
+      <mat-card-header class="toolbar">
+        <button mat-raised-button color="primary" (click)="createNewScript()">
+          <mat-icon>add</mat-icon>
+          New Script
         </button>
 
-        <select [(ngModel)]="selectedScriptId" (ngModelChange)="loadScript()" class="script-select">
-          <option value="">Select script...</option>
-          @for (script of scripts(); track script.id) {
-            <option [value]="script.id">{{ script.name }}</option>
-          }
-        </select>
+        <mat-form-field appearance="outline" class="script-select">
+          <mat-label>Select script</mat-label>
+          <mat-select [(ngModel)]="selectedScriptId" (ngModelChange)="loadScript()">
+            <mat-option value="">Select script...</mat-option>
+            @for (script of scripts(); track script.id) {
+              <mat-option [value]="script.id">{{ script.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
 
         @if (currentScript()) {
-          <button (click)="executeCurrentScript()" class="btn-success">
-            ▶️ Run
+          <button mat-raised-button color="accent" (click)="executeCurrentScript()">
+            <mat-icon>play_arrow</mat-icon>
+            Run
           </button>
-          <button (click)="validateCurrentScript()" class="btn-secondary">
-            ✓ Validate
+          <button mat-stroked-button (click)="validateCurrentScript()">
+            <mat-icon>check_circle</mat-icon>
+            Validate
           </button>
-          <button (click)="toggleScript()" [class.active]="currentScript()?.enabled">
-            {{ currentScript()?.enabled ? '⏸️ Disable' : '▶️ Enable' }}
+          <button mat-stroked-button (click)="toggleScript()" [color]="currentScript()?.enabled ? 'warn' : 'primary'">
+            <mat-icon>{{ currentScript()?.enabled ? 'pause' : 'play_arrow' }}</mat-icon>
+            {{ currentScript()?.enabled ? 'Disable' : 'Enable' }}
           </button>
-          <button (click)="convertToWorkflow()" class="btn-secondary">
-            🔄 Convert to Workflow
+          <button mat-stroked-button (click)="convertToWorkflow()">
+            <mat-icon>swap_horiz</mat-icon>
+            Convert to Workflow
           </button>
-          <button (click)="deleteCurrentScript()" class="btn-danger">
-            🗑️ Delete
+          <button mat-button color="warn" (click)="deleteCurrentScript()">
+            <mat-icon>delete</mat-icon>
+            Delete
           </button>
         }
-      </div>
+      </mat-card-header>
+
+      <mat-divider></mat-divider>
 
       <div class="editor-container">
         @if (currentScript()) {
@@ -108,62 +140,79 @@ import { ScriptingService, Script } from '../../services/scripting.service';
           <div class="sidebar">
             <!-- Quick Reference -->
             <div class="reference-section">
-              <h3>📖 Quick Reference</h3>
+              <h3>
+                <mat-icon>book</mat-icon>
+                Quick Reference
+              </h3>
 
-              <details>
-                <summary>Events</summary>
-                <ul>
-                  <li>follower</li>
-                  <li>donation</li>
-                  <li>subscriber</li>
-                  <li>raid</li>
-                  <li>chat</li>
-                  <li>stream-start</li>
-                  <li>voice-command</li>
-                </ul>
-              </details>
+              <mat-accordion>
+                <mat-expansion-panel>
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>Events</mat-panel-title>
+                  </mat-expansion-panel-header>
+                  <ul>
+                    <li>follower</li>
+                    <li>donation</li>
+                    <li>subscriber</li>
+                    <li>raid</li>
+                    <li>chat</li>
+                    <li>stream-start</li>
+                    <li>voice-command</li>
+                  </ul>
+                </mat-expansion-panel>
 
-              <details>
-                <summary>Commands</summary>
-                <ul>
-                  @for (command of scripting.commands(); track command) {
-                    <li>{{ command }}()</li>
-                  }
-                </ul>
-              </details>
+                <mat-expansion-panel>
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>Commands</mat-panel-title>
+                  </mat-expansion-panel-header>
+                  <ul>
+                    @for (command of scripting.commands(); track command) {
+                      <li>{{ command }}()</li>
+                    }
+                  </ul>
+                </mat-expansion-panel>
 
-              <details>
-                <summary>Syntax</summary>
-                <ul>
-                  <li><code>on &lt;event&gt; do ... end</code></li>
-                  <li><code>when &lt;condition&gt; then ... end</code></li>
-                  <li><code>every &lt;time&gt; do ... end</code></li>
-                  <li><code>if &lt;condition&gt; then ... end</code></li>
-                  <li><code>set &lt;var&gt; = &lt;value&gt;</code></li>
-                  <li><code>wait(&lt;seconds&gt;)</code></li>
-                </ul>
-              </details>
+                <mat-expansion-panel>
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>Syntax</mat-panel-title>
+                  </mat-expansion-panel-header>
+                  <ul>
+                    <li><code>on &lt;event&gt; do ... end</code></li>
+                    <li><code>when &lt;condition&gt; then ... end</code></li>
+                    <li><code>every &lt;time&gt; do ... end</code></li>
+                    <li><code>if &lt;condition&gt; then ... end</code></li>
+                    <li><code>set &lt;var&gt; = &lt;value&gt;</code></li>
+                    <li><code>wait(&lt;seconds&gt;)</code></li>
+                  </ul>
+                </mat-expansion-panel>
 
-              <details>
-                <summary>Variables</summary>
-                <ul ngNonBindable>
-                  <li><code>{{username}}</code> - Username</li>
-                  <li><code>{{donor}}</code> - Donor name</li>
-                  <li><code>{{amount}}</code> - Donation amount</li>
-                  <li><code>{{message}}</code> - Chat message</li>
-                  <li><code>{{viewerCount}}</code> - Viewer count</li>
-                </ul>
-              </details>
+                <mat-expansion-panel>
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>Variables</mat-panel-title>
+                  </mat-expansion-panel-header>
+                  <ul ngNonBindable>
+                    <li><code>{{username}}</code> - Username</li>
+                    <li><code>{{donor}}</code> - Donor name</li>
+                    <li><code>{{amount}}</code> - Donation amount</li>
+                    <li><code>{{message}}</code> - Chat message</li>
+                    <li><code>{{viewerCount}}</code> - Viewer count</li>
+                  </ul>
+                </mat-expansion-panel>
+              </mat-accordion>
             </div>
 
             <!-- Example Scripts -->
             <div class="examples-section">
-              <h3>💡 Examples</h3>
+              <h3>
+                <mat-icon>lightbulb</mat-icon>
+                Examples
+              </h3>
 
               @for (example of scripting.exampleScripts(); track example.name) {
                 <button
+                  mat-stroked-button
                   (click)="loadExample(example.code)"
-                  class="example-btn"
+                  class="example-btn full-width"
                   [title]="example.name">
                   {{ example.name }}
                 </button>
@@ -172,30 +221,40 @@ import { ScriptingService, Script } from '../../services/scripting.service';
 
             <!-- Documentation -->
             <div class="docs-section">
-              <h3>📚 Documentation</h3>
-              <button (click)="showDocumentation()" class="btn-secondary full-width">
+              <h3>
+                <mat-icon>menu_book</mat-icon>
+                Documentation
+              </h3>
+              <button mat-raised-button (click)="showDocumentation()" class="full-width">
+                <mat-icon>description</mat-icon>
                 View Full Docs
               </button>
             </div>
           </div>
         } @else {
           <div class="empty-state">
-            <h2>📝 Create Your First Script</h2>
+            <mat-icon class="empty-icon">edit_note</mat-icon>
+            <h2>Create Your First Script</h2>
             <p>Write powerful automations with our easy-to-learn scripting language</p>
 
             <div class="examples-grid">
               <h3>Try an example:</h3>
               @for (example of scripting.exampleScripts(); track example.name) {
-                <button
-                  (click)="createFromExample(example.name, example.code)"
-                  class="example-card">
-                  <h4>{{ example.name }}</h4>
-                  <pre>{{ getExamplePreview(example.code) }}</pre>
-                </button>
+                <mat-card
+                  class="example-card"
+                  (click)="createFromExample(example.name, example.code)">
+                  <mat-card-header>
+                    <mat-card-title>{{ example.name }}</mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <pre>{{ getExamplePreview(example.code) }}</pre>
+                  </mat-card-content>
+                </mat-card>
               }
             </div>
 
-            <button (click)="createNewScript()" class="btn-primary">
+            <button mat-raised-button color="primary" (click)="createNewScript()">
+              <mat-icon>add</mat-icon>
               Start from Scratch
             </button>
           </div>
@@ -203,12 +262,14 @@ import { ScriptingService, Script } from '../../services/scripting.service';
       </div>
 
       <!-- Stats Bar -->
-      <div class="stats-bar">
-        <div>Total Scripts: {{ scripts().length }}</div>
-        <div>Active: {{ activeScripts().length }}</div>
-        <div>Available Commands: {{ scripting.commands().length }}</div>
-      </div>
-    </div>
+      <mat-card-footer class="stats-bar">
+        <mat-chip-set>
+          <mat-chip>Total Scripts: {{ scripts().length }}</mat-chip>
+          <mat-chip>Active: {{ activeScripts().length }}</mat-chip>
+          <mat-chip>Available Commands: {{ scripting.commands().length }}</mat-chip>
+        </mat-chip-set>
+      </mat-card-footer>
+    </mat-card>
   `,
   styles: [`
     .script-editor {

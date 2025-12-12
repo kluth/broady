@@ -414,7 +414,7 @@ export class SubscriptionService {
   /**
    * Check if AI background removal is available
    */
-  canUseAIBackgroundRemoval(additionalMinutes: number = 1): {
+  canUseAIBackgroundRemoval(additionalMinutes = 1): {
     allowed: boolean;
     minutesRemaining: number;
   } {
@@ -445,7 +445,7 @@ export class SubscriptionService {
   /**
    * Check cloud storage availability
    */
-  canUseCloudStorage(additionalGB: number = 0): {
+  canUseCloudStorage(additionalGB = 0): {
     allowed: boolean;
     storageRemaining: number;
   } {

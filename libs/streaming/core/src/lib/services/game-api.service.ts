@@ -265,7 +265,7 @@ export class GameAPIService {
    * Riot Games API Integration
    */
 
-  async connectRiot(gameName: string, tagLine: string, region: string = 'americas'): Promise<boolean> {
+  async connectRiot(gameName: string, tagLine: string, region = 'americas'): Promise<boolean> {
     try {
       const apiKey = this.config().riotApiKey;
       if (!apiKey) {
@@ -325,7 +325,7 @@ export class GameAPIService {
     }
   }
 
-  async fetchLeagueMatches(count: number = 10): Promise<LeagueMatch[]> {
+  async fetchLeagueMatches(count = 10): Promise<LeagueMatch[]> {
     const apiKey = this.config().riotApiKey;
     const account = this.riotAccount();
 
@@ -413,7 +413,7 @@ export class GameAPIService {
     }
   }
 
-  async fetchValorantMatches(count: number = 10): Promise<ValorantMatch[]> {
+  async fetchValorantMatches(count = 10): Promise<ValorantMatch[]> {
     const apiKey = this.config().riotApiKey;
     const account = this.riotAccount();
 
@@ -890,6 +890,20 @@ Alternative: Use official PlayStation Web API (requires approval).
         icon: '🎮',
         supported: true,
         requiresKey: true
+      },
+      {
+        id: 'lorcana',
+        name: 'Disney Lorcana TCG',
+        icon: '🎴',
+        supported: true,
+        requiresKey: false
+      },
+      {
+        id: 'pokemon-tcg',
+        name: 'Pokémon TCG',
+        icon: '⚡',
+        supported: true,
+        requiresKey: false
       }
     ];
   }

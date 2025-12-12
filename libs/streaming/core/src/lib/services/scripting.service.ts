@@ -191,7 +191,7 @@ end`
 
   constructor(private automationService: AutomationService) {}
 
-  createScript(name: string, code: string = ''): Script {
+  createScript(name: string, code = ''): Script {
     const script: Script = {
       id: crypto.randomUUID(),
       name,

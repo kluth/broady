@@ -1,6 +1,16 @@
 import { Component, signal, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AutomationService, AutomationWorkflow, WorkflowNode } from '../../services/automation.service';
 
 /**
@@ -11,34 +21,56 @@ import { AutomationService, AutomationWorkflow, WorkflowNode } from '../../servi
 @Component({
   selector: 'lib-workflow-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCardModule,
+    MatDividerModule,
+    MatTooltipModule,
+    MatChipsModule,
+    MatCheckboxModule
+  ],
   template: `
-    <div class="workflow-builder">
+    <mat-card class="workflow-builder">
       <!-- Toolbar -->
-      <div class="toolbar">
-        <button (click)="createNewWorkflow()" class="btn-primary">
-          ➕ New Workflow
+      <mat-card-header class="toolbar">
+        <button mat-raised-button color="primary" (click)="createNewWorkflow()">
+          <mat-icon>add</mat-icon>
+          New Workflow
         </button>
 
-        <select [(ngModel)]="selectedWorkflowId" (ngModelChange)="loadWorkflow()" class="workflow-select">
-          <option value="">Select workflow...</option>
-          @for (workflow of workflows(); track workflow.id) {
-            <option [value]="workflow.id">{{ workflow.name }}</option>
-          }
-        </select>
+        <mat-form-field appearance="outline" class="workflow-select">
+          <mat-label>Select workflow</mat-label>
+          <mat-select [(ngModel)]="selectedWorkflowId" (ngModelChange)="loadWorkflow()">
+            <mat-option value="">Select workflow...</mat-option>
+            @for (workflow of workflows(); track workflow.id) {
+              <mat-option [value]="workflow.id">{{ workflow.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
 
         @if (currentWorkflow()) {
-          <button (click)="executeCurrentWorkflow()" class="btn-success">
-            ▶️ Run
+          <button mat-raised-button color="accent" (click)="executeCurrentWorkflow()">
+            <mat-icon>play_arrow</mat-icon>
+            Run
           </button>
-          <button (click)="toggleWorkflow()" [class.active]="currentWorkflow()?.enabled">
-            {{ currentWorkflow()?.enabled ? '⏸️ Disable' : '▶️ Enable' }}
+          <button mat-stroked-button (click)="toggleWorkflow()" [color]="currentWorkflow()?.enabled ? 'warn' : 'primary'">
+            <mat-icon>{{ currentWorkflow()?.enabled ? 'pause' : 'play_arrow' }}</mat-icon>
+            {{ currentWorkflow()?.enabled ? 'Disable' : 'Enable' }}
           </button>
-          <button (click)="deleteCurrentWorkflow()" class="btn-danger">
-            🗑️ Delete
+          <button mat-button color="warn" (click)="deleteCurrentWorkflow()">
+            <mat-icon>delete</mat-icon>
+            Delete
           </button>
         }
-      </div>
+      </mat-card-header>
+
+      <mat-divider></mat-divider>
 
       @if (currentWorkflow()) {
         <div class="workflow-editor">
@@ -53,9 +85,10 @@ import { AutomationService, AutomationWorkflow, WorkflowNode } from '../../servi
 
                   @for (template of getTemplatesByCategory(category); track template.id) {
                     <button
+                      mat-stroked-button
                       class="node-template"
                       (click)="addNode(template.id)"
-                      [title]="template.description">
+                      [matTooltip]="template.description">
                       {{ template.icon }} {{ template.name }}
                     </button>
                   }
@@ -114,7 +147,9 @@ import { AutomationService, AutomationWorkflow, WorkflowNode } from '../../servi
 
                 <div class="node-header">
                   <span>{{ getNodeTemplate(node.type)?.icon }} {{ node.name }}</span>
-                  <button (click)="removeNode(node.id)" class="btn-remove">✕</button>
+                  <button mat-icon-button (click)="removeNode(node.id)" class="btn-remove">
+                    <mat-icon>close</mat-icon>
+                  </button>
                 </div>
 
                 <div class="node-body">
@@ -172,23 +207,25 @@ import { AutomationService, AutomationWorkflow, WorkflowNode } from '../../servi
           <div class="properties-panel">
             <h3>Workflow Info</h3>
 
-            <div class="property">
-              <label>Name</label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Name</mat-label>
               <input
+                matInput
                 type="text"
                 [(ngModel)]="workflowName"
                 (ngModelChange)="updateWorkflowName()"
                 placeholder="Workflow name..." />
-            </div>
+            </mat-form-field>
 
-            <div class="property">
-              <label>Description</label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description</mat-label>
               <textarea
+                matInput
                 [(ngModel)]="workflowDescription"
                 (ngModelChange)="updateWorkflowDescription()"
                 placeholder="Describe what this workflow does..."
                 rows="3"></textarea>
-            </div>
+            </mat-form-field>
 
             <div class="property">
               <label>Status</label>
@@ -208,31 +245,35 @@ import { AutomationService, AutomationWorkflow, WorkflowNode } from '../../servi
               </div>
             </div>
 
-            <hr />
+            <mat-divider></mat-divider>
 
             <h3>Quick Actions</h3>
 
-            <button (click)="duplicateWorkflow()" class="btn-secondary full-width">
-              📋 Duplicate
+            <button mat-stroked-button (click)="duplicateWorkflow()" class="full-width">
+              <mat-icon>content_copy</mat-icon>
+              Duplicate
             </button>
 
-            <button (click)="exportWorkflow()" class="btn-secondary full-width">
-              💾 Export JSON
+            <button mat-stroked-button (click)="exportWorkflow()" class="full-width">
+              <mat-icon>download</mat-icon>
+              Export JSON
             </button>
 
-            <button (click)="importWorkflow()" class="btn-secondary full-width">
-              📥 Import JSON
+            <button mat-stroked-button (click)="importWorkflow()" class="full-width">
+              <mat-icon>upload</mat-icon>
+              Import JSON
             </button>
 
-            <hr />
+            <mat-divider></mat-divider>
 
             <h3>Templates</h3>
 
             @for (template of workflowTemplates(); track $index) {
               <button
+                mat-stroked-button
                 (click)="loadTemplate($index)"
-                class="btn-secondary full-width"
-                [title]="template.description">
+                class="full-width"
+                [matTooltip]="template.description">
                 {{ template.name }}
               </button>
             }
@@ -240,22 +281,26 @@ import { AutomationService, AutomationWorkflow, WorkflowNode } from '../../servi
         </div>
       } @else {
         <div class="empty-state">
-          <h2>🎬 Create Your First Workflow</h2>
+          <mat-icon class="empty-icon">movie</mat-icon>
+          <h2>Create Your First Workflow</h2>
           <p>Build powerful automations with our visual workflow builder</p>
-          <button (click)="createNewWorkflow()" class="btn-primary">
+          <button mat-raised-button color="primary" (click)="createNewWorkflow()">
+            <mat-icon>add</mat-icon>
             Get Started
           </button>
         </div>
       }
 
       <!-- Execution Stats -->
-      <div class="stats-bar">
-        <div>Workflows: {{ automation.statistics().totalWorkflows }}</div>
-        <div>Active: {{ automation.statistics().activeWorkflows }}</div>
-        <div>Total Executions: {{ automation.statistics().totalExecutions }}</div>
-        <div>Success Rate: {{ automation.statistics().successRate }}%</div>
-      </div>
-    </div>
+      <mat-card-footer class="stats-bar">
+        <mat-chip-set>
+          <mat-chip>Workflows: {{ automation.statistics().totalWorkflows }}</mat-chip>
+          <mat-chip>Active: {{ automation.statistics().activeWorkflows }}</mat-chip>
+          <mat-chip>Total Executions: {{ automation.statistics().totalExecutions }}</mat-chip>
+          <mat-chip>Success Rate: {{ automation.statistics().successRate }}%</mat-chip>
+        </mat-chip-set>
+      </mat-card-footer>
+    </mat-card>
   `,
   styles: [`
     .workflow-builder {

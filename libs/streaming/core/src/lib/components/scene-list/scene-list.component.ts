@@ -1,98 +1,114 @@
 import { Component, output, effect, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatListModule } from '@angular/material/list';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Scene } from '../../models/scene.model';
 import { SceneService } from '../../services/scene.service';
 
 @Component({
   selector: 'lib-scene-list',
   standalone: true,
-  imports: [],
+  imports: [
+    CommonModule,
+    MatListModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule
+  ],
   template: `
-    <div class="scene-list">
-      <div class="scene-list-header">
-        <h3>Scenes</h3>
-        <button (click)="onAddScene()" class="btn-add">+ Add Scene</button>
-      </div>
+    <mat-card class="scene-list">
+      <mat-card-header>
+        <mat-card-title>Scenes</mat-card-title>
+        <button mat-raised-button color="primary" (click)="onAddScene()">
+          <mat-icon>add</mat-icon>
+          Add Scene
+        </button>
+      </mat-card-header>
 
-      <div class="scene-items">
-        @for (scene of sceneService.scenes(); track scene.id) {
-          <div
-            class="scene-item"
-            [class.active]="scene.id === sceneService.activeSceneId()"
-            (click)="onSceneClick(scene)"
-            (keyup.enter)="onSceneClick(scene)"
-            (keyup.space)="onSceneClick(scene)"
-            tabindex="0"
-            role="button"
-          >
-            <div class="scene-name">{{ scene.name }}</div>
-            <div class="scene-actions">
-              @if (scene.locked) {
-                <span class="icon-lock">🔒</span>
-              }
-              <button (click)="onEditScene(scene, $event)" class="btn-icon">✏️</button>
-              <button (click)="onDuplicateScene(scene, $event)" class="btn-icon">📋</button>
-              <button (click)="onDeleteScene(scene, $event)" class="btn-icon">🗑️</button>
+      <mat-card-content>
+        <mat-list class="scene-items">
+          @for (scene of sceneService.scenes(); track scene.id) {
+            <mat-list-item
+              class="scene-item"
+              [class.active]="scene.id === sceneService.activeSceneId()"
+              (click)="onSceneClick(scene)"
+              (keyup.enter)="onSceneClick(scene)"
+              (keyup.space)="onSceneClick(scene)"
+              tabindex="0"
+              role="button"
+            >
+              <div matListItemTitle>{{ scene.name }}</div>
+              <div matListItemMeta class="scene-actions">
+                @if (scene.locked) {
+                  <mat-icon color="warn">lock</mat-icon>
+                }
+                <button mat-icon-button (click)="onEditScene(scene, $event)" matTooltip="Edit">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button (click)="onDuplicateScene(scene, $event)" matTooltip="Duplicate">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="onDeleteScene(scene, $event)" matTooltip="Delete">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </mat-list-item>
+          } @empty {
+            <div class="empty-state">
+              <mat-icon class="empty-icon">layers</mat-icon>
+              <p>No scenes yet</p>
+              <button mat-raised-button color="accent" (click)="onAddScene()">
+                <mat-icon>add</mat-icon>
+                Create First Scene
+              </button>
             </div>
-          </div>
-        } @empty {
-          <div class="empty-state">
-            <p>No scenes yet</p>
-            <button (click)="onAddScene()" class="btn-primary">Create First Scene</button>
+          }
+        </mat-list>
+
+        @if (sceneService.isTransitioning()) {
+          <div class="transition-indicator">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Transitioning...</span>
           </div>
         }
-      </div>
-
-      @if (sceneService.isTransitioning()) {
-        <div class="transition-indicator">
-          <div class="spinner"></div>
-          <span>Transitioning...</span>
-        </div>
-      }
-    </div>
+      </mat-card-content>
+    </mat-card>
   `,
   styles: [`
     .scene-list {
-      display: flex;
-      flex-direction: column;
       height: 100%;
-      background: #1a1a1a;
-      color: #fff;
     }
 
-    .scene-list-header {
+    mat-card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 1rem;
-      border-bottom: 1px solid #333;
     }
 
     .scene-items {
-      flex: 1;
+      max-height: 500px;
       overflow-y: auto;
     }
 
     .scene-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75rem 1rem;
       cursor: pointer;
-      border-bottom: 1px solid #222;
       transition: background 0.2s;
     }
 
-    .scene-item:hover {
-      background: #252525;
-    }
-
     .scene-item.active {
-      background: #2a7fff;
+      background: rgba(63, 81, 181, 0.2);
     }
 
     .scene-actions {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.25rem;
       opacity: 0;
       transition: opacity 0.2s;
     }
@@ -101,58 +117,29 @@ import { SceneService } from '../../services/scene.service';
       opacity: 1;
     }
 
-    .btn-icon {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1rem;
-      padding: 0.25rem;
-    }
-
-    .btn-add, .btn-primary {
-      padding: 0.5rem 1rem;
-      background: #2a7fff;
-      border: none;
-      border-radius: 4px;
-      color: #fff;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-
-    .btn-add:hover, .btn-primary:hover {
-      background: #1e5fd9;
-    }
-
     .empty-state {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 2rem;
+      padding: 3rem;
       text-align: center;
-      color: #888;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      opacity: 0.5;
+      margin-bottom: 1rem;
     }
 
     .transition-indicator {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1rem;
-      background: #2a2a2a;
-      border-top: 1px solid #333;
-    }
-
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid #444;
-      border-top-color: #2a7fff;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+      gap: 0.75rem;
+      padding: 1rem;
+      justify-content: center;
     }
   `]
 })

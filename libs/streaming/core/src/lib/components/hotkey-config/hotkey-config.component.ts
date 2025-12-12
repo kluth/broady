@@ -1,6 +1,13 @@
 import { Component, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatChipsModule } from '@angular/material/chips';
 import { HotkeyService, HotkeyBinding } from '../../services/hotkey.service';
 import { Hotkey } from '../../models/settings.model';
 
@@ -19,7 +26,17 @@ interface HotkeyAction {
 @Component({
   selector: 'streaming-hotkey-config',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCardModule,
+    MatDividerModule,
+    MatChipsModule
+  ],
   templateUrl: './hotkey-config.component.html',
   styleUrls: ['./hotkey-config.component.css']
 })

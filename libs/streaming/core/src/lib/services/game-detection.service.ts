@@ -273,7 +273,10 @@ export class GameDetectionService {
       { processName: 'valorant.exe', data: { name: 'Valorant', platform: 'Riot' } },
       { processName: 'LeagueClient.exe', data: { name: 'League of Legends', platform: 'Riot' } },
       { processName: 'FortniteClient-Win64-Shipping.exe', data: { name: 'Fortnite', platform: 'Epic' } },
-      { processName: 'Minecraft.exe', data: { name: 'Minecraft', platform: 'Launcher' } }
+      { processName: 'Minecraft.exe', data: { name: 'Minecraft', platform: 'Launcher' } },
+      { processName: 'Lorcana.exe', data: { name: 'Disney Lorcana TCG', platform: 'Standalone' } },
+      { processName: 'TCGL.exe', data: { name: 'Pokémon TCG Live', platform: 'Standalone' } },
+      { processName: 'PokemonTCG.exe', data: { name: 'Pokémon Trading Card Game', platform: 'Standalone' } }
     ] as const;
   }
 }

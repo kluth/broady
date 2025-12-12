@@ -1,170 +1,184 @@
-<div class="sources-manager">
-  <div class="manager-header">
-    <h3>Sources</h3>
-    <button class="btn-add" (click)="openAddDialog()" title="Add Source">
-      + Add
+<mat-card class="sources-manager">
+  <mat-card-header>
+    <mat-card-title>Sources</mat-card-title>
+    <button mat-raised-button color="primary" (click)="openAddDialog()" class="add-button">
+      <mat-icon>add</mat-icon>
+      Add Source
     </button>
-  </div>
+  </mat-card-header>
 
-  @if (activeScene()) {
-    <div class="sources-list">
-      @for (source of sceneSources(); track source.id) {
-        <div
-          class="source-item"
-          [class.selected]="selectedSourceId() === source.id"
-          [class.dragging]="draggedSourceId() === source.id"
-          [class.invisible]="!source.visible"
-          (click)="selectSource(source.id)"
-          draggable="true"
-          (dragstart)="onDragStart(source.id, $event)"
-          (dragover)="onDragOver($event)"
-          (drop)="onDrop(source.id, $event)"
-          (dragend)="onDragEnd()"
-        >
-          <div class="source-icon">{{ getSourceIcon(source.type) }}</div>
-          <div class="source-info">
-            <div class="source-name">{{ source.name }}</div>
-            <div class="source-type">{{ source.type }}</div>
-          </div>
-          <div class="source-controls">
-            <button
-              class="btn-icon-small"
-              [class.active]="source.visible"
-              (click)="toggleSourceVisibility(source.id); $event.stopPropagation()"
-              title="Toggle Visibility"
-            >
-              {{ source.visible ? '👁️' : '👁️‍🗨️' }}
+  <mat-card-content>
+    @if (activeScene()) {
+      <mat-list class="sources-list">
+        @for (source of sceneSources(); track source.id) {
+          <mat-list-item
+            class="source-item"
+            [class.selected]="selectedSourceId() === source.id"
+            [class.dragging]="draggedSourceId() === source.id"
+            [class.invisible]="!source.visible"
+            (click)="selectSource(source.id)"
+            draggable="true"
+            (dragstart)="onDragStart(source.id, $event)"
+            (dragover)="onDragOver($event)"
+            (drop)="onDrop(source.id, $event)"
+            (dragend)="onDragEnd()"
+          >
+            <mat-icon matListItemIcon>{{ getSourceIcon(source.type) }}</mat-icon>
+            <div matListItemTitle>{{ source.name }}</div>
+            <div matListItemLine>{{ source.type }}</div>
+            <div matListItemMeta class="source-controls">
+              <button
+                mat-icon-button
+                [color]="source.visible ? 'primary' : 'basic'"
+                (click)="toggleSourceVisibility(source.id); $event.stopPropagation()"
+                [matTooltip]="source.visible ? 'Hide' : 'Show'"
+              >
+                <mat-icon>{{ source.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                [color]="source.locked ? 'warn' : 'basic'"
+                (click)="toggleSourceLock(source.id); $event.stopPropagation()"
+                [matTooltip]="source.locked ? 'Unlock' : 'Lock'"
+              >
+                <mat-icon>{{ source.locked ? 'lock' : 'lock_open' }}</mat-icon>
+              </button>
+            </div>
+          </mat-list-item>
+        } @empty {
+          <div class="empty-state">
+            <mat-icon class="empty-icon">layers</mat-icon>
+            <p>No sources in this scene</p>
+            <button mat-raised-button color="accent" (click)="openAddDialog()">
+              <mat-icon>add</mat-icon>
+              Add Your First Source
             </button>
-            <button
-              class="btn-icon-small"
-              [class.active]="source.locked"
-              (click)="toggleSourceLock(source.id); $event.stopPropagation()"
-              title="Lock/Unlock"
-            >
-              {{ source.locked ? '🔒' : '🔓' }}
-            </button>
           </div>
-        </div>
-      } @empty {
-        <div class="empty-state">
-          <p>No sources in this scene</p>
-          <button class="btn-add-large" (click)="openAddDialog()">
-            + Add Your First Source
+        }
+      </mat-list>
+
+      @if (hasSelectedSource()) {
+        <div class="source-actions">
+          <button
+            mat-mini-fab
+            color="primary"
+            (click)="moveSourceUp(selectedSourceId()!)"
+            matTooltip="Move Up"
+          >
+            <mat-icon>arrow_upward</mat-icon>
+          </button>
+          <button
+            mat-mini-fab
+            color="primary"
+            (click)="moveSourceDown(selectedSourceId()!)"
+            matTooltip="Move Down"
+          >
+            <mat-icon>arrow_downward</mat-icon>
+          </button>
+          <button
+            mat-mini-fab
+            color="primary"
+            (click)="duplicateSource(selectedSourceId()!)"
+            matTooltip="Duplicate"
+          >
+            <mat-icon>content_copy</mat-icon>
+          </button>
+          <button
+            mat-mini-fab
+            color="primary"
+            (click)="renameSource(selectedSourceId()!)"
+            matTooltip="Rename"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-mini-fab
+            color="warn"
+            (click)="removeSource(selectedSourceId()!)"
+            matTooltip="Remove"
+          >
+            <mat-icon>delete</mat-icon>
           </button>
         </div>
       }
-    </div>
-
-    @if (hasSelectedSource()) {
-      <div class="source-actions">
-        <button
-          class="btn-action"
-          (click)="moveSourceUp(selectedSourceId()!)"
-          title="Move Up"
-        >
-          ▲
-        </button>
-        <button
-          class="btn-action"
-          (click)="moveSourceDown(selectedSourceId()!)"
-          title="Move Down"
-        >
-          ▼
-        </button>
-        <button
-          class="btn-action"
-          (click)="duplicateSource(selectedSourceId()!)"
-          title="Duplicate"
-        >
-          📋
-        </button>
-        <button
-          class="btn-action"
-          (click)="renameSource(selectedSourceId()!)"
-          title="Rename"
-        >
-          ✏️
-        </button>
-        <button
-          class="btn-action btn-danger"
-          (click)="removeSource(selectedSourceId()!)"
-          title="Remove"
-        >
-          🗑️
-        </button>
+    } @else {
+      <div class="no-scene">
+        <mat-icon class="empty-icon">error_outline</mat-icon>
+        <p>No active scene selected</p>
       </div>
     }
-  } @else {
-    <div class="no-scene">
-      <p>No active scene selected</p>
-    </div>
-  }
+  </mat-card-content>
 
   <!-- Add Source Dialog -->
   @if (showAddDialog()) {
     <div class="dialog-overlay" (click)="closeAddDialog()">
-      <div class="dialog" (click)="$event.stopPropagation()">
-        <div class="dialog-header">
-          <h3>Add Source</h3>
-          <button class="btn-close" (click)="closeAddDialog()">✕</button>
-        </div>
+      <mat-card class="add-source-dialog" (click)="$event.stopPropagation()">
+        <mat-card-header>
+          <mat-card-title>Add Source</mat-card-title>
+          <button mat-icon-button class="close-button" (click)="closeAddDialog()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-header>
 
-        <div class="dialog-content">
-          <div class="form-group">
-            <label>Source Name</label>
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Source Name</mat-label>
             <input
-              type="text"
+              matInput
               [value]="newSourceName()"
               (input)="updateSourceName($any($event.target).value)"
               placeholder="Enter source name..."
-              class="source-name-input"
-              autofocus
+             
             />
+          </mat-form-field>
+
+          <div class="source-type-label">
+            <mat-label>Source Type</mat-label>
           </div>
 
-          <div class="form-group">
-            <label>Source Type</label>
-
-            <div class="source-type-categories">
-              @for (category of ['video', 'audio', 'media', 'other']; track category) {
-                <div class="type-category">
-                  <h4 class="category-name">
-                    {{ category === 'video' ? '📹 Video' :
-                       category === 'audio' ? '🎵 Audio' :
-                       category === 'media' ? '📺 Media' : '🔧 Other' }}
-                  </h4>
-                  <div class="type-grid">
-                    @for (type of categorizedSourceTypes()[category]; track type.type) {
-                      <button
-                        class="type-btn"
-                        [class.active]="selectedSourceType() === type.type"
-                        (click)="selectSourceType(type.type)"
-                      >
+          <div class="source-type-categories">
+            @for (category of ['video', 'audio', 'media', 'other']; track category) {
+              <div class="type-category">
+                <h4 class="category-name">
+                  {{ category === 'video' ? 'Video' :
+                     category === 'audio' ? 'Audio' :
+                     category === 'media' ? 'Media' : 'Other' }}
+                </h4>
+                <mat-chip-listbox class="type-chips">
+                  @for (type of categorizedSourceTypes()[category]; track type.type) {
+                    <mat-chip-option
+                      [selected]="selectedSourceType() === type.type"
+                      (click)="selectSourceType(type.type)"
+                    >
+                      <span class="chip-content">
                         <span class="type-icon">{{ type.icon }}</span>
-                        <span class="type-name">{{ type.name }}</span>
-                        <span class="type-desc">{{ type.description }}</span>
-                      </button>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
+                        <span class="type-info">
+                          <span class="type-name">{{ type.name }}</span>
+                          <span class="type-desc">{{ type.description }}</span>
+                        </span>
+                      </span>
+                    </mat-chip-option>
+                  }
+                </mat-chip-listbox>
+              </div>
+            }
           </div>
-        </div>
+        </mat-card-content>
 
-        <div class="dialog-footer">
-          <button class="btn-secondary" (click)="closeAddDialog()">
+        <mat-card-actions align="end">
+          <button mat-button (click)="closeAddDialog()">
             Cancel
           </button>
           <button
-            class="btn-primary"
+            mat-raised-button
+            color="primary"
             (click)="addSource()"
             [disabled]="!newSourceName().trim()"
           >
             Add Source
           </button>
-        </div>
-      </div>
+        </mat-card-actions>
+      </mat-card>
     </div>
   }
-</div>
+</mat-card>

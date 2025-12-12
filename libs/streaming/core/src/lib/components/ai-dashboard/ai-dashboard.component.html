@@ -1,270 +1,333 @@
-<div class="ai-dashboard">
-  <div class="dashboard-header">
-    <h3>🤖 AI Features</h3>
+<mat-card class="ai-dashboard">
+  <mat-card-header>
+    <mat-card-title>
+      <mat-icon>smart_toy</mat-icon>
+      AI Features
+    </mat-card-title>
     @if (isConfigured()) {
-      <span class="status-badge configured">Configured - {{ providerName() }}</span>
+      <mat-chip class="status-chip" color="primary">
+        <mat-icon>check_circle</mat-icon>
+        {{ providerName() }}
+      </mat-chip>
     } @else {
-      <span class="status-badge not-configured">Not Configured</span>
+      <mat-chip class="status-chip" color="warn">
+        <mat-icon>warning</mat-icon>
+        Not Configured
+      </mat-chip>
     }
-  </div>
+  </mat-card-header>
 
-  <div class="tabs">
-    <button class="tab" [class.active]="selectedTab() === 'config'" (click)="selectTab('config')">
-      ⚙️ Config
-    </button>
-    <button class="tab" [class.active]="selectedTab() === 'recommendations'" (click)="selectTab('recommendations')">
-      💡 Scenes
-    </button>
-    <button class="tab" [class.active]="selectedTab() === 'titles'" (click)="selectTab('titles')">
-      📝 Titles
-    </button>
-    <button class="tab" [class.active]="selectedTab() === 'captions'" (click)="selectTab('captions')">
-      📄 Captions
-    </button>
-    <button class="tab" [class.active]="selectedTab() === 'enhancement'" (click)="selectTab('enhancement')">
-      🎵 Audio
-    </button>
-  </div>
+  <mat-card-content>
+    <mat-tab-group class="ai-tabs">
+      <!-- Config Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">settings</mat-icon>
+          Config
+        </ng-template>
+        <div class="tab-content">
+          <h3>AI Provider Configuration</h3>
 
-  <div class="tab-content">
-    @if (selectedTab() === 'config') {
-      <div class="config-panel">
-        <h4>AI Provider Configuration</h4>
+          <div class="provider-selection">
+            @for (provider of providers; track provider) {
+              <button
+                mat-raised-button
+                [color]="selectedProvider() === provider ? 'primary' : ''"
+                class="provider-btn"
+                (click)="updateProvider(provider)"
+              >
+                @if (provider === 'google') {
+                  <mat-icon>auto_awesome</mat-icon>
+                  <div class="provider-info">
+                    <span class="provider-name">Google Gemini</span>
+                    <span class="provider-desc">Fast, multimodal AI</span>
+                  </div>
+                }
+                @if (provider === 'openai') {
+                  <mat-icon>psychology</mat-icon>
+                  <div class="provider-info">
+                    <span class="provider-name">OpenAI</span>
+                    <span class="provider-desc">GPT-4 & Whisper</span>
+                  </div>
+                }
+                @if (provider === 'anthropic') {
+                  <mat-icon>emoji_objects</mat-icon>
+                  <div class="provider-info">
+                    <span class="provider-name">Claude</span>
+                    <span class="provider-desc">Thoughtful analysis</span>
+                  </div>
+                }
+              </button>
+            }
+          </div>
 
-        <div class="provider-selection">
-          @for (provider of providers; track provider) {
-            <button
-              class="provider-btn"
-              [class.active]="selectedProvider() === provider"
-              (click)="updateProvider(provider)"
-            >
-              @if (provider === 'google') {
-                <span class="provider-icon">✨</span>
-                <span class="provider-name">Google Gemini</span>
-                <span class="provider-desc">Fast, multimodal AI</span>
-              }
-              @if (provider === 'openai') {
-                <span class="provider-icon">🔮</span>
-                <span class="provider-name">OpenAI</span>
-                <span class="provider-desc">GPT-4 & Whisper</span>
-              }
-              @if (provider === 'anthropic') {
-                <span class="provider-icon">🧠</span>
-                <span class="provider-name">Claude</span>
-                <span class="provider-desc">Thoughtful analysis</span>
-              }
-            </button>
-          }
-        </div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>API Key</mat-label>
+            <input
+              matInput
+              type="password"
+              [value]="apiKey()"
+              (input)="updateApiKey($any($event.target).value)"
+              placeholder="Enter your API key..."
+            />
+            <mat-icon matPrefix>key</mat-icon>
+          </mat-form-field>
 
-        <div class="api-key-section">
-          <label>API Key</label>
-          <input
-            type="password"
-            [value]="apiKey()"
-            (input)="updateApiKey($any($event.target).value)"
-            placeholder="Enter your API key..."
-            class="api-key-input"
-          />
-          <button class="btn-save" (click)="saveConfiguration()" [disabled]="!apiKey()">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="saveConfiguration()"
+            [disabled]="!apiKey()"
+            class="save-btn"
+          >
+            <mat-icon>save</mat-icon>
             Save Configuration
           </button>
-        </div>
 
-        <div class="capabilities">
-          <h5>Capabilities</h5>
-          <div class="capability-list">
-            @for (cap of aiService.capabilities(); track cap) {
-              <span class="capability-badge">{{ cap }}</span>
-            }
+          <div class="capabilities-section">
+            <h4>Capabilities</h4>
+            <mat-chip-set>
+              @for (cap of aiService.capabilities(); track cap) {
+                <mat-chip>{{ cap }}</mat-chip>
+              }
+            </mat-chip-set>
           </div>
         </div>
-      </div>
-    }
+      </mat-tab>
 
-    @if (selectedTab() === 'recommendations') {
-      <div class="recommendations-panel">
-        <div class="panel-header">
-          <h4>AI Scene Recommendations</h4>
-          <button
-            class="btn-generate"
-            (click)="getRecommendations()"
-            [disabled]="!isConfigured() || aiService.isProcessing()"
-          >
-            @if (aiService.isProcessing()) {
-              <span class="spinner"></span> Generating...
-            } @else {
-              Get Recommendations
-            }
-          </button>
-        </div>
+      <!-- Recommendations Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">lightbulb</mat-icon>
+          Scenes
+        </ng-template>
+        <div class="tab-content">
+          <div class="panel-header">
+            <h3>AI Scene Recommendations</h3>
+            <button
+              mat-raised-button
+              color="accent"
+              (click)="getRecommendations()"
+              [disabled]="!isConfigured() || aiService.isProcessing()"
+            >
+              @if (aiService.isProcessing()) {
+                <mat-spinner diameter="20"></mat-spinner>
+                Generating...
+              } @else {
+                <mat-icon>auto_awesome</mat-icon>
+                Get Recommendations
+              }
+            </button>
+          </div>
 
-        @if (recommendations().length > 0) {
-          <div class="recommendations-list">
-            @for (rec of recommendations(); track rec.sceneName) {
-              <div class="recommendation-card">
-                <div class="rec-header">
-                  <h5>{{ rec.sceneName }}</h5>
-                  <span class="confidence" [class]="getConfidenceClass(rec.confidence)">
-                    {{ (rec.confidence * 100).toFixed(0) }}% match
-                  </span>
-                </div>
-                <p class="rec-reason">{{ rec.reason }}</p>
-                <div class="rec-sources">
-                  <strong>Suggested sources:</strong>
-                  <div class="source-tags">
-                    @for (source of rec.suggestedSources; track source) {
-                      <span class="source-tag">{{ source }}</span>
-                    }
-                  </div>
-                </div>
-                <button class="btn-implement" (click)="implementRecommendation(rec)">
-                  Create Scene
-                </button>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="empty-state">
-            <p>Click "Get Recommendations" to receive AI-powered scene suggestions!</p>
-          </div>
-        }
-      </div>
-    }
-
-    @if (selectedTab() === 'titles') {
-      <div class="titles-panel">
-        <div class="panel-header">
-          <h4>AI Stream Title Generator</h4>
-        </div>
-
-        <div class="title-context">
-          <div class="input-group">
-            <label>Game/Content</label>
-            <input
-              type="text"
-              [value]="game()"
-              (input)="updateGame($any($event.target).value)"
-              placeholder="e.g., Valorant, Just Chatting"
-            />
-          </div>
-          <div class="input-group">
-            <label>Category</label>
-            <input
-              type="text"
-              [value]="category()"
-              (input)="updateCategory($any($event.target).value)"
-              placeholder="e.g., Gaming, Music, Art"
-            />
-          </div>
-          <div class="input-group">
-            <label>Mood</label>
-            <input
-              type="text"
-              [value]="mood()"
-              (input)="updateMood($any($event.target).value)"
-              placeholder="e.g., Chill, Energetic, Competitive"
-            />
-          </div>
-        </div>
-
-        <button
-          class="btn-generate"
-          (click)="generateTitles()"
-          [disabled]="!isConfigured() || aiService.isProcessing()"
-        >
-          @if (aiService.isProcessing()) {
-            <span class="spinner"></span> Generating...
+          @if (recommendations().length > 0) {
+            <div class="recommendations-grid">
+              @for (rec of recommendations(); track rec.sceneName) {
+                <mat-card class="recommendation-card">
+                  <mat-card-header>
+                    <mat-card-title>{{ rec.sceneName }}</mat-card-title>
+                    <mat-chip [color]="getConfidenceColor(rec.confidence)">
+                      {{ (rec.confidence * 100).toFixed(0) }}% match
+                    </mat-chip>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <p>{{ rec.reason }}</p>
+                    <div class="source-tags">
+                      <strong>Suggested sources:</strong>
+                      <mat-chip-set>
+                        @for (source of rec.suggestedSources; track source) {
+                          <mat-chip>{{ source }}</mat-chip>
+                        }
+                      </mat-chip-set>
+                    </div>
+                  </mat-card-content>
+                  <mat-card-actions>
+                    <button mat-raised-button color="primary" (click)="implementRecommendation(rec)">
+                      <mat-icon>add</mat-icon>
+                      Create Scene
+                    </button>
+                  </mat-card-actions>
+                </mat-card>
+              }
+            </div>
           } @else {
-            Generate Titles
+            <div class="empty-state">
+              <mat-icon class="empty-icon">lightbulb</mat-icon>
+              <p>Click "Get Recommendations" to receive AI-powered scene suggestions!</p>
+            </div>
           }
-        </button>
+        </div>
+      </mat-tab>
 
-        @if (titleSuggestions().length > 0) {
-          <div class="title-suggestions">
-            @for (title of titleSuggestions(); track $index) {
-              <div class="title-card">
-                <span class="title-text">{{ title }}</span>
-                <button class="btn-copy" (click)="copyTitle(title)">📋 Copy</button>
-              </div>
-            }
+      <!-- Titles Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">title</mat-icon>
+          Titles
+        </ng-template>
+        <div class="tab-content">
+          <h3>AI Stream Title Generator</h3>
+
+          <div class="title-inputs">
+            <mat-form-field appearance="outline">
+              <mat-label>Game/Content</mat-label>
+              <input
+                matInput
+                [value]="game()"
+                (input)="updateGame($any($event.target).value)"
+                placeholder="e.g., Valorant, Just Chatting"
+              />
+              <mat-icon matPrefix>sports_esports</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Category</mat-label>
+              <input
+                matInput
+                [value]="category()"
+                (input)="updateCategory($any($event.target).value)"
+                placeholder="e.g., Gaming, Music, Art"
+              />
+              <mat-icon matPrefix>category</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Mood</mat-label>
+              <input
+                matInput
+                [value]="mood()"
+                (input)="updateMood($any($event.target).value)"
+                placeholder="e.g., Chill, Energetic, Competitive"
+              />
+              <mat-icon matPrefix>mood</mat-icon>
+            </mat-form-field>
           </div>
-        }
-      </div>
-    }
 
-    @if (selectedTab() === 'captions') {
-      <div class="captions-panel">
-        <div class="panel-header">
-          <h4>Auto-Generate Captions</h4>
           <button
-            class="btn-generate"
-            (click)="generateCaptions()"
+            mat-raised-button
+            color="accent"
+            (click)="generateTitles()"
             [disabled]="!isConfigured() || aiService.isProcessing()"
+            class="generate-btn"
           >
             @if (aiService.isProcessing()) {
-              <span class="spinner"></span> Processing...
+              <mat-spinner diameter="20"></mat-spinner>
+              Generating...
             } @else {
-              Generate Captions
+              <mat-icon>auto_awesome</mat-icon>
+              Generate Titles
             }
           </button>
-        </div>
 
-        @if (captions().length > 0) {
-          <div class="captions-list">
-            @for (caption of captions(); track caption.start) {
-              <div class="caption-item">
-                <div class="caption-time">
-                  {{ formatTime(caption.start) }} - {{ formatTime(caption.end) }}
-                </div>
-                <div class="caption-text">{{ caption.text }}</div>
-                <div class="caption-confidence">
-                  Confidence: {{ (caption.confidence * 100).toFixed(1) }}%
-                </div>
-              </div>
-            }
+          @if (titleSuggestions().length > 0) {
+            <div class="title-list">
+              @for (title of titleSuggestions(); track $index) {
+                <mat-card class="title-card">
+                  <mat-card-content>
+                    <span class="title-text">{{ title }}</span>
+                  </mat-card-content>
+                  <mat-card-actions>
+                    <button mat-icon-button (click)="copyTitle(title)" matTooltip="Copy">
+                      <mat-icon>content_copy</mat-icon>
+                    </button>
+                  </mat-card-actions>
+                </mat-card>
+              }
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Captions Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">closed_caption</mat-icon>
+          Captions
+        </ng-template>
+        <div class="tab-content">
+          <div class="panel-header">
+            <h3>Auto-Generate Captions</h3>
+            <button
+              mat-raised-button
+              color="accent"
+              (click)="generateCaptions()"
+              [disabled]="!isConfigured() || aiService.isProcessing()"
+            >
+              @if (aiService.isProcessing()) {
+                <mat-spinner diameter="20"></mat-spinner>
+                Processing...
+              } @else {
+                <mat-icon>auto_awesome</mat-icon>
+                Generate Captions
+              }
+            </button>
           </div>
-          <button class="btn-apply" (click)="applyCaptions()">
-            Apply Captions
+
+          @if (captions().length > 0) {
+            <mat-list class="captions-list">
+              @for (caption of captions(); track caption.start) {
+                <mat-list-item>
+                  <div matListItemTitle>{{ caption.text }}</div>
+                  <div matListItemLine>
+                    {{ formatTime(caption.start) }} - {{ formatTime(caption.end) }}
+                  </div>
+                  <div matListItemLine class="confidence">
+                    <mat-progress-bar
+                      mode="determinate"
+                      [value]="caption.confidence * 100"
+                    ></mat-progress-bar>
+                    {{ (caption.confidence * 100).toFixed(1) }}%
+                  </div>
+                </mat-list-item>
+              }
+            </mat-list>
+            <button mat-raised-button color="primary" (click)="applyCaptions()" class="apply-btn">
+              <mat-icon>check</mat-icon>
+              Apply Captions
+            </button>
+          } @else {
+            <div class="empty-state">
+              <mat-icon class="empty-icon">closed_caption</mat-icon>
+              <p>Generate captions from your audio/video content!</p>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Enhancement Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">tune</mat-icon>
+          Audio
+        </ng-template>
+        <div class="tab-content">
+          <h3>AI Audio Enhancement</h3>
+
+          <div class="enhancement-options">
+            <mat-checkbox checked>Noise Reduction</mat-checkbox>
+            <mat-checkbox checked>Volume Normalization</mat-checkbox>
+            <mat-checkbox>Voice Enhancement</mat-checkbox>
+          </div>
+
+          <button
+            mat-raised-button
+            color="primary"
+            [disabled]="!isConfigured()"
+            class="enhance-btn"
+          >
+            <mat-icon>auto_fix_high</mat-icon>
+            Enhance Audio
           </button>
-        } @else {
-          <div class="empty-state">
-            <p>Generate captions from your audio/video content!</p>
-          </div>
-        }
-      </div>
-    }
 
-    @if (selectedTab() === 'enhancement') {
-      <div class="enhancement-panel">
-        <div class="panel-header">
-          <h4>AI Audio Enhancement</h4>
+          <mat-card class="info-card">
+            <mat-card-content>
+              <mat-icon>info</mat-icon>
+              <strong>Pro Tip:</strong> AI audio enhancement can remove background noise,
+              normalize volume levels, and enhance voice clarity for professional sound quality.
+            </mat-card-content>
+          </mat-card>
         </div>
-
-        <div class="enhancement-options">
-          <label class="checkbox-option">
-            <input type="checkbox" checked />
-            <span>Noise Reduction</span>
-          </label>
-          <label class="checkbox-option">
-            <input type="checkbox" checked />
-            <span>Volume Normalization</span>
-          </label>
-          <label class="checkbox-option">
-            <input type="checkbox" />
-            <span>Voice Enhancement</span>
-          </label>
-        </div>
-
-        <button class="btn-enhance" [disabled]="!isConfigured()">
-          Enhance Audio
-        </button>
-
-        <div class="info-box">
-          <strong>💡 Pro Tip:</strong> AI audio enhancement can remove background noise,
-          normalize volume levels, and enhance voice clarity for professional sound quality.
-        </div>
-      </div>
-    }
-  </div>
-</div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card-content>
+</mat-card>

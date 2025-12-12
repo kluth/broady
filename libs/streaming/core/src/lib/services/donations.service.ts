@@ -147,7 +147,7 @@ export class DonationsService {
   }
 
   // Donation Goals
-  createGoal(title: string, target: number, currency: string = 'USD'): void {
+  createGoal(title: string, target: number, currency = 'USD'): void {
     const goal: DonationGoal = {
       id: crypto.randomUUID(),
       title,

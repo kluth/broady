@@ -244,7 +244,7 @@ export class ScriptVariablesService {
     type: ScriptVariable['type'],
     category: VariableCategory,
     description: string,
-    live: boolean = false,
+    live = false,
     source?: string
   ): void {
     this.variables.update(vars => {

@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
-import * as bodyPix from '@tensorflow-models/body-pix';
+// TODO: Re-enable when compatible body-pix model is available
+// import * as bodyPix from '@tensorflow-models/body-pix';
 
 /**
  * AI-Powered Background Removal Service
@@ -177,7 +178,8 @@ export class BackgroundRemovalService {
   private ctx: CanvasRenderingContext2D | null = null;
   private videoElement: HTMLVideoElement | null = null;
   private animationFrame?: number;
-  private modelInstance: bodyPix.BodyPix | null = null;
+  // TODO: Re-enable when compatible body-pix model is available
+  private modelInstance: any | null = null;
 
   async enable(): Promise<void> {
     if (this.isEnabled()) return;
@@ -220,14 +222,17 @@ export class BackgroundRemovalService {
 
     try {
       if (modelId === 'bodypix') {
+        // TODO: Re-enable when compatible body-pix model is available
         // Initialize TensorFlow.js backend (WebGL is recommended)
         await tf.ready();
-        this.modelInstance = await bodyPix.load({
-          architecture: 'MobileNetV1',
-          outputStride: 16,
-          multiplier: 0.75,
-          quantBytes: 2
-        });
+        // this.modelInstance = await bodyPix.load({
+        //   architecture: 'MobileNetV1',
+        //   outputStride: 16,
+        //   multiplier: 0.75,
+        //   quantBytes: 2
+        // });
+        console.warn('BodyPix model is temporarily disabled. Please use an alternative background removal method.');
+        await new Promise(resolve => setTimeout(resolve, 1000));
       } else {
         // Fallback or placeholder for other models not yet fully integrated
         console.warn(`Model ${modelId} not fully implemented, falling back to simulation for loading.`);
@@ -345,13 +350,14 @@ export class BackgroundRemovalService {
     
     if (this.modelInstance && this.videoElement) {
         try {
-            const segmentation = await this.modelInstance.segmentPerson(this.videoElement);
+            // TODO: Re-enable when compatible body-pix model is available
+            // const segmentation = await this.modelInstance.segmentPerson(this.videoElement);
             // Example: Draw the mask onto the canvas
-            const mask = bodyPix.toMask(segmentation);
-            
+            // const mask = bodyPix.toMask(segmentation);
+
             // In a real implementation, we would now compose the image.
             // bodyPix.drawMask(...) or similar
-            
+
             // For now, we will log that we are segmenting to show the logic is active
             // console.log('Segmented person:', segmentation);
         } catch (e) {

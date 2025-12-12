@@ -1,5 +1,12 @@
 import { Component, signal, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCardModule } from '@angular/material/card';
 import { StreamingService } from '../../services/streaming.service';
 import { RecordingService } from '../../services/recording.service';
 import { VirtualCameraService } from '../../services/virtual-camera.service';
@@ -8,147 +15,188 @@ import { StudioModeService } from '../../services/studio-mode.service';
 @Component({
   selector: 'lib-streaming-controls',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatBadgeModule,
+    MatChipsModule,
+    MatDividerModule,
+    MatTooltipModule,
+    MatCardModule
+  ],
   template: `
-    <div class="streaming-controls">
-      <div class="control-row">
-        <!-- Streaming -->
-        <div class="control-group">
-          @if (!isStreaming()) {
-          <button
-            class="btn-control btn-start-stream"
-            (click)="startStreaming()"
-            [disabled]="streamingDestinations().length === 0"
-          >
-            <span class="icon">🔴</span>
-            Start Streaming
-          </button>
-          } @else {
-          <button class="btn-control btn-stop-stream" (click)="stopStreaming()">
-            <span class="icon">⏹</span>
-            Stop Streaming
-          </button>
-          } @if (isStreaming()) {
-          <div class="stream-stats">
-            <span class="stat">
-              <span class="stat-label">FPS:</span>
-              <span class="stat-value">{{ streamStats().fps }}</span>
-            </span>
-            <span class="stat">
-              <span class="stat-label">Bitrate:</span>
-              <span class="stat-value"
-                >{{ streamStats().bitrate | number : '1.0-0' }} kbps</span
+    <mat-card class="streaming-controls">
+      <mat-card-content>
+        <div class="control-row">
+          <!-- Streaming -->
+          <div class="control-group">
+            @if (!isStreaming()) {
+              <button
+                mat-raised-button
+                color="warn"
+                (click)="startStreaming()"
+                [disabled]="streamingDestinations().length === 0"
+                matTooltip="Start streaming to configured destinations"
               >
-            </span>
-            <span class="stat">
-              <span class="stat-label">Dropped:</span>
-              <span class="stat-value" [class.warning]="dropPercentage() > 1">
-                {{ dropPercentage() | number : '1.2-2' }}%
-              </span>
-            </span>
+                <mat-icon>fiber_manual_record</mat-icon>
+                Start Streaming
+              </button>
+            } @else {
+              <button
+                mat-raised-button
+                color="warn"
+                (click)="stopStreaming()"
+              >
+                <mat-icon>stop</mat-icon>
+                Stop Streaming
+              </button>
+            }
+            @if (isStreaming()) {
+              <mat-chip-set class="stream-stats">
+                <mat-chip>
+                  <mat-icon>videocam</mat-icon>
+                  FPS: {{ streamStats().fps }}
+                </mat-chip>
+                <mat-chip>
+                  <mat-icon>speed</mat-icon>
+                  {{ streamStats().bitrate | number : '1.0-0' }} kbps
+                </mat-chip>
+                <mat-chip [color]="dropPercentage() > 1 ? 'warn' : ''">
+                  <mat-icon>warning</mat-icon>
+                  {{ dropPercentage() | number : '1.2-2' }}% dropped
+                </mat-chip>
+              </mat-chip-set>
+            }
           </div>
-          }
-        </div>
 
-        <!-- Recording -->
-        <div class="control-group">
-          @if (!isRecording()) {
-          <button
-            class="btn-control btn-start-record"
-            (click)="startRecording()"
-          >
-            <span class="icon">⚫</span>
-            Start Recording
-          </button>
-          } @else {
-          <button class="btn-control btn-stop-record" (click)="stopRecording()">
-            <span class="icon">⏹</span>
-            Stop Recording
-          </button>
-          } @if (isRecording()) {
-          <div class="recording-indicator">
-            <span class="pulse"></span>
-            <span>{{ recordingDuration() }}</span>
+          <mat-divider vertical></mat-divider>
+
+          <!-- Recording -->
+          <div class="control-group">
+            @if (!isRecording()) {
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="startRecording()"
+                matTooltip="Start recording locally"
+              >
+                <mat-icon>radio_button_checked</mat-icon>
+                Start Recording
+              </button>
+            } @else {
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="stopRecording()"
+              >
+                <mat-icon>stop</mat-icon>
+                Stop Recording
+              </button>
+            }
+            @if (isRecording()) {
+              <mat-chip color="warn" class="recording-chip">
+                <mat-icon>fiber_manual_record</mat-icon>
+                {{ recordingDuration() }}
+              </mat-chip>
+            }
           </div>
-          }
-        </div>
 
-        <!-- Replay Buffer -->
-        <div class="control-group">
-          @if (replayBufferEnabled()) {
-          <button class="btn-control btn-save-replay" (click)="saveReplay()">
-            <span class="icon">💾</span>
-            Save Replay
-          </button>
-          } @else {
-          <button
-            class="btn-control btn-enable-replay"
-            (click)="enableReplayBuffer()"
-          >
-            <span class="icon">📼</span>
-            Enable Replay Buffer
-          </button>
-          }
-        </div>
+          <mat-divider vertical></mat-divider>
 
-        <!-- Virtual Camera -->
-        <div class="control-group">
-          @if (!virtualCameraActive()) {
-          <button
-            class="btn-control btn-start-vcam"
-            (click)="startVirtualCamera()"
-          >
-            <span class="icon">📹</span>
-            Start Virtual Camera
-          </button>
-          } @else {
-          <button
-            class="btn-control btn-stop-vcam"
-            (click)="stopVirtualCamera()"
-          >
-            <span class="icon">⏹</span>
-            Stop Virtual Camera
-          </button>
-          } @if (virtualCameraActive()) {
-          <div class="vcam-status">
-            <span class="vcam-indicator"></span>
-            <span>{{ connectedApps().length }} app(s) connected</span>
+          <!-- Replay Buffer -->
+          <div class="control-group">
+            @if (replayBufferEnabled()) {
+              <button
+                mat-raised-button
+                color="accent"
+                (click)="saveReplay()"
+                matTooltip="Save instant replay"
+              >
+                <mat-icon>save</mat-icon>
+                Save Replay
+              </button>
+            } @else {
+              <button
+                mat-button
+                (click)="enableReplayBuffer()"
+                matTooltip="Enable instant replay buffer"
+              >
+                <mat-icon>history</mat-icon>
+                Enable Replay
+              </button>
+            }
           </div>
-          }
+
+          <mat-divider vertical></mat-divider>
+
+          <!-- Virtual Camera -->
+          <div class="control-group">
+            @if (!virtualCameraActive()) {
+              <button
+                mat-button
+                (click)="startVirtualCamera()"
+                matTooltip="Start virtual camera output"
+              >
+                <mat-icon>videocam</mat-icon>
+                Start Virtual Cam
+              </button>
+            } @else {
+              <button
+                mat-button
+                color="primary"
+                (click)="stopVirtualCamera()"
+                [matBadge]="connectedApps().length"
+                matBadgeColor="accent"
+              >
+                <mat-icon>videocam</mat-icon>
+                Virtual Cam Active
+              </button>
+            }
+          </div>
+
+          <mat-divider vertical></mat-divider>
+
+          <!-- Studio Mode -->
+          <div class="control-group">
+            <button
+              mat-button
+              [color]="studioModeEnabled() ? 'accent' : ''"
+              (click)="toggleStudioMode()"
+              matTooltip="Toggle studio mode (preview/program)"
+            >
+              <mat-icon>movie_creation</mat-icon>
+              Studio Mode
+            </button>
+
+            @if (studioModeEnabled()) {
+              <button
+                mat-mini-fab
+                color="primary"
+                (click)="transitionToPreview()"
+                [disabled]="inTransition()"
+                matTooltip="Transition to preview"
+              >
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            }
+          </div>
+
+          <mat-divider vertical></mat-divider>
+
+          <!-- Settings -->
+          <div class="control-group">
+            <button
+              mat-icon-button
+              (click)="openSettings()"
+              matTooltip="Open settings"
+            >
+              <mat-icon>settings</mat-icon>
+            </button>
+          </div>
         </div>
-
-        <!-- Studio Mode -->
-        <div class="control-group">
-          <button
-            class="btn-control"
-            [class.active]="studioModeEnabled()"
-            (click)="toggleStudioMode()"
-          >
-            <span class="icon">🎬</span>
-            Studio Mode
-          </button>
-
-          @if (studioModeEnabled()) {
-          <button
-            class="btn-control btn-transition"
-            (click)="transitionToPreview()"
-            [disabled]="inTransition()"
-          >
-            <span class="icon">➡️</span>
-            Transition
-          </button>
-          }
-        </div>
-      </div>
-
-      <!-- Settings Quick Access -->
-      <div class="settings-row">
-        <button class="btn-settings" (click)="openSettings()">
-          <span class="icon">⚙️</span>
-          Settings
-        </button>
-      </div>
-    </div>
+      </mat-card-content>
+    </mat-card>
   `,
   styles: [
     `

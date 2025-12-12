@@ -63,6 +63,11 @@ export * from './lib/services/hardware-integration.service';
 export * from './lib/services/capture-device.service';
 export * from './lib/services/rgb-peripherals.service';
 export * from './lib/services/production-hardware.service';
+export * from './lib/services/lorcana-card.service';
+export * from './lib/services/pokemon-tcg.service';
+export * from './lib/services/card-chat-commands.service';
+export * from './lib/services/stream-chatbot.service';
+export * from './lib/services/card-game-duels.service';
 
 // Components
 export * from './lib/components/scene-list/scene-list.component';
@@ -85,3 +90,5 @@ export * from './lib/components/workflow-builder/workflow-builder.component';
 export * from './lib/components/script-editor/script-editor.component';
 export * from './lib/components/game-integration/game-integration.component';
 export * from './lib/components/betting-system/betting-system.component';
+export * from './lib/components/card-overlay/card-overlay.component';
+export * from './lib/components/chatbot-config/chatbot-config.component';
