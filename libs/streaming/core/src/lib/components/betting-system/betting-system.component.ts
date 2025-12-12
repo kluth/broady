@@ -37,67 +37,28 @@ import { GameDetectionService } from '../../services/game-detection.service';
     MatProgressBarModule
   ],
   template: `
-    <div class="betting-system">
-      <!-- Header with Stats -->
-      <div class="header">
-        <h1>🎲 Viewer Betting System</h1>
-        <div class="stats-bar">
-          <div class="stat">
-            <div class="stat-value">{{ betting.statistics().activeBets }}</div>
-            <div class="stat-label">Active Bets</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">{{ betting.statistics().totalPointsInPlay }}</div>
-            <div class="stat-label">Points in Play</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">{{ betting.statistics().totalViewers }}</div>
-            <div class="stat-label">Total Bettors</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">{{ betting.statistics().resolvedBets }}</div>
-            <div class="stat-label">Resolved</div>
-          </div>
-        </div>
-      </div>
+    <mat-card class="betting-system">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>casino</mat-icon>
+          Viewer Betting System
+        </mat-card-title>
+        <mat-chip-set>
+          <mat-chip>Active: {{ betting.statistics().activeBets }}</mat-chip>
+          <mat-chip>Points in Play: {{ betting.statistics().totalPointsInPlay }}</mat-chip>
+          <mat-chip>Bettors: {{ betting.statistics().totalViewers }}</mat-chip>
+          <mat-chip>Resolved: {{ betting.statistics().resolvedBets }}</mat-chip>
+        </mat-chip-set>
+      </mat-card-header>
 
-      <!-- Tabs -->
-      <div class="tabs">
-        <button
-          (click)="activeTab.set('active')"
-          [class.active]="activeTab() === 'active'"
-          class="tab">
-          🎯 Active Bets
-        </button>
-        <button
-          (click)="activeTab.set('create')"
-          [class.active]="activeTab() === 'create'"
-          class="tab">
-          ➕ Create Bet
-        </button>
-        <button
-          (click)="activeTab.set('templates')"
-          [class.active]="activeTab() === 'templates'"
-          class="tab">
-          📋 Templates
-        </button>
-        <button
-          (click)="activeTab.set('leaderboard')"
-          [class.active]="activeTab() === 'leaderboard'"
-          class="tab">
-          🏆 Leaderboard
-        </button>
-        <button
-          (click)="activeTab.set('history')"
-          [class.active]="activeTab() === 'history'"
-          class="tab">
-          📜 History
-        </button>
-      </div>
-
-      <div class="tab-content">
-        <!-- Active Bets Tab -->
-        @if (activeTab() === 'active') {
+      <mat-card-content>
+        <mat-tab-group>
+          <!-- Active Bets Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">gps_fixed</mat-icon>
+              Active Bets
+            </ng-template>
           <div class="active-bets-tab">
             @if (activeBets().length > 0) {
               @for (bet of activeBets(); track bet.id) {
@@ -205,10 +166,14 @@ import { GameDetectionService } from '../../services/game-detection.service';
               </div>
             }
           </div>
-        }
+          </mat-tab>
 
-        <!-- Create Bet Tab -->
-        @if (activeTab() === 'create') {
+          <!-- Create Bet Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">add_circle</mat-icon>
+              Create Bet
+            </ng-template>
           <div class="create-bet-tab">
             <h2>Create New Bet</h2>
 
@@ -348,10 +313,14 @@ import { GameDetectionService } from '../../services/game-detection.service';
               </button>
             </div>
           </div>
-        }
+          </mat-tab>
 
-        <!-- Templates Tab -->
-        @if (activeTab() === 'templates') {
+          <!-- Templates Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">description</mat-icon>
+              Templates
+            </ng-template>
           <div class="templates-tab">
             <h2>Bet Templates</h2>
 
@@ -397,10 +366,14 @@ import { GameDetectionService } from '../../services/game-detection.service';
               }
             </div>
           </div>
-        }
+          </mat-tab>
 
-        <!-- Leaderboard Tab -->
-        @if (activeTab() === 'leaderboard') {
+          <!-- Leaderboard Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">emoji_events</mat-icon>
+              Leaderboard
+            </ng-template>
           <div class="leaderboard-tab">
             <h2>🏆 Top Bettors</h2>
 
@@ -443,10 +416,14 @@ import { GameDetectionService } from '../../services/game-detection.service';
               }
             </div>
           </div>
-        }
+          </mat-tab>
 
-        <!-- History Tab -->
-        @if (activeTab() === 'history') {
+          <!-- History Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">history</mat-icon>
+              History
+            </ng-template>
           <div class="history-tab">
             <h2>📜 Bet History</h2>
 
@@ -484,9 +461,10 @@ import { GameDetectionService } from '../../services/game-detection.service';
               </div>
             }
           </div>
-        }
-      </div>
-    </div>
+          </mat-tab>
+        </mat-tab-group>
+      </mat-card-content>
+    </mat-card>
   `,
   styles: [`
     .betting-system {

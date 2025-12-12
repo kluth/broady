@@ -38,44 +38,22 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
     MatBadgeModule
   ],
   template: `
-    <div class="game-integration">
-      <!-- Tabs -->
-      <div class="tabs">
-        <button
-          (click)="activeTab.set('detection')"
-          [class.active]="activeTab() === 'detection'"
-          class="tab">
-          🎮 Detection
-        </button>
-        <button
-          (click)="activeTab.set('apis')"
-          [class.active]="activeTab() === 'apis'"
-          class="tab">
-          🔌 API Connections
-        </button>
-        <button
-          (click)="activeTab.set('overlays')"
-          [class.active]="activeTab() === 'overlays'"
-          class="tab">
-          📊 Overlays
-        </button>
-        <button
-          (click)="activeTab.set('rules')"
-          [class.active]="activeTab() === 'rules'"
-          class="tab">
-          ⚙️ Game Rules
-        </button>
-        <button
-          (click)="activeTab.set('stats')"
-          [class.active]="activeTab() === 'stats'"
-          class="tab">
-          📈 Statistics
-        </button>
-      </div>
+    <mat-card class="game-integration">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>sports_esports</mat-icon>
+          Game Integration
+        </mat-card-title>
+      </mat-card-header>
 
-      <div class="tab-content">
-        <!-- Detection Tab -->
-        @if (activeTab() === 'detection') {
+      <mat-card-content>
+        <mat-tab-group [(selectedIndex)]="selectedTabIndex">
+          <!-- Detection Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">sports_esports</mat-icon>
+              Detection
+            </ng-template>
           <div class="detection-tab">
             <div class="section-header">
               <h2>Game Detection</h2>
@@ -151,10 +129,14 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
               }
             </div>
           </div>
-        }
+          </mat-tab>
 
-        <!-- API Connections Tab -->
-        @if (activeTab() === 'apis') {
+          <!-- API Connections Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">api</mat-icon>
+              API Connections
+            </ng-template>
           <div class="apis-tab">
             <h2>Gaming Platform APIs</h2>
 
@@ -184,20 +166,21 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
                           [placeholder]="platform.name + ' API Key'"
                           class="input" />
                         <button
-                          (click)="connectPlatform(platform.id)"
-                          class="btn-primary">
+                          mat-raised-button
+                          color="primary"
+                          (click)="connectPlatform(platform.id)">
                           Connect
                         </button>
                       </div>
                       <button
-                        (click)="showAPIInstructions(platform.id)"
-                        class="btn-link">
+                        mat-button
+                        (click)="showAPIInstructions(platform.id)">
                         How to get API key?
                       </button>
                     } @else {
                       <button
-                        (click)="disconnectPlatform(platform.id)"
-                        class="btn-secondary">
+                        mat-stroked-button
+                        (click)="disconnectPlatform(platform.id)">
                         Disconnect
                       </button>
 
@@ -231,10 +214,14 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
               </div>
             }
           </div>
-        }
+          </mat-tab>
 
-        <!-- Overlays Tab -->
-        @if (activeTab() === 'overlays') {
+          <!-- Overlays Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">dashboard</mat-icon>
+              Overlays
+            </ng-template>
           <div class="overlays-tab">
             <div class="section-header">
               <h2>Game Overlays</h2>
@@ -277,12 +264,18 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
                   </div>
 
                   <div class="overlay-actions">
-                    <button (click)="gameOverlay.toggleOverlay(overlay.id)" class="btn-icon">
-                      {{ overlay.visible ? '👁️' : '👁️‍🗨️' }}
+                    <button mat-icon-button (click)="gameOverlay.toggleOverlay(overlay.id)">
+                      <mat-icon>{{ overlay.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
                     </button>
-                    <button (click)="editOverlay(overlay)" class="btn-icon">✏️</button>
-                    <button (click)="gameOverlay.duplicateOverlay(overlay.id)" class="btn-icon">📋</button>
-                    <button (click)="gameOverlay.deleteOverlay(overlay.id)" class="btn-icon">🗑️</button>
+                    <button mat-icon-button (click)="editOverlay(overlay)">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="gameOverlay.duplicateOverlay(overlay.id)">
+                      <mat-icon>content_copy</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="gameOverlay.deleteOverlay(overlay.id)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
                   </div>
                 </div>
               }
@@ -290,22 +283,28 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
               @if (gameOverlay.overlays().length === 0) {
                 <div class="empty-state">
                   <p>No overlays created yet</p>
-                  <button (click)="showOverlayTemplates = true" class="btn-primary">
+                  <button mat-raised-button color="primary" (click)="showOverlayTemplates = true">
+                    <mat-icon>add</mat-icon>
                     Create Your First Overlay
                   </button>
                 </div>
               }
             </div>
           </div>
-        }
+          </mat-tab>
 
-        <!-- Game Rules Tab -->
-        @if (activeTab() === 'rules') {
+          <!-- Game Rules Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">rule</mat-icon>
+              Game Rules
+            </ng-template>
           <div class="rules-tab">
             <div class="section-header">
               <h2>Game-Specific Rules</h2>
-              <button (click)="showRuleCreator = !showRuleCreator" class="btn-primary">
-                ➕ New Rule
+              <button mat-raised-button color="primary" (click)="showRuleCreator = !showRuleCreator">
+                <mat-icon>add</mat-icon>
+                New Rule
               </button>
             </div>
 
@@ -331,8 +330,11 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
                   <input type="text" [(ngModel)]="newRule.customTitle" [placeholder]="'Playing {{game}}'" class="input" />
                 </div>
                 <div class="form-actions">
-                  <button (click)="createRule()" class="btn-primary">Create Rule</button>
-                  <button (click)="showRuleCreator = false" class="btn-secondary">Cancel</button>
+                  <button mat-raised-button color="primary" (click)="createRule()">
+                    <mat-icon>add</mat-icon>
+                    Create Rule
+                  </button>
+                  <button mat-button (click)="showRuleCreator = false">Cancel</button>
                 </div>
               </div>
             }
@@ -356,10 +358,12 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
                     </div>
                   </div>
                   <div class="rule-controls">
-                    <button (click)="gameDetection.toggleGameRule(rule.id)" class="btn-icon">
-                      {{ rule.enabled ? '✓' : '○' }}
+                    <button mat-icon-button [color]="rule.enabled ? 'primary' : ''" (click)="gameDetection.toggleGameRule(rule.id)">
+                      <mat-icon>{{ rule.enabled ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
                     </button>
-                    <button (click)="gameDetection.deleteGameRule(rule.id)" class="btn-icon">🗑️</button>
+                    <button mat-icon-button color="warn" (click)="gameDetection.deleteGameRule(rule.id)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
                   </div>
                 </div>
               }
@@ -371,10 +375,14 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
               }
             </div>
           </div>
-        }
+          </mat-tab>
 
-        <!-- Statistics Tab -->
-        @if (activeTab() === 'stats') {
+          <!-- Statistics Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">analytics</mat-icon>
+              Statistics
+            </ng-template>
           <div class="stats-tab">
             <h2>Gaming Statistics</h2>
 
@@ -416,9 +424,10 @@ import { GameOverlayService, GameOverlay } from '../../services/game-overlay.ser
               </div>
             </div>
           </div>
-        }
-      </div>
-    </div>
+          </mat-tab>
+        </mat-tab-group>
+      </mat-card-content>
+    </mat-card>
   `,
   styles: [`
     .game-integration {
