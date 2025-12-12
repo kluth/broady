@@ -1,0 +1,13 @@
+{
+  "name": "twitch-oauth",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/twitch-oauth/src",
+  "prefix": "twitch",
+  "projectType": "library",
+  "tags": ["streaming", "oauth", "twitch"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "facebook-oauth",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/facebook-oauth/src",
+  "prefix": "facebook",
+  "projectType": "library",
+  "tags": ["streaming", "oauth", "facebook"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

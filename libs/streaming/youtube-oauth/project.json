@@ -1,0 +1,13 @@
+{
+  "name": "youtube-oauth",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/streaming/youtube-oauth/src",
+  "prefix": "youtube",
+  "projectType": "library",
+  "tags": ["streaming", "oauth", "youtube"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

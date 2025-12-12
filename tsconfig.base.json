@@ -24,7 +24,13 @@
       "@org/streaming-protocols": ["libs/streaming/protocols/src/index.ts"],
       "@org/recording-engine": ["libs/streaming/recording/src/index.ts"],
       "@org/filters": ["libs/streaming/filters/src/index.ts"],
-      "@org/studio-mode": ["libs/streaming/studio-mode/src/index.ts"]
+      "@org/studio-mode": ["libs/streaming/studio-mode/src/index.ts"],
+      "@org/twitch-oauth": ["libs/streaming/twitch-oauth/src/index.ts"],
+      "@org/youtube-oauth": ["libs/streaming/youtube-oauth/src/index.ts"],
+      "@org/facebook-oauth": ["libs/streaming/facebook-oauth/src/index.ts"],
+      "@org/tiktok-oauth": ["libs/streaming/tiktok-oauth/src/index.ts"],
+      "@org/twitter-oauth": ["libs/streaming/twitter-oauth/src/index.ts"],
+      "@org/linkedin-oauth": ["libs/streaming/linkedin-oauth/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
