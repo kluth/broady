@@ -890,6 +890,20 @@ Alternative: Use official PlayStation Web API (requires approval).
         icon: '🎮',
         supported: true,
         requiresKey: true
+      },
+      {
+        id: 'lorcana',
+        name: 'Disney Lorcana TCG',
+        icon: '🎴',
+        supported: true,
+        requiresKey: false
+      },
+      {
+        id: 'pokemon-tcg',
+        name: 'Pokémon TCG',
+        icon: '⚡',
+        supported: true,
+        requiresKey: false
       }
     ];
   }
